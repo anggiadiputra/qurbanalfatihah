@@ -1,13 +1,13 @@
 import type { APIContext } from 'astro';
 import { getState, saveState, defaultState } from '../../lib/db';
 
-export async function GET({ locals }: APIContext) {
+export async function GET() {
   try {
-    const data = await getState(locals);
+    const data = await getState();
     return new Response(JSON.stringify(data || defaultState()), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error('GET /api/state error:', e);
     return new Response(JSON.stringify(defaultState()), {
       headers: { 'Content-Type': 'application/json' },
@@ -15,7 +15,7 @@ export async function GET({ locals }: APIContext) {
   }
 }
 
-export async function PATCH({ request, locals }: APIContext) {
+export async function PATCH({ request }: APIContext) {
   try {
     const body = await request.json();
     if (!body || typeof body !== 'object') {
@@ -24,7 +24,7 @@ export async function PATCH({ request, locals }: APIContext) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    await saveState(body, locals);
+    await saveState(body);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });

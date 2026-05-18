@@ -1,18 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 
-export function getDbUrl(locals?: App.Locals): string {
-  const runtime = (locals as any)?.runtime;
-  const url =
-    runtime?.env?.DATABASE_URL ||
-    (typeof process !== 'undefined' ? process.env?.DATABASE_URL : '') ||
-    import.meta.env.DATABASE_URL ||
-    '';
-  if (!url) throw new Error('DATABASE_URL is not configured. runtime=' + JSON.stringify(Object.keys(runtime?.env || {})));
-  return url;
+const DATABASE_URL = 'postgresql://neondb_owner:npg_lfi4whnS9pTo@ep-fragrant-frog-ao3dh0wh-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+
+export function getDbUrl(): string {
+  return DATABASE_URL;
 }
 
-export function createSql(locals?: App.Locals) {
-  return neon(getDbUrl(locals));
+export function createSql() {
+  return neon(getDbUrl());
 }
 
 export function defaultState() {
@@ -62,14 +57,14 @@ export function defaultState() {
   };
 }
 
-export async function getState(locals?: App.Locals) {
-  const sql = createSql(locals);
+export async function getState() {
+  const sql = createSql();
   const result = await sql`SELECT data FROM qurban_state WHERE id = 'default'`;
   return result.length > 0 ? result[0].data : null;
 }
 
-export async function saveState(data: unknown, locals?: App.Locals) {
-  const sql = createSql(locals);
+export async function saveState(data: unknown) {
+  const sql = createSql();
   const json = JSON.stringify(data);
   await sql`
     INSERT INTO qurban_state (id, data, updated_at)
@@ -79,8 +74,8 @@ export async function saveState(data: unknown, locals?: App.Locals) {
   `;
 }
 
-export async function resetState(locals?: App.Locals) {
+export async function resetState() {
   const data = defaultState();
-  await saveState(data, locals);
+  await saveState(data);
   return data;
 }
