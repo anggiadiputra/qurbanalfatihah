@@ -28,9 +28,9 @@ export async function PATCH({ request, locals }: APIContext) {
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error('PATCH /api/state error:', e);
-    return new Response(JSON.stringify({ error: 'Save failed' }), {
+    return new Response(JSON.stringify({ error: e?.message || 'Save failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

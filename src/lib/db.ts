@@ -1,11 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 
 export function getDbUrl(locals?: App.Locals): string {
+  const runtime = (locals as any)?.runtime;
   const url =
-    locals?.runtime?.env?.DATABASE_URL ||
+    runtime?.env?.DATABASE_URL ||
+    (typeof process !== 'undefined' ? process.env?.DATABASE_URL : '') ||
     import.meta.env.DATABASE_URL ||
     '';
-  if (!url) throw new Error('DATABASE_URL is not configured');
+  if (!url) throw new Error('DATABASE_URL is not configured. runtime=' + JSON.stringify(Object.keys(runtime?.env || {})));
   return url;
 }
 
