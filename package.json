@@ -5,17 +5,18 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "deploy": "astro build && wrangler pages deploy dist",
-    "db:migrate": "bun db/migrate.ts"
+    "preview": "bun run build && wrangler dev",
+    "deploy": "bun run build && wrangler deploy",
+    "db:migrate": "bun db/migrate.ts",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.5.2",
+    "@astrojs/cloudflare": "12",
     "@neondatabase/serverless": "^1.0.0",
     "astro": "^5.9.2"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
-    "wrangler": "^4.16.0"
+    "wrangler": "^4.92.0"
   }
 }
