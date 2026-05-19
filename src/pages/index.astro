@@ -766,28 +766,41 @@ input,select,textarea{font-family:inherit}
 .monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:40px;cursor:none}
 .monitor-overlay.visible{display:flex}
 .monitor-overlay:hover{cursor:default}
-.monitor-slide{width:100%;max-width:900px;text-align:center;animation:fadeIn .3s ease}
-.monitor-slide .stat-card,.monitor-slide .big-stat-card,.monitor-slide .card,.monitor-slide .clock-widget{border:none;box-shadow:none;background:transparent}
-.monitor-slide .stat-value{font-size:8vw;line-height:1.1}
-.monitor-slide .stat-label{font-size:2vw}
-.monitor-slide .stat-badge{font-size:1.5vw;padding:6px 18px}
-.monitor-slide .big-stat-num{font-size:10vw;line-height:1}
-.monitor-slide .big-stat-label{font-size:2vw}
-.monitor-slide .big-stat-sub{font-size:1.5vw}
-.monitor-slide .big-stat-footer{display:none}
-.monitor-slide .big-stat-card::after{display:none}
+.monitor-slide{width:100%;max-width:100%;text-align:left;padding:0 8vw}
+.monitor-slide *{transition:none!important;animation:none!important}
+.monitor-slide *:hover{transform:none!important;box-shadow:none!important}
+.monitor-slide .stat-card,.monitor-slide .big-stat-card,.monitor-slide .card,.monitor-slide .clock-widget{border:none;box-shadow:none;background:transparent;padding:0}
+.monitor-slide .stat-card::before,.monitor-slide .big-stat-card::after{display:none}
 .monitor-slide .big-stat-card .deco-icon{display:none}
-.monitor-slide .clock-widget-time{font-size:12vw}
-.monitor-slide .clock-widget-label{font-size:2vw}
-.monitor-slide .clock-widget-date{font-size:2vw}
-.monitor-slide .progress-bar{height:24px}
-.monitor-slide .info-chip{padding:20px 24px}
-.monitor-slide .info-chip-label{font-size:1.5vw}
-.monitor-slide .info-chip-val{font-size:3vw}
-.monitor-slide .process-item{padding:18px 24px}
-.monitor-slide .process-name{font-size:2vw}
-.monitor-slide .process-sub{font-size:1.2vw}
-.monitor-slide .process-count{font-size:2.5vw}
+.monitor-slide .stat-card:hover,.monitor-slide .big-stat-card:hover,.monitor-slide .card:hover,.monitor-slide .clock-widget:hover{transform:none;box-shadow:none}
+.monitor-slide .stat-value{font-size:18vw;line-height:1}
+.monitor-slide .stat-label{font-size:3vw;margin-bottom:2vh}
+.monitor-slide .stat-badge{position:fixed;bottom:8vh;left:8vw;font-size:2vw;padding:8px 24px;border-radius:30px}
+.monitor-slide .big-stat-num{font-size:18vw;line-height:1}
+.monitor-slide .big-stat-label{font-size:3vw;margin-bottom:1vh}
+.monitor-slide .big-stat-sub{position:fixed;bottom:8vh;left:8vw;font-size:2vw}
+.monitor-slide .big-stat-top{margin-bottom:2vh}
+.monitor-slide .big-stat-icon{display:none}
+.monitor-slide .big-stat-footer{display:none}
+.monitor-slide .clock-widget{padding:0}
+.monitor-slide .clock-widget-time{font-size:18vw;text-align:left}
+.monitor-slide .clock-widget-label{font-size:3vw;text-align:left}
+.monitor-slide .clock-widget-date{font-size:2.5vw;text-align:left}
+.monitor-slide .progress-bar{height:3vh;border-radius:2vh}
+.monitor-slide .progress-fill{border-radius:2vh}
+.monitor-slide .progress-fill::after{display:none}
+.monitor-slide .info-chip{padding:3vh 3vw;border:none;background:transparent}
+.monitor-slide .info-chip-label{font-size:2vw}
+.monitor-slide .info-chip-val{font-size:4vw}
+.monitor-slide .process-item{padding:2vh 0;border:none;box-shadow:none;background:transparent}
+.monitor-slide .process-item:hover{transform:none;box-shadow:none}
+.monitor-slide .process-name{font-size:2.5vw}
+.monitor-slide .process-sub{font-size:1.5vw}
+.monitor-slide .process-count{font-size:3vw}
+.monitor-slide .process-num{font-size:1.5vw}
+.monitor-slide .process-progress{width:30vw}
+.monitor-slide .status-badge{font-size:1.3vw;padding:4px 14px}
+.monitor-slide .status-badge::before{display:none}
 .monitor-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;opacity:0;transition:opacity .3s}
 .monitor-overlay:hover .monitor-nav{opacity:1}
 .monitor-nav-btn{background:var(--surface);border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text-secondary);transition:all .15s}
