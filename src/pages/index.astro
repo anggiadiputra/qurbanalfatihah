@@ -137,7 +137,7 @@
       <div style="flex:1"></div>
       <div class="header-clock" id="clockDisplay">--:--:-- WIB</div>
       <div class="header-actions">
-        <button class="btn-ghost btn-sm" id="customizeColorsBtn" style="font-size:12px">🎨 Warna</button>
+        <button class="btn btn-ghost btn-sm" id="customizeColorsBtn">🎨 Warna</button>
         <button class="btn-icon" id="exportBtn" title="Export Excel">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
@@ -1212,7 +1212,7 @@ function setupCardColorListeners() {
 // ================================================================
 let dashEditMode = false;
 let monitorMode = false;
-const defaultLayout = {order:['stat-total','stat-sembelih','stat-keluar','stat-distribusi','big-kuliti','big-karkas','big-packing','progress'],hidden:[]};
+const defaultLayout = {order:['stat-total','stat-sembelih','stat-keluar','stat-dicacah','stat-distribusi','big-kuliti','big-karkas','big-packing','progress'],hidden:[]};
 
 const widgetRegistry = [
   {id:'clock', name:'Jam Realtime', desc:'Jam digital WIB ukuran besar', wide:false, removable:true},
@@ -1220,6 +1220,7 @@ const widgetRegistry = [
   {id:'stat-total', name:'Total Hewan', desc:'Statistik total hewan qurban', wide:false},
   {id:'stat-sembelih', name:'Tersembelih', desc:'Jumlah hewan tersembelih', wide:false},
   {id:'stat-keluar', name:'Keluar Kandang', desc:'Jumlah hewan keluar dari kandang', wide:false},
+  {id:'stat-dicacah', name:'Sudah Dicacah', desc:'Jumlah hewan sudah dicacah', wide:false},
   {id:'stat-distribusi', name:'Distribusi', desc:'Jumlah distribusi selesai', wide:false},
   {id:'big-kuliti', name:'Kartu Hewan Terkuliti', desc:'Kartu besar progress kuliti', wide:false},
   {id:'big-karkas', name:'Kartu Hewan Terkarkas', desc:'Kartu besar progress karkas', wide:false},
@@ -1347,6 +1348,7 @@ function renderWidgetContent(id) {
     case 'stat-total': el.innerHTML = statCard('green','Total Hewan',total,'Target','green'); break;
     case 'stat-sembelih': el.innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue'); break;
     case 'stat-keluar': { const kel = totalKeluar(); el.innerHTML = statCard('amber','Keluar Kandang',kel,pct(kel,total)+'%','amber'); break; }
+    case 'stat-dicacah': { const dc = totalDicacah(); el.innerHTML = statCard('purple','Sudah Dicacah',dc,pct(dc,total)+'%','purple'); break; }
     case 'stat-distribusi': el.innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon'); break;
     case 'big-kuliti': el.innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total)); break;
     case 'big-karkas': el.innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total)); break;
@@ -1789,6 +1791,7 @@ function renderDashboard() {
       {name:'Penyembelihan',done:dipotong,color:'maroon'},
       {name:'Transit',done:state.transit.hewan||0,color:'amber'},
       {name:'Pengulitan',done:dikuliti,color:'blue'},
+      {name:'Transit Cacah',done:Math.max(0,dikuliti-(dicacah+karkas)),color:'amber'},
       {name:'Cacah & Karkas',done:dicacah+karkas,color:'purple'},
       {name:'Distribusi',done:distrib,color:'blue'},
     ];
@@ -1806,6 +1809,9 @@ function renderDashboard() {
 }
 
 let _cardIdx = 0;
+function ccBtn(cid,saved) {
+  return '<div class="card-color-btn" style="background:'+(saved||'var(--green)')+'"><input type="color" value="'+(saved||'#10b981')+'" data-cid="'+cid+'"></div>';
+}
 function statCard(color, label, value, badge, badgeColor, pageCtx) {
   const cid = (pageCtx||'d')+'-s'+(++_cardIdx);
   const saved = getCardColor(cid);
@@ -1876,11 +1882,15 @@ function renderSembelih() {
     statCard('maroon','Belum',total-dipotong,'Sisa','maroon','sb') +
     statCard('amber','Progress',pct(dipotong,total)+'%','Keseluruhan','amber','sb');
   document.getElementById('sembelihGrid').innerHTML = state.sembelih.map(s => {
+    const cid = 'sb-u'+(++_cardIdx);
+    const sc = getCardColor(cid);
     const p2 = pct(s.dipotong||0, Math.ceil(state.totalHewan/10)||1);
-    return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Lubang #'+s.no+'</div>'+
+    return '<div class="unit-card" data-cid="'+cid+'" style="'+(sc?'border-color:'+sc+'30;':'')+'">'+
+      ccBtn(cid,sc)+
+      '<div class="unit-card-header"><div class="unit-num">Lubang #'+s.no+'</div>'+
       '<span class="status-badge '+statusClass(s.status)+'">'+statusLabel(s.status)+'</span></div>'+
-      '<div class="unit-val">'+(s.dipotong||0)+'</div><div class="unit-meta">Hewan dipotong</div>'+
-      '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill maroon" style="width:'+p2+'%"></div></div>'+
+      '<div class="unit-val" style="'+(sc?'color:'+sc:'')+'">'+(s.dipotong||0)+'</div><div class="unit-meta">Hewan dipotong</div>'+
+      '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill maroon" style="width:'+p2+'%;'+(sc?'background:'+sc:'')+'"></div></div>'+
       '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right">'+p2+'%</div></div>'+
       '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val">'+(s.waktuMulai||'—')+'</div></div>'+
       '<div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val">'+(s.waktuSelesai||'—')+'</div></div>'+
@@ -1934,10 +1944,13 @@ function filterKalet() {
     const p2 = pct(k.total||0, Math.ceil(state.totalHewan/30)||1);
     const colors = {selesai:'green',berjalan:'blue',menunggu:'amber',belum:'maroon'};
     const col = colors[k.status] || 'maroon';
-    return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">K-'+String(k.no).padStart(2,'0')+'</div>'+
+    const cid = 'kl-u'+(++_cardIdx);
+    const sc = getCardColor(cid);
+    return '<div class="unit-card" data-cid="'+cid+'" style="'+(sc?'border-color:'+sc+'30;':'')+'">'+ccBtn(cid,sc)+
+      '<div class="unit-card-header"><div class="unit-num">K-'+String(k.no).padStart(2,'0')+'</div>'+
       '<span class="status-badge '+statusClass(k.status)+'" style="font-size:10px;padding:2px 7px">'+statusLabel(k.status)+'</span></div>'+
-      '<div class="unit-val" style="font-size:18px">'+(k.total||0)+'</div><div class="unit-meta">Hewan dikuliti</div>'+
-      '<div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill '+col+'" style="width:'+p2+'%"></div></div></div>'+
+      '<div class="unit-val" style="font-size:18px;'+(sc?'color:'+sc:'')+'">'+(k.total||0)+'</div><div class="unit-meta">Hewan dikuliti</div>'+
+      '<div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill '+col+'" style="width:'+p2+'%;'+(sc?'background:'+sc:'')+'"></div></div></div>'+
       '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val" style="font-size:10px">'+(k.waktuMulai||'—')+'</div></div>'+
       '<div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val" style="font-size:10px">'+(k.waktuSelesai||'—')+'</div></div></div></div>';
   }).join('');
@@ -1949,10 +1962,13 @@ function filterKalet() {
 function renderPencacahan() {
   document.getElementById('mejaCacahGrid').innerHTML = state.cacah.map(c => {
     const p2 = pct(c.total||0, Math.ceil(state.totalHewan/6)||1);
-    return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Meja #'+c.no+'</div>'+
+    const cid = 'cc-u'+(++_cardIdx);
+    const sc = getCardColor(cid);
+    return '<div class="unit-card" data-cid="'+cid+'" style="'+(sc?'border-color:'+sc+'30;':'')+'">'+ccBtn(cid,sc)+
+      '<div class="unit-card-header"><div class="unit-num">Meja #'+c.no+'</div>'+
       '<span class="status-badge '+statusClass(c.status)+'">'+statusLabel(c.status)+'</span></div>'+
-      '<div class="unit-val">'+(c.total||0)+'</div><div class="unit-meta">Hewan dicacah</div>'+
-      '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill purple" style="width:'+p2+'%"></div></div>'+
+      '<div class="unit-val" style="'+(sc?'color:'+sc:'')+'">'+(c.total||0)+'</div><div class="unit-meta">Hewan dicacah</div>'+
+      '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill purple" style="width:'+p2+'%;'+(sc?'background:'+sc:'')+'"></div></div>'+
       '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right">'+p2+'%</div></div>'+
       '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val">'+(c.waktuMulai||'—')+'</div></div>'+
       '<div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val">'+(c.waktuSelesai||'—')+'</div></div>'+
