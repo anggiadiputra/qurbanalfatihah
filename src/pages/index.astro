@@ -173,7 +173,7 @@
       <div id="dashWidgetContainer">
         <div class="dash-widget" data-widget="stat-total"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Total Hewan</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-total"></div></div>
         <div class="dash-widget" data-widget="stat-sembelih"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Tersembelih</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-sembelih"></div></div>
-        <div class="dash-widget" data-widget="stat-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Sudah Dikuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-kuliti"></div></div>
+        <div class="dash-widget" data-widget="stat-keluar"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Keluar Kandang</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-keluar"></div></div>
         <div class="dash-widget" data-widget="stat-distribusi"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Distribusi</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-distribusi"></div></div>
         <div class="dash-widget" data-widget="big-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-kuliti"></div></div>
         <div class="dash-widget" data-widget="big-karkas"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkarkas</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-karkas"></div></div>
@@ -1078,14 +1078,14 @@ function setupThemeUI() {
 // ================================================================
 let dashEditMode = false;
 let monitorMode = false;
-const defaultLayout = {order:['stat-total','stat-sembelih','stat-kuliti','stat-distribusi','big-kuliti','big-karkas','big-packing','progress'],hidden:[]};
+const defaultLayout = {order:['stat-total','stat-sembelih','stat-keluar','stat-distribusi','big-kuliti','big-karkas','big-packing','progress'],hidden:[]};
 
 const widgetRegistry = [
   {id:'clock', name:'Jam Realtime', desc:'Jam digital WIB ukuran besar', wide:false, removable:true},
   {id:'tanggal', name:'Tanggal & Hari', desc:'Tanggal qurban dan hari ini', wide:false, removable:true},
   {id:'stat-total', name:'Total Hewan', desc:'Statistik total hewan qurban', wide:false},
   {id:'stat-sembelih', name:'Tersembelih', desc:'Jumlah hewan tersembelih', wide:false},
-  {id:'stat-kuliti', name:'Sudah Dikuliti', desc:'Jumlah hewan sudah dikuliti', wide:false},
+  {id:'stat-keluar', name:'Keluar Kandang', desc:'Jumlah hewan keluar dari kandang', wide:false},
   {id:'stat-distribusi', name:'Distribusi', desc:'Jumlah distribusi selesai', wide:false},
   {id:'big-kuliti', name:'Kartu Hewan Terkuliti', desc:'Kartu besar progress kuliti', wide:false},
   {id:'big-karkas', name:'Kartu Hewan Terkarkas', desc:'Kartu besar progress karkas', wide:false},
@@ -1098,7 +1098,7 @@ function loadLayout() {
     const raw = localStorage.getItem('qurbanLayout');
     if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}};
     const parsed = JSON.parse(raw);
-    const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList');
+    const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList').map(x => x === 'stat-kuliti' ? 'stat-keluar' : x);
     return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}};
   } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}}; }
 }
@@ -1171,7 +1171,7 @@ function renderWidgetContent(id) {
       break;
     case 'stat-total': el.innerHTML = statCard('green','Total Hewan',total,'Target','green'); break;
     case 'stat-sembelih': el.innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue'); break;
-    case 'stat-kuliti': el.innerHTML = statCard('amber','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','amber'); break;
+    case 'stat-keluar': { const kel = totalKeluar(); el.innerHTML = statCard('amber','Keluar Kandang',kel,pct(kel,total)+'%','amber'); break; }
     case 'stat-distribusi': el.innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon'); break;
     case 'big-kuliti': el.innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total)); break;
     case 'big-karkas': el.innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total)); break;
