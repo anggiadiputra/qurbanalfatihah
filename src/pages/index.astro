@@ -747,7 +747,7 @@ input,select,textarea{font-family:inherit}
 @media(max-width:768px){.sidebar-overlay.active{display:block}}
 
 /* Dashboard widgets */
-#dashWidgetContainer{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+#dashWidgetContainer{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .dash-widget{position:relative;min-width:0}
 .dash-widget.wide-widget{grid-column:1/-1}
 @media(max-width:480px){#dashWidgetContainer{grid-template-columns:1fr}}
@@ -936,8 +936,6 @@ function startClock() {
     document.getElementById('clockDisplay').textContent = timeStr;
     const wc = document.getElementById('widgetClock');
     if (wc) wc.textContent = timeStr;
-    const wd = document.getElementById('widgetClockDate');
-    if (wd) wd.textContent = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
   }
   update();
   setInterval(update, 1000);
@@ -1158,16 +1156,14 @@ function renderWidgetContent(id) {
   switch(id) {
     case 'clock':
       if (!el.querySelector('.clock-widget')) {
-        el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Waktu Saat Ini</div><div class="clock-widget-time" id="widgetClock">--:--:--</div><div class="clock-widget-date" id="widgetClockDate"></div></div>';
+        el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Waktu Saat Ini</div><div class="clock-widget-time" id="widgetClock">--:--:--</div></div>';
       }
       const now = new Date();
       const cEl = document.getElementById('widgetClock');
-      const dEl = document.getElementById('widgetClockDate');
       if (cEl) cEl.textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' WIB';
-      if (dEl) dEl.textContent = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
       break;
     case 'tanggal':
-      el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--blue)">'+(state.tanggal||'—')+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
+      el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div class="clock-widget-time" style="font-size:2em;color:var(--blue)">'+(state.tanggal||'—')+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
       break;
     case 'stat-total': el.innerHTML = statCard('green','Total Hewan',total,'Target','green'); break;
     case 'stat-sembelih': el.innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue'); break;
