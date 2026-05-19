@@ -178,32 +178,12 @@
         <div class="dash-widget" data-widget="big-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-kuliti"></div></div>
         <div class="dash-widget" data-widget="big-karkas"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkarkas</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-karkas"></div></div>
         <div class="dash-widget" data-widget="big-packing"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Packing Selesai</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-packing"></div></div>
-        <div class="dash-widget" data-widget="progress"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div>
-          <div class="dash-widget-body">
-            <div class="card" style="margin-bottom:20px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <div style="font-weight:700;font-size:15px;">Progress Keseluruhan</div>
-                <div class="mono" style="font-size:20px;font-weight:700;color:var(--green);" id="dashTotalPct">0%</div>
-              </div>
-              <div style="margin-bottom:16px;">
-                <div class="progress-bar" style="height:14px;"><div class="progress-fill green" id="dashTotalBar" style="width:0%"></div></div>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-                <div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono" id="dashStartTime">&mdash;</div></div>
-                <div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono" id="dashEndTime">&mdash;</div></div>
-                <div class="info-chip"><div class="info-chip-label">Durasi Berjalan</div><div class="info-chip-val mono" id="dashDuration">&mdash;</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="dash-widget" data-widget="processList"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Status Proses</span><button class="dash-widget-toggle">👁</button></div>
-          <div class="dash-widget-body">
-            <div class="card">
-              <div style="font-weight:700;font-size:15px;margin-bottom:16px;">Status Tiap Proses</div>
-              <div class="process-row" id="processList"></div>
-            </div>
-          </div>
-        </div>
+        <div class="dash-widget wide-widget" data-widget="progress"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-progress"></div></div>
+      </div>
+      <!-- Process list always at bottom, not part of widget grid -->
+      <div class="card" style="margin-top:20px;" id="processListCard">
+        <div style="font-weight:700;font-size:15px;margin-bottom:16px;">Status Tiap Proses</div>
+        <div class="process-row" id="processList"></div>
       </div>
     </section>
 
@@ -798,11 +778,11 @@ input,select,textarea{font-family:inherit}
 .monitor-mode .monitor-exit-btn{display:block}
 
 /* Clock widget */
-.clock-widget{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow);padding:24px;text-align:center;transition:all var(--transition)}
+.clock-widget{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow);padding:1.5em;text-align:center;transition:all var(--transition)}
 .clock-widget:hover{box-shadow:var(--shadow-md)}
-.clock-widget-time{font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:800;line-height:1;color:var(--green)}
-.clock-widget-date{font-size:14px;color:var(--text-secondary);margin-top:8px;font-weight:500}
-.clock-widget-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px}
+.clock-widget-time{font-family:'JetBrains Mono',monospace;font-size:3em;font-weight:800;line-height:1.1;color:var(--green);word-break:break-all}
+.clock-widget-date{font-size:1em;color:var(--text-secondary);margin-top:.5em;font-weight:500}
+.clock-widget-label{font-size:.8em;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:.5em}
 .dash-widget-bar{display:none;align-items:center;gap:8px;padding:8px 14px;margin-bottom:8px;background:var(--surface2);border:2px dashed var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:grab;user-select:none}
 .dash-widget-bar:active{cursor:grabbing}
 .dash-widget-grip{font-size:16px;opacity:.4;letter-spacing:2px}
@@ -1098,7 +1078,7 @@ function setupThemeUI() {
 // ================================================================
 let dashEditMode = false;
 let monitorMode = false;
-const defaultLayout = {order:['stat-total','stat-sembelih','stat-kuliti','stat-distribusi','big-kuliti','big-karkas','big-packing','progress','processList'],hidden:[]};
+const defaultLayout = {order:['stat-total','stat-sembelih','stat-kuliti','stat-distribusi','big-kuliti','big-karkas','big-packing','progress'],hidden:[]};
 
 const widgetRegistry = [
   {id:'clock', name:'Jam Realtime', desc:'Jam digital WIB ukuran besar', wide:false, removable:true},
@@ -1111,16 +1091,16 @@ const widgetRegistry = [
   {id:'big-karkas', name:'Kartu Hewan Terkarkas', desc:'Kartu besar progress karkas', wide:false},
   {id:'big-packing', name:'Kartu Packing Selesai', desc:'Kartu besar progress packing', wide:false},
   {id:'progress', name:'Progress Keseluruhan', desc:'Bar progress & waktu operasional', wide:true},
-  {id:'processList', name:'Status Tiap Proses', desc:'Daftar semua tahapan proses', wide:true},
 ];
 
 function loadLayout() {
   try {
     const raw = localStorage.getItem('qurbanLayout');
-    if (!raw) return {...defaultLayout, hidden:[]};
+    if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}};
     const parsed = JSON.parse(raw);
-    return {order: parsed.order || defaultLayout.order, hidden: parsed.hidden || []};
-  } catch(e) { return {...defaultLayout, hidden:[]}; }
+    const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList');
+    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}};
+  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}}; }
 }
 
 function saveLayout(layout) {
@@ -1196,6 +1176,20 @@ function renderWidgetContent(id) {
     case 'big-kuliti': el.innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total)); break;
     case 'big-karkas': el.innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total)); break;
     case 'big-packing': el.innerHTML = bigStat('violet','Packing Selesai',packing,totalPack,pct(packing,totalPack||1)); break;
+    case 'progress': {
+      const overallPct = pct(distrib, total);
+      el.innerHTML =
+        '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
+        '<div style="font-weight:700;font-size:1.07em">Progress Keseluruhan</div>'+
+        '<div class="mono" style="font-size:1.4em;font-weight:700;color:var(--green)">'+overallPct+'%</div></div>'+
+        '<div style="margin-bottom:16px"><div class="progress-bar" style="height:14px"><div class="progress-fill green" style="width:'+overallPct+'%"></div></div></div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">'+
+        '<div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">'+(state.waktuMulai||'—')+'</div></div>'+
+        '<div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">'+(state.waktuSelesai||(overallPct>=100?'Selesai':'Berjalan...'))+'</div></div>'+
+        '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">'+durationStr(state.waktuMulai,state.waktuSelesai)+'</div></div>'+
+        '</div></div>';
+      break;
+    }
   }
 }
 
@@ -1327,12 +1321,23 @@ function toggleMonitorMode() {
   monitorMode = !monitorMode;
   document.body.classList.toggle('monitor-mode', monitorMode);
   if (monitorMode) {
-    navigate('dashboard','Dashboard Utama');
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-dashboard').classList.add('active');
+    document.getElementById('headerTitle').textContent = 'Dashboard Utama';
+    renderAll();
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
   } else {
     if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    renderAll();
   }
 }
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && monitorMode) {
+    monitorMode = false;
+    document.body.classList.remove('monitor-mode');
+    renderAll();
+  }
+});
 
 function setupDashLayout() {
   applyLayout();
@@ -1468,15 +1473,6 @@ function renderDashboard() {
 
   const layout = loadLayout();
   layout.order.forEach(id => renderWidgetContent(id));
-
-  const pctEl = document.getElementById('dashTotalPct');
-  if (pctEl) {
-    pctEl.textContent = overallPct + '%';
-    document.getElementById('dashTotalBar').style.width = overallPct + '%';
-    document.getElementById('dashStartTime').textContent = state.waktuMulai || '—';
-    document.getElementById('dashEndTime').textContent = state.waktuSelesai || (overallPct >= 100 ? 'Selesai' : 'Berjalan...');
-    document.getElementById('dashDuration').textContent = durationStr(state.waktuMulai, state.waktuSelesai);
-  }
 
   const plEl = document.getElementById('processList');
   if (plEl) {
