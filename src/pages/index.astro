@@ -783,7 +783,7 @@ input,select,textarea{font-family:inherit}
 .monitor-slide .big-stat-icon{display:none}
 .monitor-slide .big-stat-footer{display:none}
 .monitor-slide .clock-widget{padding:0}
-.monitor-slide .clock-widget-time{font-size:22vw;text-align:center;line-height:.9}
+.monitor-slide .clock-widget-time{font-size:18vw;text-align:center;line-height:.9}
 .monitor-slide .clock-widget-label{font-size:3vw;text-align:center}
 .monitor-slide .clock-widget-date{display:none}
 .monitor-slide .progress-bar{height:3vh;border-radius:2vh}
@@ -1205,7 +1205,7 @@ function renderWidgetContent(id) {
       }
       const now = new Date();
       const cEl = document.getElementById('widgetClock');
-      if (cEl) cEl.textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' WIB';
+      if (cEl) cEl.textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
       break;
     case 'tanggal':
       el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div class="clock-widget-time" style="font-size:2em;color:var(--blue)">'+(state.tanggal||'—')+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
