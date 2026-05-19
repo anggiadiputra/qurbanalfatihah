@@ -19,9 +19,13 @@
   <button class="monitor-exit" id="monitorExitBtn">✕ ESC</button>
   <div class="monitor-slide" id="monitorSlide"></div>
   <div class="monitor-nav">
-    <button class="monitor-nav-btn" id="monitorPrev">◀</button>
+    <button class="monitor-nav-btn" id="monitorPrev" aria-label="Slide sebelumnya">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
     <div class="monitor-nav-dots" id="monitorDots"></div>
-    <button class="monitor-nav-btn" id="monitorNext">▶</button>
+    <button class="monitor-nav-btn" id="monitorNext" aria-label="Slide berikutnya">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
     <span class="monitor-nav-info" id="monitorInfo"></span>
   </div>
 </div>
@@ -770,7 +774,7 @@ input,select,textarea{font-family:inherit}
 html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:48px 6vw 72px;cursor:none}
 .monitor-overlay.visible{display:flex}
-.monitor-overlay:hover{cursor:default}
+.monitor-overlay.controls-visible{cursor:default}
 .monitor-slide{width:100%;max-width:1200px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:min(74vh,640px)}
 .monitor-slide *{transition:none!important;animation:none!important}
 .monitor-slide *:hover{transform:none!important;box-shadow:none!important}
@@ -812,16 +816,17 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-slide .process-progress{width:360px}
 .monitor-slide .status-badge{font-size:1rem;padding:4px 14px}
 .monitor-slide .status-badge::before{display:none}
-.monitor-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;opacity:0;transition:opacity .3s}
-.monitor-overlay:hover .monitor-nav{opacity:1}
-.monitor-nav-btn{background:var(--surface);border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text-secondary);transition:all .15s}
+.monitor-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.monitor-overlay.controls-visible .monitor-nav{opacity:1;pointer-events:auto}
+.monitor-nav-btn{background:var(--surface);border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s;padding:0}
+.monitor-nav-btn svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .monitor-nav-btn:hover{background:var(--surface2);color:var(--text-primary)}
 .monitor-nav-dots{display:flex;gap:6px}
 .monitor-nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .2s}
 .monitor-nav-dot.active{background:var(--green);width:24px;border-radius:4px}
 .monitor-nav-info{font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
-.monitor-exit{position:fixed;top:16px;right:16px;z-index:510;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;opacity:0;transition:opacity .3s}
-.monitor-overlay:hover .monitor-exit{opacity:.6}
+.monitor-exit{position:fixed;top:16px;right:16px;z-index:510;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s}
+.monitor-overlay.controls-visible .monitor-exit{opacity:.6;pointer-events:auto}
 .monitor-exit:hover{opacity:1!important}
 @media(max-width:900px){
   .monitor-overlay{padding:40px 5vw 72px}
@@ -1428,6 +1433,7 @@ function addWidgetToLayout(id) {
 let monitorSlideIdx = 0;
 let monitorWidgets = [];
 let monitorInterval = null;
+let monitorControlsTimer = null;
 
 function getVisibleWidgetIds() {
   const layout = loadLayout();
@@ -1445,6 +1451,7 @@ function enterMonitorMode() {
   document.getElementById('monitorOverlay').classList.add('visible');
   renderMonitorSlide();
   renderMonitorDots();
+  showMonitorControls();
   if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
   monitorInterval = setInterval(() => { renderMonitorSlide(); }, 1000);
 }
@@ -1454,9 +1461,25 @@ function exitMonitorMode() {
   monitorMode = false;
   document.documentElement.classList.remove('monitoring');
   document.body.classList.remove('monitoring');
-  document.getElementById('monitorOverlay').classList.remove('visible');
+  const overlay = document.getElementById('monitorOverlay');
+  overlay.classList.remove('visible','controls-visible');
   if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
+  if (monitorControlsTimer) { clearTimeout(monitorControlsTimer); monitorControlsTimer = null; }
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+
+function hideMonitorControls() {
+  const overlay = document.getElementById('monitorOverlay');
+  overlay.classList.remove('controls-visible');
+  monitorControlsTimer = null;
+}
+
+function showMonitorControls() {
+  if (!monitorMode) return;
+  const overlay = document.getElementById('monitorOverlay');
+  overlay.classList.add('controls-visible');
+  if (monitorControlsTimer) clearTimeout(monitorControlsTimer);
+  monitorControlsTimer = setTimeout(hideMonitorControls, 1800);
 }
 
 function renderMonitorSlide() {
@@ -1483,6 +1506,7 @@ function monitorGo(dir) {
   monitorSlideIdx = (monitorSlideIdx + dir + monitorWidgets.length) % monitorWidgets.length;
   renderMonitorSlide();
   renderMonitorDots();
+  showMonitorControls();
 }
 
 function toggleMonitorMode() { monitorMode ? exitMonitorMode() : enterMonitorMode(); }
@@ -1507,6 +1531,8 @@ function setupDashLayout() {
   document.getElementById('monitorExitBtn').addEventListener('click', exitMonitorMode);
   document.getElementById('monitorPrev').addEventListener('click', () => monitorGo(-1));
   document.getElementById('monitorNext').addEventListener('click', () => monitorGo(1));
+  document.getElementById('monitorOverlay').addEventListener('mousemove', showMonitorControls);
+  document.getElementById('monitorOverlay').addEventListener('mousedown', showMonitorControls);
   setupWidgetPickerDelegation();
 }
 
