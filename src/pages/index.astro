@@ -812,6 +812,9 @@ input,select,textarea{font-family:inherit}
 .dash-widget-toggle.off{opacity:.3}
 .dash-widget-remove{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.4;transition:opacity .15s;color:var(--maroon)}
 .dash-widget-remove:hover{opacity:1}
+.dash-widget-size{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
+.dash-widget-size input[type=range]{width:70px;height:4px;accent-color:var(--green);cursor:pointer}
+.dash-widget-size span{font-family:'JetBrains Mono',monospace;min-width:28px;text-align:right}
 .dash-widget.hidden-widget .dash-widget-body{display:none}
 .dash-widget.hidden-widget .dash-widget-bar{opacity:.5;border-style:dotted}
 .editing-layout .dash-widget-bar{display:flex}
@@ -1128,15 +1131,19 @@ function createWidgetEl(id) {
   const reg = widgetRegistry.find(w => w.id === id);
   const title = reg ? reg.name : id;
   const wide = reg ? reg.wide : false;
+  const layout = loadLayout();
+  const sizes = layout.sizes || {};
+  const size = sizes[id] || 100;
   const div = document.createElement('div');
   div.className = 'dash-widget' + (wide ? ' wide-widget' : '');
   div.dataset.widget = id;
   div.setAttribute('draggable','true');
   div.innerHTML =
     '<div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">'+title+'</span>'+
+    '<div class="dash-widget-size"><label>Aa</label><input type="range" min="50" max="200" step="10" value="'+size+'"><span>'+size+'%</span></div>'+
     (reg && reg.removable ? '<button class="dash-widget-remove" title="Hapus">✕</button>' : '')+
     '<button class="dash-widget-toggle">👁</button></div>'+
-    '<div class="dash-widget-body" id="dw-'+id+'"></div>';
+    '<div class="dash-widget-body" id="dw-'+id+'" style="font-size:'+size+'%"></div>';
   return div;
 }
 
@@ -1258,9 +1265,26 @@ function bindWidgetEvents(w) {
     const layout = loadLayout();
     layout.order = layout.order.filter(x => x !== id);
     layout.hidden = layout.hidden.filter(x => x !== id);
+    if (layout.sizes) delete layout.sizes[id];
     saveLayout(layout);
     toast('Widget "'+id+'" dihapus', 'info');
   });
+
+  const sizeSlider = w.querySelector('.dash-widget-size input[type=range]');
+  if (sizeSlider) {
+    const sizeLabel = w.querySelector('.dash-widget-size span');
+    const body = w.querySelector('.dash-widget-body');
+    sizeSlider.addEventListener('input', () => {
+      const val = sizeSlider.value;
+      if (sizeLabel) sizeLabel.textContent = val + '%';
+      if (body) body.style.fontSize = val + '%';
+      const id = w.dataset.widget;
+      const layout = loadLayout();
+      if (!layout.sizes) layout.sizes = {};
+      layout.sizes[id] = parseInt(val);
+      saveLayout(layout);
+    });
+  }
 }
 
 // Widget picker
