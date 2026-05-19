@@ -1346,17 +1346,19 @@ function renderWidgetContent(id) {
       const cEl = document.getElementById('widgetClock');
       if (cEl) cEl.textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
       break;
-    case 'tanggal':
-      el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div class="clock-widget-time" style="font-size:2em;color:var(--blue)">'+(state.tanggal||'—')+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
+    case 'tanggal': {
+      const tgl = state.tanggal ? state.tanggal.split('-').reverse().join('-') : '—';
+      el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div class="clock-widget-time" style="font-size:2em;color:var(--blue)">'+tgl+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
       break;
+    }
     case 'stat-total': el.innerHTML = statCard('green','Total Hewan',total,'Target','green'); break;
     case 'stat-sembelih': el.innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue'); break;
     case 'stat-keluar': { const kel = totalKeluar(); el.innerHTML = statCard('amber','Keluar Kandang',kel,pct(kel,total)+'%','amber'); break; }
     case 'stat-dicacah': { const dc = totalDicacah(); el.innerHTML = statCard('purple','Sudah Dicacah',dc,pct(dc,total)+'%','purple'); break; }
     case 'stat-distribusi': el.innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon'); break;
-    case 'big-kuliti': el.innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total)); break;
-    case 'big-karkas': el.innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total)); break;
-    case 'big-packing': el.innerHTML = bigStat('violet','Packing Selesai',packing,totalPack,pct(packing,totalPack||1)); break;
+    case 'big-kuliti': el.innerHTML = statCard('green','Hewan Terkuliti',dikuliti,pct(dikuliti,total)+'%','green','dw'); break;
+    case 'big-karkas': el.innerHTML = statCard('blue','Hewan Terkarkas',karkas,pct(karkas,total)+'%','blue','dw'); break;
+    case 'big-packing': el.innerHTML = statCard('purple','Packing Selesai',packing,pct(packing,totalPack||1)+'%','purple','dw'); break;
     case 'progress': {
       const overallPct = pct(distrib, total);
       el.innerHTML =
