@@ -766,7 +766,7 @@ input,select,textarea{font-family:inherit}
 .monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:40px;cursor:none}
 .monitor-overlay.visible{display:flex}
 .monitor-overlay:hover{cursor:default}
-.monitor-slide{width:100%;max-width:100%;text-align:left;padding:0 8vw}
+.monitor-slide{width:100%;max-width:100%;text-align:center;padding:0 4vw;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh}
 .monitor-slide *{transition:none!important;animation:none!important}
 .monitor-slide *:hover{transform:none!important;box-shadow:none!important}
 .monitor-slide .stat-card,.monitor-slide .big-stat-card,.monitor-slide .card,.monitor-slide .clock-widget{border:none;box-shadow:none;background:transparent;padding:0}
@@ -775,17 +775,17 @@ input,select,textarea{font-family:inherit}
 .monitor-slide .stat-card:hover,.monitor-slide .big-stat-card:hover,.monitor-slide .card:hover,.monitor-slide .clock-widget:hover{transform:none;box-shadow:none}
 .monitor-slide .stat-value{font-size:18vw;line-height:1}
 .monitor-slide .stat-label{font-size:3vw;margin-bottom:2vh}
-.monitor-slide .stat-badge{position:fixed;bottom:8vh;left:8vw;font-size:2vw;padding:8px 24px;border-radius:30px}
+.monitor-slide .stat-badge{font-size:2vw;padding:8px 24px;border-radius:30px;margin-top:2vh}
 .monitor-slide .big-stat-num{font-size:18vw;line-height:1}
 .monitor-slide .big-stat-label{font-size:3vw;margin-bottom:1vh}
-.monitor-slide .big-stat-sub{position:fixed;bottom:8vh;left:8vw;font-size:2vw}
+.monitor-slide .big-stat-sub{font-size:2vw;margin-top:1vh}
 .monitor-slide .big-stat-top{margin-bottom:2vh}
 .monitor-slide .big-stat-icon{display:none}
 .monitor-slide .big-stat-footer{display:none}
 .monitor-slide .clock-widget{padding:0}
-.monitor-slide .clock-widget-time{font-size:18vw;text-align:left}
-.monitor-slide .clock-widget-label{font-size:3vw;text-align:left}
-.monitor-slide .clock-widget-date{font-size:2.5vw;text-align:left}
+.monitor-slide .clock-widget-time{font-size:22vw;text-align:center;line-height:.9}
+.monitor-slide .clock-widget-label{font-size:3vw;text-align:center}
+.monitor-slide .clock-widget-date{display:none}
 .monitor-slide .progress-bar{height:3vh;border-radius:2vh}
 .monitor-slide .progress-fill{border-radius:2vh}
 .monitor-slide .progress-fill::after{display:none}
@@ -970,10 +970,10 @@ function startClock() {
   function update() {
     const now = new Date();
     const opts = {timeZone:'Asia/Jakarta', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'};
-    const timeStr = now.toLocaleTimeString('id-ID', opts) + ' WIB';
-    document.getElementById('clockDisplay').textContent = timeStr;
+    const timeRaw = now.toLocaleTimeString('id-ID', opts);
+    document.getElementById('clockDisplay').textContent = timeRaw + ' WIB';
     const wc = document.getElementById('widgetClock');
-    if (wc) wc.textContent = timeStr;
+    if (wc) wc.textContent = timeRaw;
   }
   update();
   setInterval(update, 1000);
