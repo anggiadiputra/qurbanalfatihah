@@ -755,8 +755,11 @@ input,select,textarea{font-family:inherit}
 @media(max-width:768px){.sidebar-overlay.active{display:block}}
 
 /* Dashboard widgets */
-#dashWidgetContainer{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+#dashWidgetContainer{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 .dash-widget{position:relative;min-width:0}
+@media(max-width:1280px){#dashWidgetContainer{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1040px){#dashWidgetContainer{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:768px){#dashWidgetContainer{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){#dashWidgetContainer{grid-template-columns:1fr}}
 
 /* Widget picker modal */
@@ -1250,7 +1253,7 @@ function createWidgetEl(id) {
   const spans = layout.spans || {};
   const colors = layout.colors || {};
   const size = sizes[id] || 100;
-  const span = spans[id] || (reg && reg.wide ? 4 : 1);
+  const span = spans[id] || (reg && reg.wide ? 5 : 1);
   const color = colors[id] || '';
   const div = document.createElement('div');
   div.className = 'dash-widget';
@@ -1264,7 +1267,8 @@ function createWidgetEl(id) {
     '<option value="1"'+(span===1?' selected':'')+'>1</option>'+
     '<option value="2"'+(span===2?' selected':'')+'>2</option>'+
     '<option value="3"'+(span===3?' selected':'')+'>3</option>'+
-    '<option value="4"'+(span===4?' selected':'')+'>Full</option>'+
+    '<option value="4"'+(span===4?' selected':'')+'>4</option>'+
+    '<option value="5"'+(span===5?' selected':'')+'>Full</option>'+
     '</select></div>'+
     '<div class="dash-widget-size"><label>Aa</label><input type="range" min="50" max="200" step="10" value="'+size+'"><span>'+size+'%</span></div>'+
     '<button class="dash-widget-toggle">👁</button></div>'+
