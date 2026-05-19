@@ -1784,8 +1784,7 @@ function renderPengulitan() {
   const dikuliti = totalDikuliti();
   document.getElementById('pengulitanStats').innerHTML =
     statCard('green','Total Hewan',total,'Qurban','green') +
-    statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue') +
-    statCard('amber','Siap Dikuliti',state.transit.hewan||0,'Transit','amber');
+    statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue');
   filterKalet();
 }
 function filterKalet() {
@@ -1813,7 +1812,6 @@ function renderPencacahan() {
   const total = state.totalHewan;
   const dicacah = totalDicacah();
   document.getElementById('pencacahanStats').innerHTML =
-    statCard('green','Siap Cacah',totalDikuliti(),'Dari Pengulitan','green') +
     statCard('blue','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','blue') +
     statCard('amber','Progress',pct(dicacah,total)+'%','Keseluruhan','amber');
   document.getElementById('mejaCacahGrid').innerHTML = state.cacah.map(c => {
@@ -1834,25 +1832,29 @@ function renderPencacahan() {
 // ================================================================
 function renderKarkas() {
   const total = state.totalHewan;
-  const sudah = state.karkas.sudah || 0;
-  const siap = totalDicacah();
-  const belum = total - sudah;
+  const karkasSudah = state.karkas.sudah || 0;
+  const dicacah = totalDicacah();
+  const dikuliti = totalDikuliti();
+  const transitCK = Math.max(0, dikuliti - (karkasSudah + dicacah));
+  const sisa = Math.max(0, total - (dicacah + karkasSudah));
   document.getElementById('karkasStats').innerHTML =
     statCard('green','Total Hewan',total,'Qurban','green') +
-    statCard('blue','Sudah Karkas',sudah,pct(sudah,total)+'%','blue') +
-    statCard('amber','Siap Karkas',siap,'Dari Cacahan','amber') +
-    statCard('maroon','Belum Karkas',belum,'Sisa','maroon');
+    statCard('amber','Transit',transitCK,'Menunggu','amber') +
+    statCard('purple','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','purple') +
+    statCard('blue','Sudah Dikarkas',karkasSudah,pct(karkasSudah,total)+'%','blue') +
+    statCard('maroon','Sisa Hewan',sisa,'Belum proses','maroon');
   document.getElementById('karkasDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:16px">Progress Packing Karkas</div>'+
-    '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Karkas Selesai</span><span class="progress-pct">'+pct(sudah,total)+'%</span></div>'+
-    '<div class="progress-bar" style="height:12px"><div class="progress-fill green" style="width:'+pct(sudah,total)+'%"></div></div></div>'+
+    '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Karkas Selesai</span><span class="progress-pct">'+pct(karkasSudah,total)+'%</span></div>'+
+    '<div class="progress-bar" style="height:12px"><div class="progress-fill green" style="width:'+pct(karkasSudah,total)+'%"></div></div></div>'+
     '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+
     infoChip('Mulai',state.karkas.waktuMulai)+infoChip('Selesai',state.karkas.waktuSelesai)+infoChip('Durasi',durationStr(state.karkas.waktuMulai,state.karkas.waktuSelesai))+
     '</div></div>'+
     '<div class="card"><div style="font-weight:700;margin-bottom:16px">Statistik Karkas</div><div class="timeline">'+
-    tlItem(sudah>0?'green':'gray','Karkas Selesai',sudah+' hewan telah dikarkas')+
-    tlItem(siap>0?'amber':'gray','Siap Dikarkas',siap+' hewan dari pencacahan')+
-    tlItem(belum>0?'maroon':'green','Belum Dikarkas',belum+' hewan tersisa',true)+
+    tlItem(karkasSudah>0?'green':'gray','Karkas Selesai',karkasSudah+' hewan telah dikarkas')+
+    tlItem(dicacah>0?'blue':'gray','Sudah Dicacah',dicacah+' hewan dicacah')+
+    tlItem(transitCK>0?'amber':'gray','Transit',transitCK+' hewan menunggu')+
+    tlItem(sisa>0?'maroon':'green','Sisa Hewan',sisa+' hewan belum proses',true)+
     '</div></div>';
 }
 
