@@ -1557,7 +1557,7 @@ function setupNavigation() {
   on('exportBtn','click',exportExcel);
   on('exportBtnMain','click',exportExcel);
   on('exportBtnSettings','click',exportExcel);
-  on('printBtn','click',() => window.print());
+  on('printBtn','click',exportPDF);
   on('refreshBtn','click',async () => { await loadStateFromAPI(); renderAll(); toast('Data diperbarui','info'); });
   on('resetBtn','click',resetData);
   on('resetBtnSettings','click',resetData);
@@ -2058,43 +2058,158 @@ async function resetData() {
 function exportExcel() {
   if (typeof XLSX === 'undefined') { toast('Library Excel tidak tersedia', 'error'); return; }
   const wb = XLSX.utils.book_new();
+  const total = state.totalHewan;
+  const hdrStyle = {font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1F7A5C'}},alignment:{horizontal:'center'},border:{bottom:{style:'thin',color:{rgb:'000000'}}}};
+  const titleStyle = {font:{bold:true,sz:14},alignment:{horizontal:'center'}};
+
+  function styledSheet(data, cols) {
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = cols;
+    return ws;
+  }
+
   const summary = [
-    ['Qurban Command Center - Laporan Operasional'],
-    ['Tanggal', state.tanggal],
-    ['Total Hewan', state.totalHewan],
-    ['Waktu Mulai', state.waktuMulai],
-    ['Waktu Selesai', state.waktuSelesai],
+    ['QURBAN COMMAND CENTER'],
+    ['Laporan Operasional Qurban'],
+    [],
+    ['Informasi','Detail'],
+    ['Tanggal', state.tanggal||'-'],
+    ['Total Hewan', total],
+    ['Waktu Mulai', state.waktuMulai||'-'],
+    ['Waktu Selesai', state.waktuSelesai||'-'],
+    ['Durasi', durationStr(state.waktuMulai,state.waktuSelesai)],
     [],
     ['RINGKASAN PROSES'],
-    ['Proses','Total','Selesai','Progress'],
-    ['Kandang',state.totalHewan,totalKeluar(),pct(totalKeluar(),state.totalHewan)+'%'],
-    ['Penyembelihan',state.totalHewan,totalDipotong(),pct(totalDipotong(),state.totalHewan)+'%'],
-    ['Transit',state.totalHewan,state.transit.hewan,pct(state.transit.hewan,state.totalHewan)+'%'],
-    ['Pengulitan',state.totalHewan,totalDikuliti(),pct(totalDikuliti(),state.totalHewan)+'%'],
-    ['Pencacahan',state.totalHewan,totalDicacah(),pct(totalDicacah(),state.totalHewan)+'%'],
-    ['Packing Karkas',state.totalHewan,state.karkas.sudah,pct(state.karkas.sudah,state.totalHewan)+'%'],
-    ['Distribusi',state.totalHewan,state.distribusi.selesai,pct(state.distribusi.selesai,state.totalHewan)+'%'],
+    ['Tahapan','Target','Selesai','Sisa','Progress'],
+    ['Kandang (Keluar)',total,totalKeluar(),total-totalKeluar(),pct(totalKeluar(),total)+'%'],
+    ['Penyembelihan',total,totalDipotong(),total-totalDipotong(),pct(totalDipotong(),total)+'%'],
+    ['Transit Pengulitan',total,state.transit.hewan,total-(state.transit.hewan||0),pct(state.transit.hewan,total)+'%'],
+    ['Pengulitan',total,totalDikuliti(),total-totalDikuliti(),pct(totalDikuliti(),total)+'%'],
+    ['Pencacahan',total,totalDicacah(),total-totalDicacah(),pct(totalDicacah(),total)+'%'],
+    ['Packing Karkas',total,state.karkas.sudah||0,total-(state.karkas.sudah||0),pct(state.karkas.sudah||0,total)+'%'],
+    ['Distribusi',total,state.distribusi.selesai||0,total-(state.distribusi.selesai||0),pct(state.distribusi.selesai||0,total)+'%'],
+    [],
+    ['PACKING & DISTRIBUSI'],
+    ['Keterangan','Jumlah'],
+    ['Total Packing Kecil',state.distribusi.totalPacking||0],
+    ['Packing Selesai',state.distribusi.packingSelesai||0],
+    ['Distribusi Selesai',state.distribusi.selesai||0],
   ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Ringkasan');
+  const wsSummary = styledSheet(summary, [{wch:22},{wch:12},{wch:10},{wch:10},{wch:10}]);
+  wsSummary['!merges'] = [{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}},{s:{r:10,c:0},e:{r:10,c:4}},{s:{r:20,c:0},e:{r:20,c:4}}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
-  const kandangData = [['No','Total','Keluar','Sisa','Status','Mulai','Selesai']];
-  state.kandang.forEach(k => kandangData.push([k.no,k.total,k.keluar,(k.total-k.keluar),k.status,k.waktuMulai,k.waktuSelesai]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kandangData), 'Kandang');
+  const kandangData = [['No Kandang','Kapasitas','Keluar','Sisa','Status','Waktu Mulai','Waktu Selesai','Durasi']];
+  state.kandang.forEach(k => kandangData.push(['Kandang #'+k.no,k.total,k.keluar||0,(k.total||0)-(k.keluar||0),statusLabel(k.status),k.waktuMulai||'-',k.waktuSelesai||'-',durationStr(k.waktuMulai,k.waktuSelesai)]));
+  XLSX.utils.book_append_sheet(wb, styledSheet(kandangData, [{wch:14},{wch:10},{wch:8},{wch:8},{wch:10},{wch:12},{wch:12},{wch:12}]), 'Kandang');
 
-  const sembData = [['No','Dipotong','Status','Mulai','Selesai']];
-  state.sembelih.forEach(s => sembData.push([s.no,s.dipotong,s.status,s.waktuMulai,s.waktuSelesai]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sembData), 'Penyembelihan');
+  const sembData = [['No Lubang','Dipotong','Status','Waktu Mulai','Waktu Selesai','Durasi']];
+  state.sembelih.forEach(s => sembData.push(['Lubang #'+s.no,s.dipotong||0,statusLabel(s.status),s.waktuMulai||'-',s.waktuSelesai||'-',durationStr(s.waktuMulai,s.waktuSelesai)]));
+  XLSX.utils.book_append_sheet(wb, styledSheet(sembData, [{wch:12},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12}]), 'Penyembelihan');
 
-  const kaletData = [['ID Kalet','Total','Status','Mulai','Selesai']];
-  state.kalet.forEach(k => kaletData.push(['K-'+String(k.no).padStart(2,'0'),k.total,k.status,k.waktuMulai,k.waktuSelesai]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kaletData), 'Pengulitan');
+  const transitData = [['Data Transit','Jumlah'],['Total Kaki',state.transit.kaki||0],['Total Kepala',state.transit.kepala||0],['Hewan Transit',state.transit.hewan||0]];
+  XLSX.utils.book_append_sheet(wb, styledSheet(transitData, [{wch:16},{wch:10}]), 'Transit');
 
-  const cacahData = [['No','Total','Status','Mulai','Selesai']];
-  state.cacah.forEach(c => cacahData.push([c.no,c.total,c.status,c.waktuMulai,c.waktuSelesai]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cacahData), 'Pencacahan');
+  const kaletData = [['ID Kalet','Hewan Dikuliti','Status','Waktu Mulai','Waktu Selesai']];
+  state.kalet.forEach(k => kaletData.push(['K-'+String(k.no).padStart(2,'0'),k.total||0,statusLabel(k.status),k.waktuMulai||'-',k.waktuSelesai||'-']));
+  XLSX.utils.book_append_sheet(wb, styledSheet(kaletData, [{wch:10},{wch:14},{wch:10},{wch:12},{wch:12}]), 'Pengulitan');
+
+  const cacahData = [['No Meja','Hewan Dicacah','Status','Waktu Mulai','Waktu Selesai','Durasi']];
+  state.cacah.forEach(c => cacahData.push(['Meja #'+c.no,c.total||0,statusLabel(c.status),c.waktuMulai||'-',c.waktuSelesai||'-',durationStr(c.waktuMulai,c.waktuSelesai)]));
+  XLSX.utils.book_append_sheet(wb, styledSheet(cacahData, [{wch:10},{wch:14},{wch:10},{wch:12},{wch:12},{wch:12}]), 'Pencacahan');
+
+  const karkasData = [['Data Karkas','Detail'],['Sudah Dikarkas',state.karkas.sudah||0],['Waktu Mulai',state.karkas.waktuMulai||'-'],['Waktu Selesai',state.karkas.waktuSelesai||'-'],['Durasi',durationStr(state.karkas.waktuMulai,state.karkas.waktuSelesai)]];
+  XLSX.utils.book_append_sheet(wb, styledSheet(karkasData, [{wch:16},{wch:14}]), 'Karkas');
 
   XLSX.writeFile(wb, 'qurban-laporan-'+(state.tanggal||'data')+'.xlsx');
   toast('File Excel berhasil diunduh!', 'success');
+}
+
+// ================================================================
+// EXPORT PDF
+// ================================================================
+function exportPDF() {
+  const total = state.totalHewan;
+  const keluar = totalKeluar();
+  const dipotong = totalDipotong();
+  const dikuliti = totalDikuliti();
+  const dicacah = totalDicacah();
+  const karkas = state.karkas.sudah||0;
+  const distrib = state.distribusi.selesai||0;
+
+  const css = 'body{font-family:Arial,sans-serif;color:#1a1a2e;margin:40px;font-size:11px}'+
+    'h1{font-size:20px;text-align:center;margin:0 0 4px;color:#1f7a5c}'+
+    'h2{font-size:10px;text-align:center;color:#666;font-weight:400;margin:0 0 24px}'+
+    'h3{font-size:13px;margin:24px 0 8px;padding:6px 10px;background:#f0f7f4;border-left:3px solid #1f7a5c;color:#1f7a5c}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px}'+
+    'th{background:#1f7a5c;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}'+
+    'td{padding:7px 10px;border-bottom:1px solid #e8e8e8}'+
+    'tr:nth-child(even) td{background:#fafafa}'+
+    '.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px}'+
+    '.info-box{border:1px solid #e0e0e0;border-radius:6px;padding:10px;text-align:center}'+
+    '.info-box .label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px}'+
+    '.info-box .val{font-size:18px;font-weight:700;margin-top:4px;color:#1a1a2e}'+
+    '.footer{margin-top:30px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:10px}'+
+    '@media print{body{margin:20px}@page{size:A4;margin:15mm}}';
+
+  function row(cells,isHeader) {
+    const tag = isHeader ? 'th' : 'td';
+    return '<tr>'+cells.map(c=>'<'+tag+'>'+c+'</'+tag+'>').join('')+'</tr>';
+  }
+  function table(headers,rows) {
+    return '<table>'+row(headers,true)+rows.map(r=>row(r,false)).join('')+'</table>';
+  }
+  function pbar(val) {
+    return '<span style="font-weight:700;color:#1f7a5c">'+val+'%</span>';
+  }
+
+  let html = '<html><head><meta charset="UTF-8"><title>Laporan Qurban</title><style>'+css+'</style></head><body>';
+  html += '<h1>QURBAN COMMAND CENTER</h1>';
+  html += '<h2>Laporan Operasional — '+(state.tanggal||'-')+'</h2>';
+
+  html += '<div class="info-grid">';
+  html += '<div class="info-box"><div class="label">Total Hewan</div><div class="val">'+total+'</div></div>';
+  html += '<div class="info-box"><div class="label">Waktu Mulai</div><div class="val">'+(state.waktuMulai||'-')+'</div></div>';
+  html += '<div class="info-box"><div class="label">Waktu Selesai</div><div class="val">'+(state.waktuSelesai||'-')+'</div></div>';
+  html += '<div class="info-box"><div class="label">Durasi</div><div class="val">'+durationStr(state.waktuMulai,state.waktuSelesai)+'</div></div>';
+  html += '</div>';
+
+  html += '<h3>Ringkasan Proses</h3>';
+  const procs = [['Kandang (Keluar)',total,keluar],['Penyembelihan',total,dipotong],['Transit',total,state.transit.hewan||0],['Pengulitan',total,dikuliti],['Pencacahan',total,dicacah],['Packing Karkas',total,karkas],['Distribusi',total,distrib]];
+  html += table(['Tahapan','Target','Selesai','Sisa','Progress'], procs.map(p=>[p[0],p[1],p[2],p[1]-p[2],pbar(pct(p[2],p[1]))]));
+
+  html += '<h3>Kandang</h3>';
+  html += table(['No','Kapasitas','Keluar','Sisa','Status','Mulai','Selesai'],
+    state.kandang.map(k=>['Kandang #'+k.no,k.total,k.keluar||0,(k.total||0)-(k.keluar||0),statusLabel(k.status),k.waktuMulai||'-',k.waktuSelesai||'-']));
+
+  html += '<h3>Penyembelihan</h3>';
+  html += table(['No','Dipotong','Status','Mulai','Selesai'],
+    state.sembelih.map(s=>['Lubang #'+s.no,s.dipotong||0,statusLabel(s.status),s.waktuMulai||'-',s.waktuSelesai||'-']));
+
+  html += '<h3>Transit Pengulitan</h3>';
+  html += table(['Keterangan','Jumlah'],[['Kaki Tersedia',state.transit.kaki||0],['Kepala Tersedia',state.transit.kepala||0],['Hewan Transit',state.transit.hewan||0]]);
+
+  html += '<h3>Pengulitan (30 Kalet)</h3>';
+  html += table(['ID','Dikuliti','Status','Mulai','Selesai'],
+    state.kalet.map(k=>['K-'+String(k.no).padStart(2,'0'),k.total||0,statusLabel(k.status),k.waktuMulai||'-',k.waktuSelesai||'-']));
+
+  html += '<h3>Pencacahan</h3>';
+  html += table(['No Meja','Dicacah','Status','Mulai','Selesai'],
+    state.cacah.map(c=>['Meja #'+c.no,c.total||0,statusLabel(c.status),c.waktuMulai||'-',c.waktuSelesai||'-']));
+
+  html += '<h3>Packing Karkas</h3>';
+  html += table(['Keterangan','Detail'],[['Sudah Dikarkas',karkas],['Mulai',state.karkas.waktuMulai||'-'],['Selesai',state.karkas.waktuSelesai||'-'],['Durasi',durationStr(state.karkas.waktuMulai,state.karkas.waktuSelesai)]]);
+
+  html += '<h3>Packing & Distribusi</h3>';
+  html += table(['Keterangan','Jumlah'],[['Total Packing Kecil',state.distribusi.totalPacking||0],['Packing Selesai',state.distribusi.packingSelesai||0],['Distribusi Selesai',state.distribusi.selesai||0],['Mulai',state.distribusi.waktuMulai||'-'],['Selesai',state.distribusi.waktuSelesai||'-']]);
+
+  html += '<div class="footer">Dicetak dari Qurban Command Center — '+(new Date().toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}))+'</div>';
+  html += '</body></html>';
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => { win.print(); }, 500);
 }
 
 // ================================================================
