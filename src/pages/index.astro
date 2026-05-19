@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Qurban Command Center</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Nunito:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Lato:wght@300;400;700&family=Lexend:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Rubik:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -152,16 +152,14 @@
         </div>
       </div>
       <div id="dashWidgetContainer">
-        <div class="dash-widget" data-widget="stats">
-          <div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Statistik Ringkas</span><button class="dash-widget-toggle" data-widget-target="stats">👁</button></div>
-          <div class="dash-widget-body"><div class="stats-grid" id="dashboardStats"></div></div>
-        </div>
-        <div class="dash-widget" data-widget="bigStats">
-          <div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Kartu Besar</span><button class="dash-widget-toggle" data-widget-target="bigStats">👁</button></div>
-          <div class="dash-widget-body"><div class="big-stat-row" id="bigStatCards"></div></div>
-        </div>
-        <div class="dash-widget" data-widget="progress">
-          <div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress Keseluruhan</span><button class="dash-widget-toggle" data-widget-target="progress">👁</button></div>
+        <div class="dash-widget" data-widget="stat-total"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Total Hewan</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-total"></div></div>
+        <div class="dash-widget" data-widget="stat-sembelih"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Tersembelih</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-sembelih"></div></div>
+        <div class="dash-widget" data-widget="stat-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Sudah Dikuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-kuliti"></div></div>
+        <div class="dash-widget" data-widget="stat-distribusi"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Distribusi</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-distribusi"></div></div>
+        <div class="dash-widget" data-widget="big-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-kuliti"></div></div>
+        <div class="dash-widget" data-widget="big-karkas"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkarkas</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-karkas"></div></div>
+        <div class="dash-widget" data-widget="big-packing"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Packing Selesai</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-packing"></div></div>
+        <div class="dash-widget" data-widget="progress"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div>
           <div class="dash-widget-body">
             <div class="card" style="margin-bottom:20px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -179,8 +177,7 @@
             </div>
           </div>
         </div>
-        <div class="dash-widget" data-widget="processList">
-          <div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Status Tiap Proses</span><button class="dash-widget-toggle" data-widget-target="processList">👁</button></div>
+        <div class="dash-widget" data-widget="processList"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Status Proses</span><button class="dash-widget-toggle">👁</button></div>
           <div class="dash-widget-body">
             <div class="card">
               <div style="font-weight:700;font-size:15px;margin-bottom:16px;">Status Tiap Proses</div>
@@ -351,12 +348,22 @@
         <div style="font-weight:700;font-size:15px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-light)">Tampilan</div>
         <div class="settings-row">
           <div><div class="settings-label">Font</div><div class="settings-desc">Pilih jenis huruf untuk seluruh tampilan</div></div>
-          <select class="form-control" id="themeFont" style="width:160px">
+          <select class="form-control" id="themeFont" style="width:180px">
             <option value="'Inter',system-ui,sans-serif">Inter</option>
             <option value="'DM Sans',system-ui,sans-serif">DM Sans</option>
             <option value="'Poppins',system-ui,sans-serif">Poppins</option>
             <option value="'Roboto',system-ui,sans-serif">Roboto</option>
             <option value="'Nunito',system-ui,sans-serif">Nunito</option>
+            <option value="'Open Sans',system-ui,sans-serif">Open Sans</option>
+            <option value="'Lato',system-ui,sans-serif">Lato</option>
+            <option value="'Montserrat',system-ui,sans-serif">Montserrat</option>
+            <option value="'Raleway',system-ui,sans-serif">Raleway</option>
+            <option value="'Source Sans 3',system-ui,sans-serif">Source Sans 3</option>
+            <option value="'Quicksand',system-ui,sans-serif">Quicksand</option>
+            <option value="'Cabin',system-ui,sans-serif">Cabin</option>
+            <option value="'Ubuntu',system-ui,sans-serif">Ubuntu</option>
+            <option value="'Rubik',system-ui,sans-serif">Rubik</option>
+            <option value="'Lexend',system-ui,sans-serif">Lexend</option>
           </select>
         </div>
         <div class="settings-row">
@@ -741,7 +748,11 @@ input,select,textarea{font-family:inherit}
 @media(max-width:768px){.sidebar-overlay.active{display:block}}
 
 /* Dashboard widgets */
-.dash-widget{position:relative;margin-bottom:4px}
+#dashWidgetContainer{display:flex;flex-wrap:wrap;gap:12px}
+.dash-widget{position:relative}
+.dash-widget[data-widget^="stat-"]{flex:1;min-width:180px}
+.dash-widget[data-widget^="big-"]{flex:1;min-width:260px}
+.dash-widget[data-widget="progress"],.dash-widget[data-widget="processList"]{flex-basis:100%;min-width:0}
 .dash-widget-bar{display:none;align-items:center;gap:8px;padding:8px 14px;margin-bottom:8px;background:var(--surface2);border:2px dashed var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:grab;user-select:none}
 .dash-widget-bar:active{cursor:grabbing}
 .dash-widget-grip{font-size:16px;opacity:.4;letter-spacing:2px}
@@ -1026,7 +1037,7 @@ function setupThemeUI() {
 // DASHBOARD LAYOUT EDITOR
 // ================================================================
 let dashEditMode = false;
-const defaultLayout = {order:['stats','bigStats','progress','processList'],hidden:[]};
+const defaultLayout = {order:['stat-total','stat-sembelih','stat-kuliti','stat-distribusi','big-kuliti','big-karkas','big-packing','progress','processList'],hidden:[]};
 
 function loadLayout() {
   try {
@@ -1251,14 +1262,18 @@ function renderDashboard() {
   const karkas = state.karkas.sudah || 0;
   const distrib = state.distribusi.selesai || 0;
   const overallPct = pct(distrib, total);
+  const packing = state.distribusi.packingSelesai || 0;
+  const totalPack = state.distribusi.totalPacking || 0;
 
-  document.getElementById('dashboardStats').innerHTML =
-    statCard('green','Total Hewan',total,'Target','green') +
-    statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue') +
-    statCard('amber','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','amber') +
-    statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon');
+  const dw = id => document.getElementById('dw-'+id);
+  if(dw('stat-total')) dw('stat-total').innerHTML = statCard('green','Total Hewan',total,'Target','green');
+  if(dw('stat-sembelih')) dw('stat-sembelih').innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue');
+  if(dw('stat-kuliti')) dw('stat-kuliti').innerHTML = statCard('amber','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','amber');
+  if(dw('stat-distribusi')) dw('stat-distribusi').innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon');
 
-  renderBigStatCards();
+  if(dw('big-kuliti')) dw('big-kuliti').innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total));
+  if(dw('big-karkas')) dw('big-karkas').innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total));
+  if(dw('big-packing')) dw('big-packing').innerHTML = bigStat('violet','Packing Selesai',packing,totalPack,pct(packing,totalPack||1));
 
   document.getElementById('dashTotalPct').textContent = overallPct + '%';
   document.getElementById('dashTotalBar').style.width = overallPct + '%';
@@ -1293,21 +1308,6 @@ function statCard(color, label, value, badge, badgeColor) {
   return '<div class="stat-card '+color+'"><div class="stat-label">'+label+'</div><div class="stat-value" style="color:'+colorMap[color]+'">'+value+'</div><div class="stat-badge" '+bc+'>'+badge+'</div></div>';
 }
 
-function renderBigStatCards() {
-  const total = state.totalHewan;
-  const dikuliti = totalDikuliti();
-  const karkas = state.karkas.sudah || 0;
-  const packing = state.distribusi.packingSelesai || 0;
-  const totalPack = state.distribusi.totalPacking || 0;
-  const pctK = pct(dikuliti,total);
-  const pctR = pct(karkas,total);
-  const pctP = pct(packing,totalPack||1);
-
-  document.getElementById('bigStatCards').innerHTML =
-    bigStat('teal','Hewan Terkuliti',dikuliti,total,pctK) +
-    bigStat('orange','Hewan Terkarkas',karkas,total,pctR) +
-    bigStat('violet','Packing Selesai',packing,totalPack,pctP);
-}
 
 function bigStat(color,label,val,total,pctVal) {
   const icons = {teal:'⚙️',orange:'📦',violet:'🛍️'};
@@ -1518,11 +1518,9 @@ function renderDistribusi() {
 function buildForms() {
   document.getElementById('kandangFormGrid').innerHTML = state.kandang.map(k =>
     formGroup('Kandang #'+k.no+' — Keluar','number','f_kandang_keluar_'+k.no,k.keluar||0) +
-    formGroup('Kandang #'+k.no+' — Total','number','f_kandang_total_'+k.no,k.total||0) +
     formGroupSelect('Kandang #'+k.no+' — Status','f_kandang_status_'+k.no,k.status) +
     formGroup('Kandang #'+k.no+' — Mulai','time','f_kandang_mulai_'+k.no,k.waktuMulai||'') +
-    formGroup('Kandang #'+k.no+' — Selesai','time','f_kandang_selesai_'+k.no,k.waktuSelesai||'') +
-    '<div></div>'
+    formGroup('Kandang #'+k.no+' — Selesai','time','f_kandang_selesai_'+k.no,k.waktuSelesai||'')
   ).join('');
 
   document.getElementById('sembelihFormGrid').innerHTML = state.sembelih.map(s =>
@@ -1581,7 +1579,6 @@ function loadFormFromData() {
   sv('inp_selesaiDistribusi', state.distribusi.waktuSelesai);
   state.kandang.forEach(k => {
     sv('f_kandang_keluar_'+k.no, k.keluar);
-    sv('f_kandang_total_'+k.no, k.total);
     sv('f_kandang_status_'+k.no, k.status);
     sv('f_kandang_mulai_'+k.no, k.waktuMulai);
     sv('f_kandang_selesai_'+k.no, k.waktuSelesai);
@@ -1620,7 +1617,6 @@ function collectFormData() {
 
   state.kandang.forEach(k => {
     k.keluar = gi('f_kandang_keluar_'+k.no);
-    k.total = gi('f_kandang_total_'+k.no);
     k.status = gv('f_kandang_status_'+k.no) || 'belum';
     k.waktuMulai = gv('f_kandang_mulai_'+k.no);
     k.waktuSelesai = gv('f_kandang_selesai_'+k.no);
