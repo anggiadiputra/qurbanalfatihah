@@ -137,6 +137,7 @@
       <div style="flex:1"></div>
       <div class="header-clock" id="clockDisplay">--:--:-- WIB</div>
       <div class="header-actions">
+        <button class="btn-ghost btn-sm" id="customizeColorsBtn" style="font-size:12px">🎨 Warna</button>
         <button class="btn-icon" id="exportBtn" title="Export Excel">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
@@ -508,8 +509,8 @@ input,select,textarea{font-family:inherit}
 .sidebar.collapsed .nav-label{opacity:0;pointer-events:none}
 
 /* Main */
-.main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;transition:margin-left var(--transition);min-width:0}
-.sidebar.collapsed ~ .main-content{margin-left:var(--sidebar-w-collapsed)}
+.main-content{margin-left:var(--sidebar-w);width:calc(100% - var(--sidebar-w));flex:0 0 auto;display:flex;flex-direction:column;transition:margin-left var(--transition),width var(--transition);min-width:0}
+.sidebar.collapsed ~ .main-content{margin-left:var(--sidebar-w-collapsed);width:calc(100% - var(--sidebar-w-collapsed))}
 
 /* Header */
 .header{height:var(--header-h);background:var(--surface-glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-light);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:90;flex-shrink:0}
@@ -607,7 +608,7 @@ input,select,textarea{font-family:inherit}
 @media(max-width:768px){
   .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:repeat(2,1fr)}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .main-content{margin-left:0!important}
+  .main-content{margin-left:0!important;width:100%!important}
   .sidebar{transform:translateX(-100%)}
   .sidebar.mobile-open{transform:translateX(0)}
 }
@@ -852,27 +853,50 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .clock-widget-time{font-family:'JetBrains Mono',monospace;font-size:3em;font-weight:800;line-height:1.1;color:var(--green);word-break:break-all}
 .clock-widget-date{font-size:1em;color:var(--text-secondary);margin-top:.5em;font-weight:500}
 .clock-widget-label{font-size:.8em;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:.5em}
-.dash-widget-bar{display:none;align-items:center;gap:8px;padding:8px 14px;margin-bottom:8px;background:var(--surface2);border:2px dashed var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:grab;user-select:none}
+.dash-widget-bar{display:none;align-items:center;gap:8px;padding:8px 10px;margin-bottom:10px;background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:grab;user-select:none;min-width:0;overflow:hidden}
 .dash-widget-bar:active{cursor:grabbing}
-.dash-widget-grip{font-size:16px;opacity:.4;letter-spacing:2px}
-.dash-widget-title{flex:1}
-.dash-widget-toggle{background:none;border:none;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.6;transition:opacity .15s}
+.dash-widget-grip{font-size:15px;opacity:.45;letter-spacing:1px;line-height:1}
+.dash-widget-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+.dash-widget-toggle{background:var(--surface);border:1px solid var(--border-light);font-size:13px;cursor:pointer;width:28px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:6px;opacity:.75;transition:opacity .15s,background .15s}
 .dash-widget-toggle:hover{opacity:1}
 .dash-widget-toggle.off{opacity:.3}
 .dash-widget-remove{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.4;transition:opacity .15s;color:var(--maroon)}
 .dash-widget-remove:hover{opacity:1}
-.dash-widget-size{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
-.dash-widget-size input[type=range]{width:60px;height:4px;accent-color:var(--green);cursor:pointer}
-.dash-widget-size span{font-family:'JetBrains Mono',monospace;min-width:28px;text-align:right}
-.dash-widget-span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
-.dash-widget-span select{padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-primary);font-size:11px;cursor:pointer}
-.dash-widget-color{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
-.dash-widget-color input[type=color]{width:24px;height:20px;border:1px solid var(--border);border-radius:3px;padding:1px;cursor:pointer;background:var(--surface)}
+.dash-widget-size{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);min-width:0}
+.dash-widget-size input[type=range]{width:clamp(72px,12vw,120px);height:4px;accent-color:var(--green);cursor:pointer;min-width:0}
+.dash-widget-size span{font-family:'JetBrains Mono',monospace;min-width:34px;text-align:right}
+.dash-widget-span{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.dash-widget-span select{width:50px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text-primary);font-size:11px;cursor:pointer}
+.dash-widget-color{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.dash-widget-color input[type=color]{width:28px;height:24px;border:1px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;background:var(--surface)}
+
+/* Per-card color (all pages) */
+.card-color-btn{display:none;position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;border:2px solid var(--border);cursor:pointer;padding:0;z-index:5;transition:transform .15s;overflow:hidden}
+.card-color-btn:hover{transform:scale(1.3)}
+.card-color-btn input[type=color]{opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+.customize-colors .card-color-btn{display:block}
+.stat-card,.unit-card{position:relative}
 .dash-widget.hidden-widget .dash-widget-body{display:none}
 .dash-widget.hidden-widget .dash-widget-bar{opacity:.5;border-style:dotted}
-.editing-layout .dash-widget-bar{display:flex}
+.editing-layout .dash-widget-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"grip title color toggle" "size size span span";column-gap:8px;row-gap:8px}
+.editing-layout .dash-widget-grip{grid-area:grip}
+.editing-layout .dash-widget-title{grid-area:title}
+.editing-layout .dash-widget-color{grid-area:color}
+.editing-layout .dash-widget-toggle{grid-area:toggle}
+.editing-layout .dash-widget-size{grid-area:size}
+.editing-layout .dash-widget-span{grid-area:span;justify-self:end}
 .editing-layout .dash-widget{transition:transform .15s}
 .editing-layout .dash-widget.drag-over{border-top:3px solid var(--green);padding-top:4px}
+@media(min-width:1180px){
+  .editing-layout .dash-widget[style*="span 2"] .dash-widget-bar,
+  .editing-layout .dash-widget[style*="span 3"] .dash-widget-bar,
+  .editing-layout .dash-widget[style*="span 4"] .dash-widget-bar{grid-template-columns:auto minmax(0,1fr) auto auto auto auto;grid-template-areas:"grip title color span size toggle"}
+}
+@media(max-width:640px){
+  .editing-layout .dash-widget-bar{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"grip title toggle" "color span span" "size size size"}
+  .editing-layout .dash-widget-span{justify-self:start}
+  .dash-widget-size input[type=range]{width:100%}
+}
 
 /* Color picker */
 .color-picker{width:44px;height:34px;border:2px solid var(--border);border-radius:var(--radius-sm);padding:2px;cursor:pointer;background:var(--surface)}
@@ -929,6 +953,7 @@ async function init() {
   setupThemeUI();
   setupDashLayout();
   renderAll();
+  setupCardColorListeners();
   setupNavigation();
   setupAutoSave();
   if (autoRefreshEnabled) startAutoRefresh();
@@ -1145,6 +1170,44 @@ function setupThemeUI() {
 }
 
 // ================================================================
+// PER-CARD COLORS (all pages)
+// ================================================================
+let customizeColorsOn = false;
+
+function getCardColors() {
+  try { return JSON.parse(localStorage.getItem('qurbanCardColors')||'{}'); } catch(e) { return {}; }
+}
+function getCardColor(cid) { return getCardColors()[cid] || ''; }
+function setCardColor(cid, hex) {
+  const c = getCardColors();
+  c[cid] = hex;
+  localStorage.setItem('qurbanCardColors', JSON.stringify(c));
+}
+
+function toggleCustomizeColors() {
+  customizeColorsOn = !customizeColorsOn;
+  document.body.classList.toggle('customize-colors', customizeColorsOn);
+  const btn = document.getElementById('customizeColorsBtn');
+  if (btn) {
+    btn.classList.toggle('btn-primary', customizeColorsOn);
+    btn.classList.toggle('btn-ghost', !customizeColorsOn);
+    btn.textContent = customizeColorsOn ? '✓ Selesai' : '🎨 Warna';
+  }
+}
+
+function setupCardColorListeners() {
+  document.addEventListener('input', e => {
+    if (!e.target.matches('.card-color-btn input[type=color]')) return;
+    const cid = e.target.dataset.cid;
+    const hex = e.target.value;
+    setCardColor(cid, hex);
+    e.target.parentElement.style.background = hex;
+    _cardIdx = 0;
+    renderAll();
+  });
+}
+
+// ================================================================
 // DASHBOARD LAYOUT EDITOR + WIDGET SYSTEM + MONITOR MODE
 // ================================================================
 let dashEditMode = false;
@@ -1191,8 +1254,8 @@ function createWidgetEl(id) {
   const div = document.createElement('div');
   div.className = 'dash-widget';
   div.dataset.widget = id;
+  div.dataset.span = span;
   div.setAttribute('draggable','true');
-  if (span > 1) div.style.gridColumn = 'span '+span;
   div.innerHTML =
     '<div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">'+title+'</span>'+
     '<div class="dash-widget-color"><label>C</label><input type="color" value="'+(color||'#10b981')+'"></div>'+
@@ -1220,6 +1283,26 @@ function applyWidgetColor(widget, hex) {
   body.querySelectorAll('.stat-badge').forEach(el => { el.style.background = hex + '20'; el.style.color = hex; });
 }
 
+function getDashboardColumnCount() {
+  const container = document.getElementById('dashWidgetContainer');
+  if (!container) return 1;
+  const cols = getComputedStyle(container).gridTemplateColumns.split(' ').filter(Boolean).length;
+  return Math.max(cols || 1, 1);
+}
+
+function applyWidgetSpan(widget, requestedSpan) {
+  const span = parseInt(requestedSpan || widget.dataset.span || '1', 10) || 1;
+  const maxCols = getDashboardColumnCount();
+  widget.dataset.span = span;
+  if (span >= 4) widget.style.gridColumn = '1 / -1';
+  else if (span > 1) widget.style.gridColumn = 'span ' + Math.min(span, maxCols);
+  else widget.style.gridColumn = '';
+}
+
+function refreshWidgetSpans() {
+  document.querySelectorAll('#dashWidgetContainer .dash-widget').forEach(w => applyWidgetSpan(w, w.dataset.span));
+}
+
 function applyLayout() {
   const layout = loadLayout();
   const container = document.getElementById('dashWidgetContainer');
@@ -1233,6 +1316,7 @@ function applyLayout() {
       if (btn) { btn.textContent = '🚫'; btn.classList.add('off'); }
     }
     container.appendChild(el);
+    applyWidgetSpan(el, el.dataset.span);
     bindWidgetEvents(el);
   });
 }
@@ -1376,7 +1460,7 @@ function bindWidgetEvents(w) {
     spanSelect.addEventListener('change', () => {
       const val = parseInt(spanSelect.value);
       const id = w.dataset.widget;
-      w.style.gridColumn = val > 1 ? 'span '+val : '';
+      applyWidgetSpan(w, val);
       const layout = loadLayout();
       if (!layout.spans) layout.spans = {};
       layout.spans[id] = val;
@@ -1562,6 +1646,7 @@ function setupDashLayout() {
   document.getElementById('monitorNext').addEventListener('click', () => monitorGo(1));
   document.getElementById('monitorOverlay').addEventListener('mousemove', showMonitorControls);
   document.getElementById('monitorOverlay').addEventListener('mousedown', showMonitorControls);
+  window.addEventListener('resize', refreshWidgetSpans);
   setupWidgetPickerDelegation();
 }
 
@@ -1578,6 +1663,7 @@ function setupNavigation() {
     el.addEventListener('click', () => navigate(el.dataset.nav, 'Input Data'));
   });
   const on = (id,evt,fn) => { const el = document.getElementById(id); if (el) el.addEventListener(evt,fn); };
+  on('customizeColorsBtn','click',toggleCustomizeColors);
   on('sidebarToggle','click',toggleSidebar);
   on('sidebarOverlay','click',closeMobileSidebar);
   on('darkToggleBtn','click',toggleDark);
@@ -1617,6 +1703,7 @@ function toggleSidebar() {
     document.getElementById('sidebarOverlay').classList.toggle('active', sb.classList.contains('mobile-open'));
   } else {
     sb.classList.toggle('collapsed');
+    setTimeout(refreshWidgetSpans, 220);
   }
 }
 function closeMobileSidebar() {
@@ -1660,6 +1747,7 @@ function statusOpts(current) {
 // RENDER ALL
 // ================================================================
 function renderAll() {
+  _cardIdx = 0;
   state.transit.hewan = Math.max(0, totalDipotong() - totalDikuliti());
   renderDashboard();
   renderKandang();
@@ -1717,10 +1805,18 @@ function renderDashboard() {
   }
 }
 
-function statCard(color, label, value, badge, badgeColor) {
+let _cardIdx = 0;
+function statCard(color, label, value, badge, badgeColor, pageCtx) {
+  const cid = (pageCtx||'d')+'-s'+(++_cardIdx);
+  const saved = getCardColor(cid);
   const colorMap = {green:'var(--green)',blue:'var(--blue)',maroon:'var(--maroon)',amber:'var(--amber)',purple:'var(--purple)'};
-  const bc = badgeColor === 'amber' ? 'style="background:transparent;color:var(--amber)"' : 'class="'+badgeColor+'"';
-  return '<div class="stat-card '+color+'"><div class="stat-label">'+label+'</div><div class="stat-value" style="color:'+colorMap[color]+'">'+value+'</div><div class="stat-badge" '+bc+'>'+badge+'</div></div>';
+  const valColor = saved || colorMap[color] || 'var(--green)';
+  const bgColor = saved ? saved+'12' : '';
+  const borderColor = saved || '';
+  const bc = saved ? 'style="background:'+saved+'20;color:'+saved+'"' : (badgeColor === 'amber' ? 'style="background:transparent;color:var(--amber)"' : 'class="'+badgeColor+'"');
+  return '<div class="stat-card '+color+'" data-cid="'+cid+'" style="'+(bgColor?'background:'+bgColor+';':'')+(borderColor?'border-color:'+borderColor+'30;':'')+'">' +
+    '<div class="card-color-btn" style="background:'+(saved||colorMap[color])+'"><input type="color" value="'+(saved||colorMap[color]||'#10b981')+'" data-cid="'+cid+'"></div>'+
+    '<div class="stat-label">'+label+'</div><div class="stat-value" style="color:'+valColor+'">'+value+'</div><div class="stat-badge" '+bc+'>'+badge+'</div></div>';
 }
 
 
@@ -1743,19 +1839,25 @@ function renderKandang() {
   const totalKel = totalKeluar();
   const sisa = total - totalKel;
   document.getElementById('kandangStats').innerHTML =
-    statCard('blue','Total Keluar',totalKel,pct(totalKel,total)+'%','blue') +
-    statCard('maroon','Sisa Kandang',sisa,pct(sisa,total)+'%','maroon') +
-    statCard('amber','Progress',pct(totalKel,total)+'%','Keluar','amber');
+    statCard('blue','Total Keluar',totalKel,pct(totalKel,total)+'%','blue','kd') +
+    statCard('maroon','Sisa Kandang',sisa,pct(sisa,total)+'%','maroon','kd') +
+    statCard('amber','Progress',pct(totalKel,total)+'%','Keluar','amber','kd');
   document.getElementById('kandangGrid').innerHTML = state.kandang.map(k => unitCard('Kandang #'+k.no, k.keluar||0, k.total||0, 'Keluar / Total', k.status, k.waktuMulai, k.waktuSelesai, 'green', (k.total||0)-(k.keluar||0))).join('');
 }
 
 function unitCard(label, val, total, meta, status, mulai, selesai, color, sisa) {
+  const cid = 'u'+(++_cardIdx);
+  const saved = getCardColor(cid);
   const p2 = pct(val, total||1);
-  return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">'+label+'</div>'+
+  const fillColor = saved || '';
+  const valColor = saved ? 'color:'+saved : '';
+  return '<div class="unit-card" data-cid="'+cid+'" style="'+(saved?'border-color:'+saved+'30;':'')+'">'+
+    '<div class="card-color-btn" style="background:'+(saved||'var(--green)')+'"><input type="color" value="'+(saved||'#10b981')+'" data-cid="'+cid+'"></div>'+
+    '<div class="unit-card-header"><div class="unit-num">'+label+'</div>'+
     '<span class="status-badge '+statusClass(status)+'">'+statusLabel(status)+'</span></div>'+
-    '<div class="unit-val">'+val+'<span style="font-size:13px;color:var(--text-muted);font-weight:400">/'+total+'</span></div>'+
+    '<div class="unit-val" style="'+valColor+'">'+val+'<span style="font-size:13px;color:var(--text-muted);font-weight:400">/'+total+'</span></div>'+
     '<div class="unit-meta">'+meta+' • Sisa: <strong>'+sisa+'</strong></div>'+
-    '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill '+color+'" style="width:'+p2+'%"></div></div>'+
+    '<div class="progress-wrap" style="margin-top:8px"><div class="progress-bar"><div class="progress-fill '+color+'" style="width:'+p2+'%;'+(saved?'background:'+saved:'')+'"></div></div>'+
     '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right">'+p2+'%</div></div>'+
     '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val">'+(mulai||'—')+'</div></div>'+
     '<div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val">'+(selesai||'—')+'</div></div>'+
@@ -1769,10 +1871,10 @@ function renderSembelih() {
   const total = state.totalHewan;
   const dipotong = totalDipotong();
   document.getElementById('sembelihStats').innerHTML =
-    statCard('green','Total Hewan',total,'Qurban','green') +
-    statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue') +
-    statCard('maroon','Belum',total-dipotong,'Sisa','maroon') +
-    statCard('amber','Progress',pct(dipotong,total)+'%','Keseluruhan','amber');
+    statCard('green','Total Hewan',total,'Qurban','green','sb') +
+    statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue','sb') +
+    statCard('maroon','Belum',total-dipotong,'Sisa','maroon','sb') +
+    statCard('amber','Progress',pct(dipotong,total)+'%','Keseluruhan','amber','sb');
   document.getElementById('sembelihGrid').innerHTML = state.sembelih.map(s => {
     const p2 = pct(s.dipotong||0, Math.ceil(state.totalHewan/10)||1);
     return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Lubang #'+s.no+'</div>'+
@@ -1793,9 +1895,9 @@ function renderTransit() {
   const {kaki,kepala,hewan} = state.transit;
   const total = state.totalHewan;
   document.getElementById('transitStats').innerHTML =
-    '<div class="stat-card blue"><div class="stat-label">Total Kaki</div><div class="counter-big" style="color:var(--blue)">'+(kaki||0)+'</div><div class="stat-badge blue">Tersedia</div></div>'+
-    '<div class="stat-card green"><div class="stat-label">Total Kepala</div><div class="counter-big" style="color:var(--green)">'+(kepala||0)+'</div><div class="stat-badge green">Tersedia</div></div>'+
-    '<div class="stat-card amber"><div class="stat-label">Hewan Transit</div><div class="counter-big" style="color:var(--amber)">'+(hewan||0)+'</div><div class="stat-badge" style="background:transparent;color:var(--amber)">Menunggu kuliti</div></div>';
+    statCard('blue','Total Kaki',kaki||0,'Tersedia','blue','tr') +
+    statCard('green','Total Kepala',kepala||0,'Tersedia','green','tr') +
+    statCard('amber','Hewan Transit',hewan||0,'Menunggu kuliti','amber','tr');
   document.getElementById('transitDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:14px">Progress Transit</div>'+
     '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Hewan Transit</span><span class="progress-pct">'+pct(hewan||0,total)+'%</span></div>'+
@@ -1819,8 +1921,8 @@ function renderPengulitan() {
   const total = state.totalHewan;
   const dikuliti = totalDikuliti();
   document.getElementById('pengulitanStats').innerHTML =
-    statCard('green','Total Hewan',total,'Qurban','green') +
-    statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue');
+    statCard('green','Total Hewan',total,'Qurban','green','pk') +
+    statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue','pk');
   filterKalet();
 }
 function filterKalet() {
@@ -1869,11 +1971,11 @@ function renderKarkas() {
   const transitCK = Math.max(0, dikuliti - (karkasSudah + dicacah));
   const sisa = Math.max(0, total - (dicacah + karkasSudah));
   document.getElementById('karkasStats').innerHTML =
-    statCard('green','Total Hewan',total,'Qurban','green') +
-    statCard('amber','Transit',transitCK,'Menunggu','amber') +
-    statCard('purple','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','purple') +
-    statCard('blue','Sudah Dikarkas',karkasSudah,pct(karkasSudah,total)+'%','blue') +
-    statCard('maroon','Sisa Hewan',sisa,'Belum proses','maroon');
+    statCard('green','Total Hewan',total,'Qurban','green','kr') +
+    statCard('amber','Transit',transitCK,'Menunggu','amber','kr') +
+    statCard('purple','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','purple','kr') +
+    statCard('blue','Sudah Dikarkas',karkasSudah,pct(karkasSudah,total)+'%','blue','kr') +
+    statCard('maroon','Sisa Hewan',sisa,'Belum proses','maroon','kr');
   document.getElementById('karkasDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:16px">Progress Packing Karkas</div>'+
     '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Karkas Selesai</span><span class="progress-pct">'+pct(karkasSudah,total)+'%</span></div>'+
@@ -1900,10 +2002,10 @@ function renderDistribusi() {
   const {totalPacking,packingSelesai,selesai,waktuMulai,waktuSelesai} = state.distribusi;
   const belum = (totalPacking||0) - (selesai||0);
   document.getElementById('distribusiStats').innerHTML =
-    statCard('green','Total Packing',totalPacking||0,'Kecil','green') +
-    statCard('blue','Packing Selesai',packingSelesai||0,pct(packingSelesai||0,totalPacking||1)+'%','blue') +
-    statCard('amber','Distribusi Selesai',selesai||0,pct(selesai||0,totalPacking||1)+'%','amber') +
-    statCard('maroon','Belum Distribusi',Math.max(0,belum),'Sisa','maroon');
+    statCard('green','Total Packing',totalPacking||0,'Kecil','green','ds') +
+    statCard('blue','Packing Selesai',packingSelesai||0,pct(packingSelesai||0,totalPacking||1)+'%','blue','ds') +
+    statCard('amber','Distribusi Selesai',selesai||0,pct(selesai||0,totalPacking||1)+'%','amber','ds') +
+    statCard('maroon','Belum Distribusi',Math.max(0,belum),'Sisa','maroon','ds');
   document.getElementById('distribusiDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:16px">Progress Distribusi</div>'+
     '<div class="progress-wrap" style="margin-bottom:12px"><div class="progress-label-row"><span class="progress-label">Packing</span><span class="progress-pct">'+pct(packingSelesai||0,totalPacking||1)+'%</span></div>'+
