@@ -178,7 +178,7 @@
         <div class="dash-widget" data-widget="big-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-kuliti"></div></div>
         <div class="dash-widget" data-widget="big-karkas"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkarkas</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-karkas"></div></div>
         <div class="dash-widget" data-widget="big-packing"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Packing Selesai</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-packing"></div></div>
-        <div class="dash-widget wide-widget" data-widget="progress"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-progress"></div></div>
+        <div class="dash-widget" data-widget="progress" style="grid-column:span 4"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-progress"></div></div>
       </div>
       <!-- Process list always at bottom, not part of widget grid -->
       <div class="card" style="margin-top:20px;" id="processListCard">
@@ -749,7 +749,6 @@ input,select,textarea{font-family:inherit}
 /* Dashboard widgets */
 #dashWidgetContainer{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .dash-widget{position:relative;min-width:0}
-.dash-widget.wide-widget{grid-column:1/-1}
 @media(max-width:480px){#dashWidgetContainer{grid-template-columns:1fr}}
 
 /* Widget picker modal */
@@ -793,8 +792,10 @@ input,select,textarea{font-family:inherit}
 .dash-widget-remove{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.4;transition:opacity .15s;color:var(--maroon)}
 .dash-widget-remove:hover{opacity:1}
 .dash-widget-size{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
-.dash-widget-size input[type=range]{width:70px;height:4px;accent-color:var(--green);cursor:pointer}
+.dash-widget-size input[type=range]{width:60px;height:4px;accent-color:var(--green);cursor:pointer}
 .dash-widget-size span{font-family:'JetBrains Mono',monospace;min-width:28px;text-align:right}
+.dash-widget-span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
+.dash-widget-span select{padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-primary);font-size:11px;cursor:pointer}
 .dash-widget.hidden-widget .dash-widget-body{display:none}
 .dash-widget.hidden-widget .dash-widget-bar{opacity:.5;border-style:dotted}
 .editing-layout .dash-widget-bar{display:flex}
@@ -1097,8 +1098,8 @@ function loadLayout() {
     if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}};
     const parsed = JSON.parse(raw);
     const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList').map(x => x === 'stat-kuliti' ? 'stat-keluar' : x);
-    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}};
-  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}}; }
+    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}, spans: parsed.spans || {}};
+  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}}; }
 }
 
 function saveLayout(layout) {
@@ -1108,18 +1109,25 @@ function saveLayout(layout) {
 function createWidgetEl(id) {
   const reg = widgetRegistry.find(w => w.id === id);
   const title = reg ? reg.name : id;
-  const wide = reg ? reg.wide : false;
   const layout = loadLayout();
   const sizes = layout.sizes || {};
+  const spans = layout.spans || {};
   const size = sizes[id] || 100;
+  const span = spans[id] || (reg && reg.wide ? 4 : 1);
   const div = document.createElement('div');
-  div.className = 'dash-widget' + (wide ? ' wide-widget' : '');
+  div.className = 'dash-widget';
   div.dataset.widget = id;
   div.setAttribute('draggable','true');
+  if (span > 1) div.style.gridColumn = 'span '+span;
   div.innerHTML =
     '<div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">'+title+'</span>'+
+    '<div class="dash-widget-span"><label>W</label><select>'+
+    '<option value="1"'+(span===1?' selected':'')+'>1</option>'+
+    '<option value="2"'+(span===2?' selected':'')+'>2</option>'+
+    '<option value="3"'+(span===3?' selected':'')+'>3</option>'+
+    '<option value="4"'+(span===4?' selected':'')+'>Full</option>'+
+    '</select></div>'+
     '<div class="dash-widget-size"><label>Aa</label><input type="range" min="50" max="200" step="10" value="'+size+'"><span>'+size+'%</span></div>'+
-    (reg && reg.removable ? '<button class="dash-widget-remove" title="Hapus">✕</button>' : '')+
     '<button class="dash-widget-toggle">👁</button></div>'+
     '<div class="dash-widget-body" id="dw-'+id+'" style="font-size:'+size+'%"></div>';
   return div;
@@ -1275,29 +1283,62 @@ function bindWidgetEvents(w) {
       saveLayout(layout);
     });
   }
+
+  const spanSelect = w.querySelector('.dash-widget-span select');
+  if (spanSelect) {
+    spanSelect.addEventListener('change', () => {
+      const val = parseInt(spanSelect.value);
+      const id = w.dataset.widget;
+      w.style.gridColumn = val > 1 ? 'span '+val : '';
+      const layout = loadLayout();
+      if (!layout.spans) layout.spans = {};
+      layout.spans[id] = val;
+      saveLayout(layout);
+    });
+  }
 }
 
 // Widget picker
 function openWidgetPicker() {
+  renderWidgetPickerList();
+  document.getElementById('widgetPickerOverlay').classList.add('visible');
+}
+
+function renderWidgetPickerList() {
   const layout = loadLayout();
   const list = document.getElementById('widgetPickerList');
-  const addable = widgetRegistry.filter(w => !layout.order.includes(w.id) || w.removable);
   list.innerHTML = widgetRegistry.map(w => {
     const exists = layout.order.includes(w.id);
-    const canAdd = !exists || w.removable;
-    return '<div class="widget-picker-item'+(canAdd?'':' disabled')+'" data-wid="'+w.id+'" data-can="'+(canAdd?'1':'0')+'">'+
+    return '<div class="widget-picker-item" data-wid="'+w.id+'">'+
       '<div class="wpi-info"><div class="wpi-name">'+(exists?'✓ ':'')+w.name+'</div><div class="wpi-desc">'+w.desc+'</div></div>'+
-      (canAdd ? '<button class="btn btn-primary btn-sm" style="flex-shrink:0">Tambah</button>' : '<span style="font-size:11px;color:var(--text-muted)">Sudah ada</span>')+
+      '<button class="btn '+(exists?'btn-danger':'btn-primary')+' btn-sm" style="flex-shrink:0">'+(exists?'Hapus':'Tambah')+'</button>'+
       '</div>';
   }).join('');
-  list.querySelectorAll('.widget-picker-item[data-can="1"]').forEach(item => {
+  list.querySelectorAll('.widget-picker-item').forEach(item => {
     item.querySelector('.btn').addEventListener('click', () => {
       const wid = item.dataset.wid;
-      addWidgetToLayout(wid);
-      document.getElementById('widgetPickerOverlay').classList.remove('visible');
+      const curLayout = loadLayout();
+      if (curLayout.order.includes(wid)) {
+        removeWidgetFromLayout(wid);
+      } else {
+        addWidgetToLayout(wid);
+      }
+      renderWidgetPickerList();
     });
   });
-  document.getElementById('widgetPickerOverlay').classList.add('visible');
+}
+
+function removeWidgetFromLayout(id) {
+  const container = document.getElementById('dashWidgetContainer');
+  const el = container.querySelector('[data-widget="'+id+'"]');
+  if (el) el.remove();
+  const layout = loadLayout();
+  layout.order = layout.order.filter(x => x !== id);
+  layout.hidden = layout.hidden.filter(x => x !== id);
+  if (layout.sizes) delete layout.sizes[id];
+  if (layout.spans) delete layout.spans[id];
+  saveLayout(layout);
+  toast('Widget dihapus', 'info');
 }
 
 function addWidgetToLayout(id) {
