@@ -14,8 +14,17 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Monitor exit button -->
-<button class="monitor-exit-btn" id="monitorExitBtn">✕ Keluar Monitor</button>
+<!-- Monitor overlay — fullscreen slideshow -->
+<div class="monitor-overlay" id="monitorOverlay">
+  <button class="monitor-exit" id="monitorExitBtn">✕ ESC</button>
+  <div class="monitor-slide" id="monitorSlide"></div>
+  <div class="monitor-nav">
+    <button class="monitor-nav-btn" id="monitorPrev">◀</button>
+    <div class="monitor-nav-dots" id="monitorDots"></div>
+    <button class="monitor-nav-btn" id="monitorNext">▶</button>
+    <span class="monitor-nav-info" id="monitorInfo"></span>
+  </div>
+</div>
 
 <!-- Widget Picker Modal -->
 <div class="widget-picker-overlay" id="widgetPickerOverlay">
@@ -753,19 +762,43 @@ input,select,textarea{font-family:inherit}
 .widget-picker-item .wpi-name{font-size:13px;font-weight:600}
 .widget-picker-item .wpi-desc{font-size:11px;color:var(--text-muted)}
 
-/* Monitor mode */
-.monitor-mode .sidebar,.monitor-mode .header,.monitor-mode .save-indicator{display:none!important}
-.monitor-mode .main-content{margin-left:0!important}
-.monitor-mode .page-header{display:none!important}
-.monitor-mode #dashWidgetContainer{gap:20px;padding:20px}
-.monitor-mode .stat-value{font-size:40px}
-.monitor-mode .big-stat-num{font-size:56px}
-.monitor-mode .counter-big{font-size:60px}
-.monitor-mode .process-name{font-size:16px}
-.monitor-mode .unit-val{font-size:32px}
-.monitor-exit-btn{display:none;position:fixed;top:16px;right:16px;z-index:400;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);opacity:.3;transition:opacity .2s}
-.monitor-exit-btn:hover{opacity:1}
-.monitor-mode .monitor-exit-btn{display:block}
+/* Monitor mode — fullscreen slideshow per card */
+.monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:40px;cursor:none}
+.monitor-overlay.visible{display:flex}
+.monitor-overlay:hover{cursor:default}
+.monitor-slide{width:100%;max-width:900px;text-align:center;animation:fadeIn .3s ease}
+.monitor-slide .stat-card,.monitor-slide .big-stat-card,.monitor-slide .card,.monitor-slide .clock-widget{border:none;box-shadow:none;background:transparent}
+.monitor-slide .stat-value{font-size:8vw;line-height:1.1}
+.monitor-slide .stat-label{font-size:2vw}
+.monitor-slide .stat-badge{font-size:1.5vw;padding:6px 18px}
+.monitor-slide .big-stat-num{font-size:10vw;line-height:1}
+.monitor-slide .big-stat-label{font-size:2vw}
+.monitor-slide .big-stat-sub{font-size:1.5vw}
+.monitor-slide .big-stat-footer{display:none}
+.monitor-slide .big-stat-card::after{display:none}
+.monitor-slide .big-stat-card .deco-icon{display:none}
+.monitor-slide .clock-widget-time{font-size:12vw}
+.monitor-slide .clock-widget-label{font-size:2vw}
+.monitor-slide .clock-widget-date{font-size:2vw}
+.monitor-slide .progress-bar{height:24px}
+.monitor-slide .info-chip{padding:20px 24px}
+.monitor-slide .info-chip-label{font-size:1.5vw}
+.monitor-slide .info-chip-val{font-size:3vw}
+.monitor-slide .process-item{padding:18px 24px}
+.monitor-slide .process-name{font-size:2vw}
+.monitor-slide .process-sub{font-size:1.2vw}
+.monitor-slide .process-count{font-size:2.5vw}
+.monitor-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;opacity:0;transition:opacity .3s}
+.monitor-overlay:hover .monitor-nav{opacity:1}
+.monitor-nav-btn{background:var(--surface);border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text-secondary);transition:all .15s}
+.monitor-nav-btn:hover{background:var(--surface2);color:var(--text-primary)}
+.monitor-nav-dots{display:flex;gap:6px}
+.monitor-nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .2s}
+.monitor-nav-dot.active{background:var(--green);width:24px;border-radius:4px}
+.monitor-nav-info{font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+.monitor-exit{position:fixed;top:16px;right:16px;z-index:510;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;opacity:0;transition:opacity .3s}
+.monitor-overlay:hover .monitor-exit{opacity:.6}
+.monitor-exit:hover{opacity:1!important}
 
 /* Clock widget */
 .clock-widget{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow);padding:1.5em;text-align:center;transition:all var(--transition)}
@@ -1350,24 +1383,69 @@ function addWidgetToLayout(id) {
 }
 
 // Monitor mode
+let monitorSlideIdx = 0;
+let monitorWidgets = [];
+let monitorInterval = null;
+
+function getVisibleWidgetIds() {
+  const layout = loadLayout();
+  return layout.order.filter(id => !layout.hidden.includes(id));
+}
+
 function enterMonitorMode() {
   if (monitorMode) return;
   monitorMode = true;
-  document.body.classList.add('monitor-mode');
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('page-dashboard').classList.add('active');
-  document.getElementById('headerTitle').textContent = 'Dashboard Utama';
-  renderAll();
+  monitorWidgets = getVisibleWidgetIds();
+  if (monitorWidgets.length === 0) { monitorMode = false; toast('Tidak ada widget aktif','error'); return; }
+  monitorSlideIdx = 0;
+  document.getElementById('monitorOverlay').classList.add('visible');
+  renderMonitorSlide();
+  renderMonitorDots();
   if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+  monitorInterval = setInterval(() => { renderMonitorSlide(); }, 1000);
 }
+
 function exitMonitorMode() {
   if (!monitorMode) return;
   monitorMode = false;
-  document.body.classList.remove('monitor-mode');
+  document.getElementById('monitorOverlay').classList.remove('visible');
+  if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-  setTimeout(() => renderAll(), 100);
 }
+
+function renderMonitorSlide() {
+  const id = monitorWidgets[monitorSlideIdx];
+  if (!id) return;
+  const slide = document.getElementById('monitorSlide');
+  const tempDiv = document.createElement('div');
+  tempDiv.id = 'dw-' + id;
+  slide.innerHTML = '';
+  slide.appendChild(tempDiv);
+  renderWidgetContent(id);
+  document.getElementById('monitorInfo').textContent = (monitorSlideIdx+1) + ' / ' + monitorWidgets.length;
+}
+
+function renderMonitorDots() {
+  const dots = document.getElementById('monitorDots');
+  dots.innerHTML = monitorWidgets.map((_, i) =>
+    '<div class="monitor-nav-dot'+(i===monitorSlideIdx?' active':'')+'"></div>'
+  ).join('');
+}
+
+function monitorGo(dir) {
+  monitorSlideIdx = (monitorSlideIdx + dir + monitorWidgets.length) % monitorWidgets.length;
+  renderMonitorSlide();
+  renderMonitorDots();
+}
+
 function toggleMonitorMode() { monitorMode ? exitMonitorMode() : enterMonitorMode(); }
+
+document.addEventListener('keydown', e => {
+  if (!monitorMode) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); monitorGo(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); monitorGo(-1); }
+  else if (e.key === 'Escape') { e.preventDefault(); exitMonitorMode(); }
+});
 document.addEventListener('fullscreenchange', () => {
   if (!document.fullscreenElement && monitorMode) exitMonitorMode();
 });
@@ -1379,7 +1457,9 @@ function setupDashLayout() {
   document.getElementById('widgetPickerClose').addEventListener('click', () => document.getElementById('widgetPickerOverlay').classList.remove('visible'));
   document.getElementById('widgetPickerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
   document.getElementById('monitorModeBtn').addEventListener('click', toggleMonitorMode);
-  document.getElementById('monitorExitBtn').addEventListener('click', toggleMonitorMode);
+  document.getElementById('monitorExitBtn').addEventListener('click', exitMonitorMode);
+  document.getElementById('monitorPrev').addEventListener('click', () => monitorGo(-1));
+  document.getElementById('monitorNext').addEventListener('click', () => monitorGo(1));
   setupWidgetPickerDelegation();
 }
 
