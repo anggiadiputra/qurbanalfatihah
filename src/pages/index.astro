@@ -866,6 +866,8 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .dash-widget-size span{font-family:'JetBrains Mono',monospace;min-width:28px;text-align:right}
 .dash-widget-span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
 .dash-widget-span select{padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-primary);font-size:11px;cursor:pointer}
+.dash-widget-color{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted)}
+.dash-widget-color input[type=color]{width:24px;height:20px;border:1px solid var(--border);border-radius:3px;padding:1px;cursor:pointer;background:var(--surface)}
 .dash-widget.hidden-widget .dash-widget-body{display:none}
 .dash-widget.hidden-widget .dash-widget-bar{opacity:.5;border-style:dotted}
 .editing-layout .dash-widget-bar{display:flex}
@@ -1165,11 +1167,11 @@ const widgetRegistry = [
 function loadLayout() {
   try {
     const raw = localStorage.getItem('qurbanLayout');
-    if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}};
+    if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}, colors:{}};
     const parsed = JSON.parse(raw);
     const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList').map(x => x === 'stat-kuliti' ? 'stat-keluar' : x);
-    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}, spans: parsed.spans || {}};
-  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}}; }
+    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}, spans: parsed.spans || {}, colors: parsed.colors || {}};
+  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}, colors:{}}; }
 }
 
 function saveLayout(layout) {
@@ -1182,8 +1184,10 @@ function createWidgetEl(id) {
   const layout = loadLayout();
   const sizes = layout.sizes || {};
   const spans = layout.spans || {};
+  const colors = layout.colors || {};
   const size = sizes[id] || 100;
   const span = spans[id] || (reg && reg.wide ? 4 : 1);
+  const color = colors[id] || '';
   const div = document.createElement('div');
   div.className = 'dash-widget';
   div.dataset.widget = id;
@@ -1191,6 +1195,7 @@ function createWidgetEl(id) {
   if (span > 1) div.style.gridColumn = 'span '+span;
   div.innerHTML =
     '<div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">'+title+'</span>'+
+    '<div class="dash-widget-color"><label>C</label><input type="color" value="'+(color||'#10b981')+'"></div>'+
     '<div class="dash-widget-span"><label>W</label><select>'+
     '<option value="1"'+(span===1?' selected':'')+'>1</option>'+
     '<option value="2"'+(span===2?' selected':'')+'>2</option>'+
@@ -1200,7 +1205,19 @@ function createWidgetEl(id) {
     '<div class="dash-widget-size"><label>Aa</label><input type="range" min="50" max="200" step="10" value="'+size+'"><span>'+size+'%</span></div>'+
     '<button class="dash-widget-toggle">👁</button></div>'+
     '<div class="dash-widget-body" id="dw-'+id+'" style="font-size:'+size+'%"></div>';
+  if (color) applyWidgetColor(div, color);
   return div;
+}
+
+function applyWidgetColor(widget, hex) {
+  const body = widget.querySelector('.dash-widget-body') || widget;
+  body.style.setProperty('--wc', hex);
+  body.style.setProperty('--wc-light', hex + '18');
+  const children = body.querySelectorAll('.stat-card::before,.stat-value,.big-stat-num,.clock-widget-time,.counter-big');
+  body.querySelectorAll('.stat-value,.big-stat-num,.clock-widget-time,.counter-big').forEach(el => el.style.color = hex);
+  body.querySelectorAll('.stat-card').forEach(el => el.style.borderTopColor = hex);
+  body.querySelectorAll('.progress-fill').forEach(el => el.style.background = hex);
+  body.querySelectorAll('.stat-badge').forEach(el => { el.style.background = hex + '20'; el.style.color = hex; });
 }
 
 function applyLayout() {
@@ -1363,6 +1380,19 @@ function bindWidgetEvents(w) {
       const layout = loadLayout();
       if (!layout.spans) layout.spans = {};
       layout.spans[id] = val;
+      saveLayout(layout);
+    });
+  }
+
+  const colorPicker = w.querySelector('.dash-widget-color input[type=color]');
+  if (colorPicker) {
+    colorPicker.addEventListener('input', () => {
+      const hex = colorPicker.value;
+      const id = w.dataset.widget;
+      applyWidgetColor(w, hex);
+      const layout = loadLayout();
+      if (!layout.colors) layout.colors = {};
+      layout.colors[id] = hex;
       saveLayout(layout);
     });
   }
@@ -1655,7 +1685,14 @@ function renderDashboard() {
   const overallPct = pct(distrib, total);
 
   const layout = loadLayout();
-  layout.order.forEach(id => renderWidgetContent(id));
+  const widgetColors = layout.colors || {};
+  layout.order.forEach(id => {
+    renderWidgetContent(id);
+    if (widgetColors[id]) {
+      const w = document.querySelector('[data-widget="'+id+'"]');
+      if (w) applyWidgetColor(w, widgetColors[id]);
+    }
+  });
 
   const plEl = document.getElementById('processList');
   if (plEl) {
