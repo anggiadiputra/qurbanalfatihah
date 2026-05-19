@@ -245,7 +245,6 @@
       <div class="page-header">
         <div><div class="page-title">Pencacahan</div><div class="page-subtitle">Monitoring 6 meja pencacahan</div></div>
       </div>
-      <div class="stats-grid" id="pencacahanStats"></div>
       <div class="grid-3" id="mejaCacahGrid"></div>
     </section>
 
@@ -1809,11 +1808,6 @@ function filterKalet() {
 // RENDER: PENCACAHAN
 // ================================================================
 function renderPencacahan() {
-  const total = state.totalHewan;
-  const dicacah = totalDicacah();
-  document.getElementById('pencacahanStats').innerHTML =
-    statCard('blue','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','blue') +
-    statCard('amber','Progress',pct(dicacah,total)+'%','Keseluruhan','amber');
   document.getElementById('mejaCacahGrid').innerHTML = state.cacah.map(c => {
     const p2 = pct(c.total||0, Math.ceil(state.totalHewan/6)||1);
     return '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Meja #'+c.no+'</div>'+
