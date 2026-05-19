@@ -14,6 +14,20 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Monitor exit button -->
+<button class="monitor-exit-btn" id="monitorExitBtn">✕ Keluar Monitor</button>
+
+<!-- Widget Picker Modal -->
+<div class="widget-picker-overlay" id="widgetPickerOverlay">
+  <div class="widget-picker">
+    <h3>Tambah Widget</h3>
+    <div id="widgetPickerList"></div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn btn-ghost btn-sm" id="widgetPickerClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sidebar Overlay (Mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -140,6 +154,11 @@
           <button class="btn btn-ghost btn-sm" id="editLayoutBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
             Edit Layout
+          </button>
+          <button class="btn btn-ghost btn-sm" id="addWidgetBtn">+ Widget</button>
+          <button class="btn btn-secondary btn-sm" id="monitorModeBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Mode Monitor
           </button>
           <button class="btn btn-ghost btn-sm" id="refreshBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -748,12 +767,42 @@ input,select,textarea{font-family:inherit}
 @media(max-width:768px){.sidebar-overlay.active{display:block}}
 
 /* Dashboard widgets */
-#dashWidgetContainer{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#dashWidgetContainer{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .dash-widget{position:relative;min-width:0}
-.dash-widget[data-widget="progress"],.dash-widget[data-widget="processList"]{grid-column:1/-1}
-@media(max-width:1200px){#dashWidgetContainer{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:900px){#dashWidgetContainer{grid-template-columns:repeat(2,1fr)}}
+.dash-widget.wide-widget{grid-column:1/-1}
 @media(max-width:480px){#dashWidgetContainer{grid-template-columns:1fr}}
+
+/* Widget picker modal */
+.widget-picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center}
+.widget-picker-overlay.visible{display:flex}
+.widget-picker{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;width:90%;max-width:480px;max-height:80vh;overflow-y:auto}
+.widget-picker h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.widget-picker-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border-light);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all var(--transition)}
+.widget-picker-item:hover{background:var(--surface2);border-color:var(--green)}
+.widget-picker-item .wpi-info{display:flex;flex-direction:column;gap:2px}
+.widget-picker-item .wpi-name{font-size:13px;font-weight:600}
+.widget-picker-item .wpi-desc{font-size:11px;color:var(--text-muted)}
+
+/* Monitor mode */
+.monitor-mode .sidebar,.monitor-mode .header,.monitor-mode .save-indicator{display:none!important}
+.monitor-mode .main-content{margin-left:0!important}
+.monitor-mode .page-header{display:none!important}
+.monitor-mode #dashWidgetContainer{gap:20px;padding:20px}
+.monitor-mode .stat-value{font-size:40px}
+.monitor-mode .big-stat-num{font-size:56px}
+.monitor-mode .counter-big{font-size:60px}
+.monitor-mode .process-name{font-size:16px}
+.monitor-mode .unit-val{font-size:32px}
+.monitor-exit-btn{display:none;position:fixed;top:16px;right:16px;z-index:400;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);opacity:.3;transition:opacity .2s}
+.monitor-exit-btn:hover{opacity:1}
+.monitor-mode .monitor-exit-btn{display:block}
+
+/* Clock widget */
+.clock-widget{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow);padding:24px;text-align:center;transition:all var(--transition)}
+.clock-widget:hover{box-shadow:var(--shadow-md)}
+.clock-widget-time{font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:800;line-height:1;color:var(--green)}
+.clock-widget-date{font-size:14px;color:var(--text-secondary);margin-top:8px;font-weight:500}
+.clock-widget-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px}
 .dash-widget-bar{display:none;align-items:center;gap:8px;padding:8px 14px;margin-bottom:8px;background:var(--surface2);border:2px dashed var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:grab;user-select:none}
 .dash-widget-bar:active{cursor:grabbing}
 .dash-widget-grip{font-size:16px;opacity:.4;letter-spacing:2px}
@@ -761,6 +810,8 @@ input,select,textarea{font-family:inherit}
 .dash-widget-toggle{background:none;border:none;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.6;transition:opacity .15s}
 .dash-widget-toggle:hover{opacity:1}
 .dash-widget-toggle.off{opacity:.3}
+.dash-widget-remove{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.4;transition:opacity .15s;color:var(--maroon)}
+.dash-widget-remove:hover{opacity:1}
 .dash-widget.hidden-widget .dash-widget-body{display:none}
 .dash-widget.hidden-widget .dash-widget-bar{opacity:.5;border-style:dotted}
 .editing-layout .dash-widget-bar{display:flex}
@@ -898,7 +949,12 @@ function startClock() {
   function update() {
     const now = new Date();
     const opts = {timeZone:'Asia/Jakarta', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'};
-    document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', opts) + ' WIB';
+    const timeStr = now.toLocaleTimeString('id-ID', opts) + ' WIB';
+    document.getElementById('clockDisplay').textContent = timeStr;
+    const wc = document.getElementById('widgetClock');
+    if (wc) wc.textContent = timeStr;
+    const wd = document.getElementById('widgetClockDate');
+    if (wd) wd.textContent = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
   }
   update();
   setInterval(update, 1000);
@@ -1035,38 +1091,105 @@ function setupThemeUI() {
 }
 
 // ================================================================
-// DASHBOARD LAYOUT EDITOR
+// DASHBOARD LAYOUT EDITOR + WIDGET SYSTEM + MONITOR MODE
 // ================================================================
 let dashEditMode = false;
+let monitorMode = false;
 const defaultLayout = {order:['stat-total','stat-sembelih','stat-kuliti','stat-distribusi','big-kuliti','big-karkas','big-packing','progress','processList'],hidden:[]};
+
+const widgetRegistry = [
+  {id:'clock', name:'Jam Realtime', desc:'Jam digital WIB ukuran besar', wide:false, removable:true},
+  {id:'tanggal', name:'Tanggal & Hari', desc:'Tanggal qurban dan hari ini', wide:false, removable:true},
+  {id:'stat-total', name:'Total Hewan', desc:'Statistik total hewan qurban', wide:false},
+  {id:'stat-sembelih', name:'Tersembelih', desc:'Jumlah hewan tersembelih', wide:false},
+  {id:'stat-kuliti', name:'Sudah Dikuliti', desc:'Jumlah hewan sudah dikuliti', wide:false},
+  {id:'stat-distribusi', name:'Distribusi', desc:'Jumlah distribusi selesai', wide:false},
+  {id:'big-kuliti', name:'Kartu Hewan Terkuliti', desc:'Kartu besar progress kuliti', wide:false},
+  {id:'big-karkas', name:'Kartu Hewan Terkarkas', desc:'Kartu besar progress karkas', wide:false},
+  {id:'big-packing', name:'Kartu Packing Selesai', desc:'Kartu besar progress packing', wide:false},
+  {id:'progress', name:'Progress Keseluruhan', desc:'Bar progress & waktu operasional', wide:true},
+  {id:'processList', name:'Status Tiap Proses', desc:'Daftar semua tahapan proses', wide:true},
+];
 
 function loadLayout() {
   try {
     const raw = localStorage.getItem('qurbanLayout');
-    return raw ? {...defaultLayout,...JSON.parse(raw)} : {...defaultLayout};
-  } catch(e) { return {...defaultLayout}; }
+    if (!raw) return {...defaultLayout, hidden:[]};
+    const parsed = JSON.parse(raw);
+    return {order: parsed.order || defaultLayout.order, hidden: parsed.hidden || []};
+  } catch(e) { return {...defaultLayout, hidden:[]}; }
 }
 
 function saveLayout(layout) {
   localStorage.setItem('qurbanLayout', JSON.stringify(layout));
 }
 
+function createWidgetEl(id) {
+  const reg = widgetRegistry.find(w => w.id === id);
+  const title = reg ? reg.name : id;
+  const wide = reg ? reg.wide : false;
+  const div = document.createElement('div');
+  div.className = 'dash-widget' + (wide ? ' wide-widget' : '');
+  div.dataset.widget = id;
+  div.setAttribute('draggable','true');
+  div.innerHTML =
+    '<div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">'+title+'</span>'+
+    (reg && reg.removable ? '<button class="dash-widget-remove" title="Hapus">✕</button>' : '')+
+    '<button class="dash-widget-toggle">👁</button></div>'+
+    '<div class="dash-widget-body" id="dw-'+id+'"></div>';
+  return div;
+}
+
 function applyLayout() {
   const layout = loadLayout();
   const container = document.getElementById('dashWidgetContainer');
   if (!container) return;
-  const widgets = Array.from(container.querySelectorAll('.dash-widget'));
+  container.innerHTML = '';
   layout.order.forEach(id => {
-    const w = widgets.find(el => el.dataset.widget === id);
-    if (w) container.appendChild(w);
+    const el = createWidgetEl(id);
+    if (layout.hidden.includes(id)) {
+      el.classList.add('hidden-widget');
+      const btn = el.querySelector('.dash-widget-toggle');
+      if (btn) { btn.textContent = '🚫'; btn.classList.add('off'); }
+    }
+    container.appendChild(el);
+    bindWidgetEvents(el);
   });
-  widgets.forEach(w => {
-    const id = w.dataset.widget;
-    const isHidden = layout.hidden.includes(id);
-    w.classList.toggle('hidden-widget', isHidden);
-    const btn = w.querySelector('.dash-widget-toggle');
-    if (btn) { btn.textContent = isHidden ? '🚫' : '👁'; btn.classList.toggle('off', isHidden); }
-  });
+}
+
+function renderWidgetContent(id) {
+  const el = document.getElementById('dw-'+id);
+  if (!el) return;
+  const total = state.totalHewan;
+  const dipotong = totalDipotong();
+  const dikuliti = totalDikuliti();
+  const karkas = state.karkas.sudah || 0;
+  const distrib = state.distribusi.selesai || 0;
+  const packing = state.distribusi.packingSelesai || 0;
+  const totalPack = state.distribusi.totalPacking || 0;
+
+  switch(id) {
+    case 'clock':
+      if (!el.querySelector('.clock-widget')) {
+        el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Waktu Saat Ini</div><div class="clock-widget-time" id="widgetClock">--:--:--</div><div class="clock-widget-date" id="widgetClockDate"></div></div>';
+      }
+      const now = new Date();
+      const cEl = document.getElementById('widgetClock');
+      const dEl = document.getElementById('widgetClockDate');
+      if (cEl) cEl.textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' WIB';
+      if (dEl) dEl.textContent = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      break;
+    case 'tanggal':
+      el.innerHTML = '<div class="clock-widget"><div class="clock-widget-label">Tanggal Qurban</div><div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--blue)">'+(state.tanggal||'—')+'</div><div class="clock-widget-date">Mulai: '+(state.waktuMulai||'—')+' WIB</div></div>';
+      break;
+    case 'stat-total': el.innerHTML = statCard('green','Total Hewan',total,'Target','green'); break;
+    case 'stat-sembelih': el.innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue'); break;
+    case 'stat-kuliti': el.innerHTML = statCard('amber','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','amber'); break;
+    case 'stat-distribusi': el.innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon'); break;
+    case 'big-kuliti': el.innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total)); break;
+    case 'big-karkas': el.innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total)); break;
+    case 'big-packing': el.innerHTML = bigStat('violet','Packing Selesai',packing,totalPack,pct(packing,totalPack||1)); break;
+  }
 }
 
 function toggleEditLayout() {
@@ -1083,63 +1206,118 @@ function toggleEditLayout() {
   }
 }
 
-function setupDashLayout() {
-  applyLayout();
+let dragEl = null;
+function bindWidgetEvents(w) {
   const container = document.getElementById('dashWidgetContainer');
-  if (!container) return;
+  w.addEventListener('dragstart', e => {
+    if (!dashEditMode) { e.preventDefault(); return; }
+    dragEl = w; w.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  w.addEventListener('dragend', () => {
+    if (dragEl) dragEl.style.opacity = '1'; dragEl = null;
+    container.querySelectorAll('.dash-widget').forEach(el => el.classList.remove('drag-over'));
+  });
+  w.addEventListener('dragover', e => {
+    if (!dashEditMode || !dragEl || dragEl === w) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    container.querySelectorAll('.dash-widget').forEach(el => el.classList.remove('drag-over'));
+    w.classList.add('drag-over');
+  });
+  w.addEventListener('dragleave', () => w.classList.remove('drag-over'));
+  w.addEventListener('drop', e => {
+    e.preventDefault();
+    if (!dragEl || dragEl === w) return;
+    w.classList.remove('drag-over');
+    const all = Array.from(container.querySelectorAll('.dash-widget'));
+    if (all.indexOf(dragEl) < all.indexOf(w)) w.after(dragEl);
+    else container.insertBefore(dragEl, w);
+    const layout = loadLayout();
+    layout.order = Array.from(container.querySelectorAll('.dash-widget')).map(el => el.dataset.widget);
+    saveLayout(layout);
+  });
 
-  document.getElementById('editLayoutBtn').addEventListener('click', toggleEditLayout);
+  const toggleBtn = w.querySelector('.dash-widget-toggle');
+  if (toggleBtn) toggleBtn.addEventListener('click', () => {
+    const id = w.dataset.widget;
+    const layout = loadLayout();
+    const idx = layout.hidden.indexOf(id);
+    if (idx >= 0) layout.hidden.splice(idx, 1);
+    else layout.hidden.push(id);
+    saveLayout(layout);
+    w.classList.toggle('hidden-widget');
+    const isHidden = w.classList.contains('hidden-widget');
+    toggleBtn.textContent = isHidden ? '🚫' : '👁';
+    toggleBtn.classList.toggle('off', isHidden);
+  });
 
-  let dragEl = null;
-  container.querySelectorAll('.dash-widget').forEach(w => {
-    w.setAttribute('draggable', 'true');
-    w.addEventListener('dragstart', e => {
-      if (!dashEditMode) { e.preventDefault(); return; }
-      dragEl = w;
-      w.style.opacity = '0.4';
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    w.addEventListener('dragend', () => {
-      if (dragEl) dragEl.style.opacity = '1';
-      dragEl = null;
-      container.querySelectorAll('.dash-widget').forEach(el => el.classList.remove('drag-over'));
-    });
-    w.addEventListener('dragover', e => {
-      if (!dashEditMode || !dragEl || dragEl === w) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      container.querySelectorAll('.dash-widget').forEach(el => el.classList.remove('drag-over'));
-      w.classList.add('drag-over');
-    });
-    w.addEventListener('dragleave', () => w.classList.remove('drag-over'));
-    w.addEventListener('drop', e => {
-      e.preventDefault();
-      if (!dragEl || dragEl === w) return;
-      w.classList.remove('drag-over');
-      const all = Array.from(container.querySelectorAll('.dash-widget'));
-      const fromIdx = all.indexOf(dragEl);
-      const toIdx = all.indexOf(w);
-      if (fromIdx < toIdx) w.after(dragEl);
-      else container.insertBefore(dragEl, w);
-      const layout = loadLayout();
-      layout.order = Array.from(container.querySelectorAll('.dash-widget')).map(el => el.dataset.widget);
-      saveLayout(layout);
-    });
+  const removeBtn = w.querySelector('.dash-widget-remove');
+  if (removeBtn) removeBtn.addEventListener('click', () => {
+    const id = w.dataset.widget;
+    w.remove();
+    const layout = loadLayout();
+    layout.order = layout.order.filter(x => x !== id);
+    layout.hidden = layout.hidden.filter(x => x !== id);
+    saveLayout(layout);
+    toast('Widget "'+id+'" dihapus', 'info');
+  });
+}
 
-    const toggleBtn = w.querySelector('.dash-widget-toggle');
-    if (toggleBtn) toggleBtn.addEventListener('click', () => {
-      const id = w.dataset.widget;
-      const layout = loadLayout();
-      const idx = layout.hidden.indexOf(id);
-      if (idx >= 0) layout.hidden.splice(idx, 1);
-      else layout.hidden.push(id);
-      saveLayout(layout);
-      w.classList.toggle('hidden-widget');
-      const isHidden = w.classList.contains('hidden-widget');
-      toggleBtn.textContent = isHidden ? '🚫' : '👁';
-      toggleBtn.classList.toggle('off', isHidden);
+// Widget picker
+function openWidgetPicker() {
+  const layout = loadLayout();
+  const list = document.getElementById('widgetPickerList');
+  const addable = widgetRegistry.filter(w => !layout.order.includes(w.id) || w.removable);
+  list.innerHTML = widgetRegistry.map(w => {
+    const exists = layout.order.includes(w.id);
+    const canAdd = !exists || w.removable;
+    return '<div class="widget-picker-item'+(canAdd?'':' disabled')+'" data-wid="'+w.id+'" data-can="'+(canAdd?'1':'0')+'">'+
+      '<div class="wpi-info"><div class="wpi-name">'+(exists?'✓ ':'')+w.name+'</div><div class="wpi-desc">'+w.desc+'</div></div>'+
+      (canAdd ? '<button class="btn btn-primary btn-sm" style="flex-shrink:0">Tambah</button>' : '<span style="font-size:11px;color:var(--text-muted)">Sudah ada</span>')+
+      '</div>';
+  }).join('');
+  list.querySelectorAll('.widget-picker-item[data-can="1"]').forEach(item => {
+    item.querySelector('.btn').addEventListener('click', () => {
+      const wid = item.dataset.wid;
+      addWidgetToLayout(wid);
+      document.getElementById('widgetPickerOverlay').classList.remove('visible');
     });
   });
+  document.getElementById('widgetPickerOverlay').classList.add('visible');
+}
+
+function addWidgetToLayout(id) {
+  const container = document.getElementById('dashWidgetContainer');
+  const layout = loadLayout();
+  layout.order.push(id);
+  saveLayout(layout);
+  const el = createWidgetEl(id);
+  container.appendChild(el);
+  bindWidgetEvents(el);
+  renderWidgetContent(id);
+  toast('Widget ditambahkan', 'success');
+}
+
+// Monitor mode
+function toggleMonitorMode() {
+  monitorMode = !monitorMode;
+  document.body.classList.toggle('monitor-mode', monitorMode);
+  if (monitorMode) {
+    navigate('dashboard','Dashboard Utama');
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+  } else {
+    if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  }
+}
+
+function setupDashLayout() {
+  applyLayout();
+  document.getElementById('editLayoutBtn').addEventListener('click', toggleEditLayout);
+  document.getElementById('addWidgetBtn').addEventListener('click', openWidgetPicker);
+  document.getElementById('widgetPickerClose').addEventListener('click', () => document.getElementById('widgetPickerOverlay').classList.remove('visible'));
+  document.getElementById('widgetPickerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
+  document.getElementById('monitorModeBtn').addEventListener('click', toggleMonitorMode);
+  document.getElementById('monitorExitBtn').addEventListener('click', toggleMonitorMode);
 }
 
 // ================================================================
@@ -1263,44 +1441,41 @@ function renderDashboard() {
   const karkas = state.karkas.sudah || 0;
   const distrib = state.distribusi.selesai || 0;
   const overallPct = pct(distrib, total);
-  const packing = state.distribusi.packingSelesai || 0;
-  const totalPack = state.distribusi.totalPacking || 0;
 
-  const dw = id => document.getElementById('dw-'+id);
-  if(dw('stat-total')) dw('stat-total').innerHTML = statCard('green','Total Hewan',total,'Target','green');
-  if(dw('stat-sembelih')) dw('stat-sembelih').innerHTML = statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue');
-  if(dw('stat-kuliti')) dw('stat-kuliti').innerHTML = statCard('amber','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','amber');
-  if(dw('stat-distribusi')) dw('stat-distribusi').innerHTML = statCard('maroon','Distribusi Selesai',distrib,pct(distrib,total)+'%','maroon');
+  const layout = loadLayout();
+  layout.order.forEach(id => renderWidgetContent(id));
 
-  if(dw('big-kuliti')) dw('big-kuliti').innerHTML = bigStat('teal','Hewan Terkuliti',dikuliti,total,pct(dikuliti,total));
-  if(dw('big-karkas')) dw('big-karkas').innerHTML = bigStat('orange','Hewan Terkarkas',karkas,total,pct(karkas,total));
-  if(dw('big-packing')) dw('big-packing').innerHTML = bigStat('violet','Packing Selesai',packing,totalPack,pct(packing,totalPack||1));
+  const pctEl = document.getElementById('dashTotalPct');
+  if (pctEl) {
+    pctEl.textContent = overallPct + '%';
+    document.getElementById('dashTotalBar').style.width = overallPct + '%';
+    document.getElementById('dashStartTime').textContent = state.waktuMulai || '—';
+    document.getElementById('dashEndTime').textContent = state.waktuSelesai || (overallPct >= 100 ? 'Selesai' : 'Berjalan...');
+    document.getElementById('dashDuration').textContent = durationStr(state.waktuMulai, state.waktuSelesai);
+  }
 
-  document.getElementById('dashTotalPct').textContent = overallPct + '%';
-  document.getElementById('dashTotalBar').style.width = overallPct + '%';
-  document.getElementById('dashStartTime').textContent = state.waktuMulai || '—';
-  document.getElementById('dashEndTime').textContent = state.waktuSelesai || (overallPct >= 100 ? 'Selesai' : 'Berjalan...');
-  document.getElementById('dashDuration').textContent = durationStr(state.waktuMulai, state.waktuSelesai);
-
-  const processes = [
-    {name:'Kandang',done:keluar,color:'green'},
-    {name:'Penyembelihan',done:dipotong,color:'maroon'},
-    {name:'Transit',done:state.transit.hewan||0,color:'amber'},
-    {name:'Pengulitan',done:dikuliti,color:'blue'},
-    {name:'Pencacahan',done:dicacah,color:'purple'},
-    {name:'Packing Karkas',done:karkas,color:'green'},
-    {name:'Distribusi',done:distrib,color:'blue'},
-  ];
-  document.getElementById('processList').innerHTML = processes.map((p,i) => {
-    const p2 = pct(p.done,total);
-    const st = p2>=100?'selesai':p.done>0?'berjalan':'belum';
-    return '<div class="process-item">'+
-      '<div class="process-num">'+String(i+1).padStart(2,'0')+'</div>'+
-      '<div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' dari '+total+' hewan</div></div>'+
-      '<div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div>'+
-      '<div class="process-count">'+p2+'%</div>'+
-      '<div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>';
-  }).join('');
+  const plEl = document.getElementById('processList');
+  if (plEl) {
+    const processes = [
+      {name:'Kandang',done:keluar,color:'green'},
+      {name:'Penyembelihan',done:dipotong,color:'maroon'},
+      {name:'Transit',done:state.transit.hewan||0,color:'amber'},
+      {name:'Pengulitan',done:dikuliti,color:'blue'},
+      {name:'Pencacahan',done:dicacah,color:'purple'},
+      {name:'Packing Karkas',done:karkas,color:'green'},
+      {name:'Distribusi',done:distrib,color:'blue'},
+    ];
+    plEl.innerHTML = processes.map((p,i) => {
+      const p2 = pct(p.done,total);
+      const st = p2>=100?'selesai':p.done>0?'berjalan':'belum';
+      return '<div class="process-item">'+
+        '<div class="process-num">'+String(i+1).padStart(2,'0')+'</div>'+
+        '<div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' dari '+total+' hewan</div></div>'+
+        '<div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div>'+
+        '<div class="process-count">'+p2+'%</div>'+
+        '<div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>';
+    }).join('');
+  }
 }
 
 function statCard(color, label, value, badge, badgeColor) {
