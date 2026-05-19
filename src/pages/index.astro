@@ -1631,7 +1631,7 @@ function statusOpts(current) {
 // RENDER ALL
 // ================================================================
 function renderAll() {
-  state.transit.hewan = totalDipotong();
+  state.transit.hewan = Math.max(0, totalDipotong() - totalDikuliti());
   renderDashboard();
   renderKandang();
   renderSembelih();
@@ -1665,8 +1665,7 @@ function renderDashboard() {
       {name:'Penyembelihan',done:dipotong,color:'maroon'},
       {name:'Transit',done:state.transit.hewan||0,color:'amber'},
       {name:'Pengulitan',done:dikuliti,color:'blue'},
-      {name:'Pencacahan',done:dicacah,color:'purple'},
-      {name:'Packing Karkas',done:karkas,color:'green'},
+      {name:'Cacah & Karkas',done:dicacah+karkas,color:'purple'},
       {name:'Distribusi',done:distrib,color:'blue'},
     ];
     plEl.innerHTML = processes.map((p,i) => {
@@ -1760,8 +1759,7 @@ function renderTransit() {
   document.getElementById('transitStats').innerHTML =
     '<div class="stat-card blue"><div class="stat-label">Total Kaki</div><div class="counter-big" style="color:var(--blue)">'+(kaki||0)+'</div><div class="stat-badge blue">Tersedia</div></div>'+
     '<div class="stat-card green"><div class="stat-label">Total Kepala</div><div class="counter-big" style="color:var(--green)">'+(kepala||0)+'</div><div class="stat-badge green">Tersedia</div></div>'+
-    '<div class="stat-card amber"><div class="stat-label">Hewan Transit</div><div class="counter-big" style="color:var(--amber)">'+(hewan||0)+'</div><div class="stat-badge" style="background:var(--amber-light);color:#92400e">'+pct(hewan||0,total)+'%</div></div>'+
-    '<div class="stat-card maroon"><div class="stat-label">Sisa Transit</div><div class="counter-big" style="color:var(--maroon)">'+Math.max(0,total-(hewan||0))+'</div><div class="stat-badge maroon">Hewan</div></div>';
+    '<div class="stat-card amber"><div class="stat-label">Hewan Transit</div><div class="counter-big" style="color:var(--amber)">'+(hewan||0)+'</div><div class="stat-badge" style="background:transparent;color:var(--amber)">Menunggu kuliti</div></div>';
   document.getElementById('transitDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:14px">Progress Transit</div>'+
     '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Hewan Transit</span><span class="progress-pct">'+pct(hewan||0,total)+'%</span></div>'+
@@ -1787,8 +1785,7 @@ function renderPengulitan() {
   document.getElementById('pengulitanStats').innerHTML =
     statCard('green','Total Hewan',total,'Qurban','green') +
     statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue') +
-    statCard('amber','Siap Dikuliti',state.transit.hewan||0,'Transit','amber') +
-    statCard('maroon','Belum Dikuliti',total-dikuliti,'Sisa','maroon');
+    statCard('amber','Siap Dikuliti',state.transit.hewan||0,'Transit','amber');
   filterKalet();
 }
 function filterKalet() {
@@ -1818,7 +1815,6 @@ function renderPencacahan() {
   document.getElementById('pencacahanStats').innerHTML =
     statCard('green','Siap Cacah',totalDikuliti(),'Dari Pengulitan','green') +
     statCard('blue','Sudah Dicacah',dicacah,pct(dicacah,total)+'%','blue') +
-    statCard('maroon','Belum Dicacah',total-dicacah,'Sisa','maroon') +
     statCard('amber','Progress',pct(dicacah,total)+'%','Keseluruhan','amber');
   document.getElementById('mejaCacahGrid').innerHTML = state.cacah.map(c => {
     const p2 = pct(c.total||0, Math.ceil(state.totalHewan/6)||1);
