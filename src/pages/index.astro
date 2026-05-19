@@ -1684,7 +1684,7 @@ function renderDashboard() {
 
 function statCard(color, label, value, badge, badgeColor) {
   const colorMap = {green:'var(--green)',blue:'var(--blue)',maroon:'var(--maroon)',amber:'var(--amber)',purple:'var(--purple)'};
-  const bc = badgeColor === 'amber' ? 'style="background:var(--amber-light);color:#92400e"' : 'class="'+badgeColor+'"';
+  const bc = badgeColor === 'amber' ? 'style="background:transparent;color:var(--amber)"' : 'class="'+badgeColor+'"';
   return '<div class="stat-card '+color+'"><div class="stat-label">'+label+'</div><div class="stat-value" style="color:'+colorMap[color]+'">'+value+'</div><div class="stat-badge" '+bc+'>'+badge+'</div></div>';
 }
 
