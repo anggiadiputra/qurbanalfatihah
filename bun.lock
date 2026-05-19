@@ -1,17 +1,16 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "qurban-center",
       "dependencies": {
-        "@astrojs/cloudflare": "^12.5.2",
+        "@astrojs/cloudflare": "12",
         "@neondatabase/serverless": "^1.0.0",
         "astro": "^5.9.2",
       },
       "devDependencies": {
         "typescript": "^5.8.3",
-        "wrangler": "^4.16.0",
+        "wrangler": "^4.92.0",
       },
     },
   },
