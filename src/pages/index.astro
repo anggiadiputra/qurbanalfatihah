@@ -852,10 +852,10 @@ async function init() {
   startClock();
   await loadStateFromAPI();
   buildForms();
-  renderAll();
   updateDarkUI();
   setupThemeUI();
   setupDashLayout();
+  renderAll();
   setupNavigation();
   setupAutoSave();
   if (autoRefreshEnabled) startAutoRefresh();
