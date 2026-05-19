@@ -170,16 +170,7 @@
           </button>
         </div>
       </div>
-      <div id="dashWidgetContainer">
-        <div class="dash-widget" data-widget="stat-total"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Total Hewan</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-total"></div></div>
-        <div class="dash-widget" data-widget="stat-sembelih"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Tersembelih</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-sembelih"></div></div>
-        <div class="dash-widget" data-widget="stat-keluar"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Keluar Kandang</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-keluar"></div></div>
-        <div class="dash-widget" data-widget="stat-distribusi"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Distribusi</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-stat-distribusi"></div></div>
-        <div class="dash-widget" data-widget="big-kuliti"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkuliti</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-kuliti"></div></div>
-        <div class="dash-widget" data-widget="big-karkas"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Hewan Terkarkas</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-karkas"></div></div>
-        <div class="dash-widget" data-widget="big-packing"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Packing Selesai</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-big-packing"></div></div>
-        <div class="dash-widget" data-widget="progress" style="grid-column:span 4"><div class="dash-widget-bar"><span class="dash-widget-grip">⠿</span><span class="dash-widget-title">Progress</span><button class="dash-widget-toggle">👁</button></div><div class="dash-widget-body" id="dw-progress"></div></div>
-      </div>
+      <div id="dashWidgetContainer"></div>
       <!-- Process list always at bottom, not part of widget grid -->
       <div class="card" style="margin-top:20px;" id="processListCard">
         <div style="font-weight:700;font-size:15px;margin-bottom:16px;">Status Tiap Proses</div>
@@ -920,10 +911,10 @@ function queueSave() {
 // SETUP AUTO-SAVE
 // ================================================================
 function setupAutoSave() {
-  document.querySelectorAll('#page-input .form-control').forEach(el => {
-    el.addEventListener('input', queueSave);
-    el.addEventListener('change', queueSave);
-  });
+  const page = document.getElementById('page-input');
+  if (!page) return;
+  page.addEventListener('input', e => { if (e.target.classList.contains('form-control')) queueSave(); });
+  page.addEventListener('change', e => { if (e.target.classList.contains('form-control')) queueSave(); });
 }
 
 // ================================================================
@@ -1314,17 +1305,22 @@ function renderWidgetPickerList() {
       '<button class="btn '+(exists?'btn-danger':'btn-primary')+' btn-sm" style="flex-shrink:0">'+(exists?'Hapus':'Tambah')+'</button>'+
       '</div>';
   }).join('');
-  list.querySelectorAll('.widget-picker-item').forEach(item => {
-    item.querySelector('.btn').addEventListener('click', () => {
-      const wid = item.dataset.wid;
-      const curLayout = loadLayout();
-      if (curLayout.order.includes(wid)) {
-        removeWidgetFromLayout(wid);
-      } else {
-        addWidgetToLayout(wid);
-      }
-      renderWidgetPickerList();
-    });
+}
+
+function setupWidgetPickerDelegation() {
+  document.getElementById('widgetPickerList').addEventListener('click', e => {
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const item = btn.closest('.widget-picker-item');
+    if (!item) return;
+    const wid = item.dataset.wid;
+    const layout = loadLayout();
+    if (layout.order.includes(wid)) {
+      removeWidgetFromLayout(wid);
+    } else {
+      addWidgetToLayout(wid);
+    }
+    renderWidgetPickerList();
   });
 }
 
@@ -1354,26 +1350,26 @@ function addWidgetToLayout(id) {
 }
 
 // Monitor mode
-function toggleMonitorMode() {
-  monitorMode = !monitorMode;
-  document.body.classList.toggle('monitor-mode', monitorMode);
-  if (monitorMode) {
-    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('page-dashboard').classList.add('active');
-    document.getElementById('headerTitle').textContent = 'Dashboard Utama';
-    renderAll();
-    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
-  } else {
-    if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-    renderAll();
-  }
+function enterMonitorMode() {
+  if (monitorMode) return;
+  monitorMode = true;
+  document.body.classList.add('monitor-mode');
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-dashboard').classList.add('active');
+  document.getElementById('headerTitle').textContent = 'Dashboard Utama';
+  renderAll();
+  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
 }
+function exitMonitorMode() {
+  if (!monitorMode) return;
+  monitorMode = false;
+  document.body.classList.remove('monitor-mode');
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  setTimeout(() => renderAll(), 100);
+}
+function toggleMonitorMode() { monitorMode ? exitMonitorMode() : enterMonitorMode(); }
 document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && monitorMode) {
-    monitorMode = false;
-    document.body.classList.remove('monitor-mode');
-    renderAll();
-  }
+  if (!document.fullscreenElement && monitorMode) exitMonitorMode();
 });
 
 function setupDashLayout() {
@@ -1384,6 +1380,7 @@ function setupDashLayout() {
   document.getElementById('widgetPickerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
   document.getElementById('monitorModeBtn').addEventListener('click', toggleMonitorMode);
   document.getElementById('monitorExitBtn').addEventListener('click', toggleMonitorMode);
+  setupWidgetPickerDelegation();
 }
 
 // ================================================================
@@ -1398,24 +1395,21 @@ function setupNavigation() {
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', () => navigate(el.dataset.nav, 'Input Data'));
   });
-  document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
-  document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
-  document.getElementById('darkToggleBtn').addEventListener('click', toggleDark);
-  document.getElementById('darkModeSwitch').addEventListener('click', toggleDark);
-  document.getElementById('autoRefreshSwitch').addEventListener('click', function(){ toggleAutoRefresh(this); });
-  document.getElementById('exportBtn').addEventListener('click', exportExcel);
-  document.getElementById('exportBtnMain').addEventListener('click', exportExcel);
-  document.getElementById('exportBtnSettings').addEventListener('click', exportExcel);
-  document.getElementById('printBtn').addEventListener('click', () => window.print());
-  document.getElementById('refreshBtn').addEventListener('click', async () => {
-    await loadStateFromAPI();
-    renderAll();
-    toast('Data diperbarui', 'info');
-  });
-  document.getElementById('resetBtn').addEventListener('click', resetData);
-  document.getElementById('resetBtnSettings').addEventListener('click', resetData);
-  document.getElementById('searchKalet').addEventListener('input', filterKalet);
-  document.getElementById('filterKaletStatus').addEventListener('change', filterKalet);
+  const on = (id,evt,fn) => { const el = document.getElementById(id); if (el) el.addEventListener(evt,fn); };
+  on('sidebarToggle','click',toggleSidebar);
+  on('sidebarOverlay','click',closeMobileSidebar);
+  on('darkToggleBtn','click',toggleDark);
+  on('darkModeSwitch','click',toggleDark);
+  on('autoRefreshSwitch','click',function(){ toggleAutoRefresh(this); });
+  on('exportBtn','click',exportExcel);
+  on('exportBtnMain','click',exportExcel);
+  on('exportBtnSettings','click',exportExcel);
+  on('printBtn','click',() => window.print());
+  on('refreshBtn','click',async () => { await loadStateFromAPI(); renderAll(); toast('Data diperbarui','info'); });
+  on('resetBtn','click',resetData);
+  on('resetBtnSettings','click',resetData);
+  on('searchKalet','input',filterKalet);
+  on('filterKaletStatus','change',filterKalet);
 }
 
 function navigate(pageId, title) {
@@ -1779,7 +1773,6 @@ function buildForms() {
   ).join('');
 
   loadFormFromData();
-  setupAutoSave();
 }
 
 function formGroup(label,type,id,val) {
