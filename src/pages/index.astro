@@ -1854,7 +1854,7 @@ function renderKandang() {
     statCard('blue','Total Keluar',totalKel,pct(totalKel,total)+'%','blue','kd') +
     statCard('maroon','Sisa Kandang',sisa,pct(sisa,total)+'%','maroon','kd') +
     statCard('amber','Progress',pct(totalKel,total)+'%','Keluar','amber','kd');
-  document.getElementById('kandangGrid').innerHTML = state.kandang.map(k => unitCard('Kandang #'+k.no, k.keluar||0, k.total||0, 'Keluar / Total', k.status, k.waktuMulai, k.waktuSelesai, 'green', (k.total||0)-(k.keluar||0))).join('');
+  document.getElementById('kandangGrid').innerHTML = state.kandang.map(k => statCard('green','Kandang #'+k.no,k.keluar||0,statusLabel(k.status),k.status==='selesai'?'green':k.status==='berjalan'?'blue':'maroon','kdu')).join('');
 }
 
 function unitCard(label, val, total, meta, status, mulai, selesai, color, sisa) {
