@@ -1,0 +1,145 @@
+---
+import { COOKIE_NAME, getRole } from '../lib/auth';
+
+const auth = Astro.cookies.get(COOKIE_NAME)?.value;
+if (getRole(auth)) {
+  return Astro.redirect('/');
+}
+---
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Qurban Command Center</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <div class="login-brand-title">Qurban Center</div>
+          <div class="login-brand-sub">Monitoring & Manajemen Qurban</div>
+        </div>
+      </div>
+
+      <div class="login-tabs">
+        <button class="tab active" data-tab="viewer">Viewer</button>
+        <button class="tab" data-tab="editor">Editor</button>
+      </div>
+
+      <div class="tab-content active" id="tab-viewer">
+        <p class="viewer-desc">Masuk sebagai viewer untuk melihat dashboard monitoring tanpa kemampuan mengubah data.</p>
+        <button class="btn-viewer" id="viewerBtn">Masuk sebagai Viewer</button>
+      </div>
+
+      <div class="tab-content" id="tab-editor">
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="email@domain.com" required />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Password" required />
+          </div>
+          <div id="loginError" class="error-msg"></div>
+          <button type="submit" class="btn-login" id="loginBtn">Masuk sebagai Editor</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:#f8f9fc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-font-smoothing:antialiased}
+  .login-container{width:100%;max-width:400px}
+  .login-card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);border:1px solid #e5e7ef;padding:32px}
+  .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#10b981,#3b82f6);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(16,185,129,.3)}
+  .login-brand-title{font-weight:800;font-size:16px;color:#111827}
+  .login-brand-sub{font-size:11px;color:#9ca3af;font-weight:500}
+  .login-tabs{display:flex;gap:4px;margin-bottom:24px;background:#f1f3f9;border-radius:10px;padding:4px}
+  .tab{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-size:13px;font-weight:600;color:#4b5563;cursor:pointer;transition:all .2s;font-family:inherit}
+  .tab.active{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .tab:hover:not(.active){color:#111827}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:12px;font-weight:600;color:#4b5563;margin-bottom:6px}
+  .form-group input{width:100%;padding:10px 14px;border:1.5px solid #e5e7ef;border-radius:10px;font-size:13px;outline:none;transition:all .2s;font-family:inherit;color:#111827;background:#fff}
+  .form-group input:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+  .form-group input::placeholder{color:#9ca3af}
+  .error-msg{color:#e11d48;font-size:12px;font-weight:500;min-height:20px;margin-bottom:4px}
+  .btn-login{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;box-shadow:0 2px 8px rgba(16,185,129,.25)}
+  .btn-login:hover{box-shadow:0 4px 16px rgba(16,185,129,.35);transform:translateY(-1px)}
+  .btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .viewer-desc{font-size:13px;color:#4b5563;line-height:1.6;margin-bottom:20px}
+  .btn-viewer{width:100%;padding:12px;border:1.5px solid #e5e7ef;border-radius:10px;background:#f8f9fc;color:#111827;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+  .btn-viewer:hover{background:#e5e7ef;border-color:#9ca3af}
+</style>
+
+<script is:inline>
+  document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var email = document.getElementById('loginEmail').value;
+    var password = document.getElementById('loginPassword').value;
+    var errorEl = document.getElementById('loginError');
+    var btn = document.getElementById('loginBtn');
+    errorEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
+    try {
+      var res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password }),
+      });
+      var data = await res.json();
+      if (res.ok) {
+        window.location.href = '/';
+      } else {
+        errorEl.textContent = data.error || 'Login gagal';
+        btn.disabled = false;
+        btn.textContent = 'Masuk sebagai Editor';
+      }
+    } catch (err) {
+      errorEl.textContent = 'Terjadi kesalahan koneksi';
+      btn.disabled = false;
+      btn.textContent = 'Masuk sebagai Editor';
+    }
+  });
+
+  document.getElementById('viewerBtn').addEventListener('click', async function() {
+    this.disabled = true;
+    this.textContent = 'Memproses...';
+    try {
+      var res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'viewer' }),
+      });
+      if (res.ok) {
+        window.location.href = '/';
+      }
+    } catch (err) {
+      this.disabled = false;
+      this.textContent = 'Masuk sebagai Viewer';
+    }
+  });
+</script>
+</body>
+</html>

@@ -63,6 +63,23 @@ export async function getState() {
   return result.length > 0 ? result[0].data : null;
 }
 
+export async function getSettings() {
+  const sql = createSql();
+  const result = await sql`SELECT data FROM qurban_state WHERE id = 'settings'`;
+  return result.length > 0 ? result[0].data : null;
+}
+
+export async function saveSettings(data: unknown) {
+  const sql = createSql();
+  const json = JSON.stringify(data);
+  await sql`
+    INSERT INTO qurban_state (id, data, updated_at)
+    VALUES ('settings', ${json}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+}
+
 export async function saveState(data: unknown) {
   const sql = createSql();
   const json = JSON.stringify(data);

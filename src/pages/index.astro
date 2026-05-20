@@ -1,4 +1,7 @@
 ---
+import { COOKIE_NAME, getRole } from '../lib/auth';
+const auth = Astro.cookies.get(COOKIE_NAME)?.value;
+const role = getRole(auth) || 'viewer';
 ---
 <html lang="id">
 <head>
@@ -9,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Lato:wght@300;400;700&family=Lexend:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Rubik:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body>
+<body data-role={role}>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
@@ -108,14 +111,14 @@
         </span>
         <span class="nav-label">Distribusi</span>
       </div>
-      <div class="nav-section-label">Manajemen</div>
-      <div class="nav-item" data-page="input" data-title="Input Data">
+      <div class="nav-section-label editor-only">Manajemen</div>
+      <div class="nav-item editor-only" data-page="input" data-title="Input Data">
         <span class="nav-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </span>
         <span class="nav-label">Input Data</span>
       </div>
-      <div class="nav-item" data-page="pengaturan" data-title="Pengaturan">
+      <div class="nav-item editor-only" data-page="pengaturan" data-title="Pengaturan">
         <span class="nav-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         </span>
@@ -136,17 +139,21 @@
       </div>
       <div style="flex:1"></div>
       <div class="header-clock" id="clockDisplay">--:--:-- WIB</div>
+      <span class={`role-badge ${role}`}>{role === 'editor' ? 'Editor' : 'Viewer'}</span>
       <div class="header-actions">
-        <button class="btn btn-ghost btn-sm" id="customizeColorsBtn">🎨 Warna</button>
+        <button class="btn btn-ghost btn-sm editor-only" id="customizeColorsBtn">🎨 Warna</button>
         <button class="btn-icon" id="exportBtn" title="Export Excel">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
         <button class="btn-icon" id="printBtn" title="Print">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         </button>
-        <button class="btn-icon" id="darkToggleBtn" title="Dark Mode">
+        <button class="btn-icon editor-only" id="darkToggleBtn" title="Dark Mode">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-sun" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <button class="btn-icon" id="logoutBtn" title="Logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
     </header>
@@ -165,11 +172,11 @@
           <div class="page-subtitle">Monitoring operasional qurban secara realtime</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-ghost btn-sm" id="editLayoutBtn">
+          <button class="btn btn-ghost btn-sm editor-only" id="editLayoutBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
             Edit Layout
           </button>
-          <button class="btn btn-ghost btn-sm" id="addWidgetBtn">+ Widget</button>
+          <button class="btn btn-ghost btn-sm editor-only" id="addWidgetBtn">+ Widget</button>
           <button class="btn btn-secondary btn-sm" id="monitorModeBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             Mode Monitor
@@ -196,7 +203,7 @@
     <section class="page-section" id="page-kandang">
       <div class="page-header">
         <div><div class="page-title">Kandang</div><div class="page-subtitle">Monitoring 8 kandang hewan qurban</div></div>
-        <div class="page-actions"><button class="btn btn-primary btn-sm" data-nav="input">+ Input Data</button></div>
+        <div class="page-actions"><button class="btn btn-primary btn-sm editor-only" data-nav="input">+ Input Data</button></div>
       </div>
       <div class="stats-grid" id="kandangStats"></div>
       <div class="grid-4" id="kandangGrid"></div>
@@ -268,7 +275,7 @@
     </section>
 
     <!-- PAGE: Input Data -->
-    <section class="page-section" id="page-input">
+    <section class="page-section editor-only" id="page-input">
       <div class="page-header">
         <div><div class="page-title">Input Data</div><div class="page-subtitle">Data otomatis tersimpan saat diubah</div></div>
         <div class="page-actions">
@@ -342,7 +349,7 @@
     </section>
 
     <!-- PAGE: Pengaturan -->
-    <section class="page-section" id="page-pengaturan">
+    <section class="page-section editor-only" id="page-pengaturan">
       <div class="page-header">
         <div><div class="page-title">Pengaturan</div><div class="page-subtitle">Konfigurasi sistem dashboard</div></div>
       </div>
@@ -409,7 +416,7 @@
           <div><div class="settings-label">Export Excel</div><div class="settings-desc">Download semua data dalam format .xlsx</div></div>
           <button class="btn btn-secondary btn-sm" id="exportBtnSettings">Download</button>
         </div>
-        <div class="settings-row">
+        <div class="settings-row editor-only">
           <div><div class="settings-label">Reset Semua Data</div><div class="settings-desc">Hapus seluruh data dan mulai dari awal</div></div>
           <button class="btn btn-danger btn-sm" id="resetBtnSettings">Reset</button>
         </div>
@@ -908,6 +915,14 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 
 /* Print */
 @media print{.sidebar,.header,.page-actions,.header-actions,.save-indicator,.autosave-badge{display:none!important}.main-content{margin-left:0!important}.page-section.active{padding:16px}}
+
+/* Auth role */
+body[data-role="viewer"] .editor-only{display:none!important}
+.role-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap}
+.role-badge.editor{background:var(--green-light);color:var(--green-dark)}
+.role-badge.viewer{background:var(--blue-light);color:var(--blue-dark)}
+.dark .role-badge.editor{background:rgba(16,185,129,.15);color:var(--green)}
+.dark .role-badge.viewer{background:rgba(59,130,246,.15);color:var(--blue)}
 </style>
 
 <script is:inline>
@@ -945,11 +960,18 @@ let saveTimeout = null;
 let isSaving = false;
 let pendingSave = false;
 
+let settings = {darkMode:false, theme:{}, layout:{}, cardColors:{}};
+let settingsSaveTimeout = null;
+let isSettingsSaving = false;
+let pendingSettingsSave = false;
+
 // ================================================================
 // INIT
 // ================================================================
 async function init() {
   startClock();
+  await loadSettingsFromAPI();
+  if (settings.darkMode) document.body.classList.add('dark');
   await loadStateFromAPI();
   buildForms();
   updateDarkUI();
@@ -977,6 +999,33 @@ async function loadStateFromAPI() {
   } catch(e) {
     console.warn('Failed to load state from API, using defaults');
   }
+}
+
+async function loadSettingsFromAPI() {
+  try {
+    var res = await fetch('/api/settings');
+    if (res.ok) {
+      var data = await res.json();
+      if (data && typeof data === 'object') settings = data;
+    }
+  } catch(e) {}
+}
+
+async function saveSettingsToAPI() {
+  if (isSettingsSaving) { pendingSettingsSave = true; return; }
+  isSettingsSaving = true;
+  try {
+    await fetch('/api/settings', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(settings) });
+  } catch(e) {}
+  finally {
+    isSettingsSaving = false;
+    if (pendingSettingsSave) { pendingSettingsSave = false; saveSettingsToAPI(); }
+  }
+}
+
+function queueSettingsSave() {
+  if (settingsSaveTimeout) clearTimeout(settingsSaveTimeout);
+  settingsSaveTimeout = setTimeout(saveSettingsToAPI, 400);
 }
 
 async function saveStateToAPI() {
@@ -1048,6 +1097,13 @@ function startClock() {
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(async () => {
+    await loadSettingsFromAPI();
+    var shouldDark = !!settings.darkMode;
+    if (shouldDark !== document.body.classList.contains('dark')) {
+      document.body.classList.toggle('dark', shouldDark);
+      updateDarkUI();
+    }
+    applyTheme(loadTheme());
     await loadStateFromAPI();
     renderAll();
   }, 30000);
@@ -1065,9 +1121,9 @@ function toggleAutoRefresh(btn) {
 // ================================================================
 function toggleDark() {
   document.body.classList.toggle('dark');
-  const on = document.body.classList.contains('dark');
-  localStorage.setItem('darkMode', on ? '1' : '0');
+  settings.darkMode = document.body.classList.contains('dark');
   updateDarkUI();
+  queueSettingsSave();
 }
 function updateDarkUI() {
   const on = document.body.classList.contains('dark');
@@ -1079,7 +1135,7 @@ function updateDarkUI() {
     btn.querySelector('.icon-sun').style.display = on ? '' : 'none';
   }
 }
-if (localStorage.getItem('darkMode') === '1') document.body.classList.add('dark');
+// dark mode applied in init() from settings
 
 // ================================================================
 // THEME (Font + Colors)
@@ -1116,15 +1172,13 @@ function colorVariant(hex, lighten) {
 }
 
 function loadTheme() {
-  try {
-    const raw = localStorage.getItem('qurbanTheme');
-    return raw ? {...defaultTheme, ...JSON.parse(raw)} : {...defaultTheme};
-  } catch(e) { return {...defaultTheme}; }
+  return {...defaultTheme, ...settings.theme};
 }
 
 function saveTheme(theme) {
-  localStorage.setItem('qurbanTheme', JSON.stringify(theme));
+  settings.theme = {...theme};
   applyTheme(theme);
+  queueSettingsSave();
 }
 
 function applyTheme(theme) {
@@ -1178,13 +1232,13 @@ function setupThemeUI() {
 let customizeColorsOn = false;
 
 function getCardColors() {
-  try { return JSON.parse(localStorage.getItem('qurbanCardColors')||'{}'); } catch(e) { return {}; }
+  return settings.cardColors || {};
 }
 function getCardColor(cid) { return getCardColors()[cid] || ''; }
 function setCardColor(cid, hex) {
-  const c = getCardColors();
-  c[cid] = hex;
-  localStorage.setItem('qurbanCardColors', JSON.stringify(c));
+  if (!settings.cardColors) settings.cardColors = {};
+  settings.cardColors[cid] = hex;
+  queueSettingsSave();
 }
 
 function toggleCustomizeColors() {
@@ -1232,17 +1286,15 @@ const widgetRegistry = [
 ];
 
 function loadLayout() {
-  try {
-    const raw = localStorage.getItem('qurbanLayout');
-    if (!raw) return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}, colors:{}};
-    const parsed = JSON.parse(raw);
-    const order = (parsed.order || defaultLayout.order).filter(x => x !== 'processList').map(x => x === 'stat-kuliti' ? 'stat-keluar' : x);
-    return {order, hidden: (parsed.hidden||[]).filter(x => x !== 'processList'), sizes: parsed.sizes || {}, spans: parsed.spans || {}, colors: parsed.colors || {}};
-  } catch(e) { return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}, colors:{}}; }
+  var layout = settings.layout || {};
+  if (!layout.order || !layout.order.length) return {order:[...defaultLayout.order], hidden:[], sizes:{}, spans:{}, colors:{}};
+  var order = layout.order.filter(function(x){return x!=='processList'}).map(function(x){return x==='stat-kuliti'?'stat-keluar':x});
+  return {order:order, hidden:(layout.hidden||[]).filter(function(x){return x!=='processList'}), sizes:layout.sizes||{}, spans:layout.spans||{}, colors:layout.colors||{}};
 }
 
 function saveLayout(layout) {
-  localStorage.setItem('qurbanLayout', JSON.stringify(layout));
+  settings.layout = layout;
+  queueSettingsSave();
 }
 
 function createWidgetEl(id) {
@@ -1686,6 +1738,7 @@ function setupNavigation() {
   on('resetBtnSettings','click',resetData);
   on('searchKalet','input',filterKalet);
   on('filterKaletStatus','change',filterKalet);
+  on('logoutBtn','click', async function() { await fetch('/api/login',{method:'DELETE'}); window.location.href='/login'; });
 }
 
 function navigate(pageId, title) {
