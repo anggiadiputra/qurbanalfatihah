@@ -49,8 +49,9 @@ export function defaultState() {
     karkas: { sudah: 0, waktuMulai: '', waktuSelesai: '' },
     distribusi: {
       totalPacking: 0,
-      packingSelesai: 0,
       selesai: 0,
+      packingWaktuMulai: '',
+      packingWaktuSelesai: '',
       waktuMulai: '',
       waktuSelesai: '',
     },
