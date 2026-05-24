@@ -97,3 +97,54 @@ export async function resetState() {
   await saveState(data);
   return data;
 }
+
+export function defaultDay2State() {
+  return {
+    totalKarkas: 0,
+    abfKeluar: 0,
+    abfMulai: '',
+    abfSelesai: '',
+    cacah: 0,
+    cacahMulai: '',
+    cacahSelesai: '',
+    mejaCacah: Array.from({ length: 6 }, (_, i) => ({
+      nama: 'Meja ' + (i + 1),
+      jumlah: 0,
+      mulai: '',
+      selesai: '',
+    })),
+    packBox: 0,
+    packPack: 0,
+    packMulai: '',
+    packSelesai: '',
+    distribMulai: '',
+    distribSelesai: '',
+    tanggal: '',
+    mulai: '',
+    selesai: '',
+    distribusi: [] as Array<{ nama: string; jumlah: number; status: string; catatan: string }>,
+  };
+}
+
+export async function getDay2State() {
+  const sql = createSql();
+  const result = await sql`SELECT data FROM qurban_state WHERE id = 'day2'`;
+  return result.length > 0 ? result[0].data : null;
+}
+
+export async function saveDay2State(data: unknown) {
+  const sql = createSql();
+  const json = JSON.stringify(data);
+  await sql`
+    INSERT INTO qurban_state (id, data, updated_at)
+    VALUES ('day2', ${json}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+}
+
+export async function resetDay2State() {
+  const data = defaultDay2State();
+  await saveDay2State(data);
+  return data;
+}

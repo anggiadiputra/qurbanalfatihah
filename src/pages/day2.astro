@@ -1,0 +1,1376 @@
+---
+import { COOKIE_NAME, getRole } from '../lib/auth';
+const auth = Astro.cookies.get(COOKIE_NAME)?.value;
+const role = getRole(auth) || 'viewer';
+---
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qurban Day 2 — Command Center | Yayasan Al-Fatihah</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style is:global>
+:root {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #f8f9fc;
+  --border: #e8eaf0;
+  --text: #1a1d2e;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --sidebar-bg: #0f1117;
+  --sidebar-text: #e2e8f0;
+  --sidebar-active: #1e6af5;
+  --sidebar-hover: rgba(255,255,255,0.06);
+  --blue: #1e6af5;
+  --blue-light: #dbeafe;
+  --blue-dark: #1a5ce0;
+  --green: #10b981;
+  --green-light: #d1fae5;
+  --orange: #f97316;
+  --orange-light: #ffedd5;
+  --maroon: #9b1c1c;
+  --maroon-light: #fee2e2;
+  --yellow: #f59e0b;
+  --yellow-light: #fef3c7;
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sidebar-w: 240px;
+  --sidebar-collapsed: 68px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+.dark {
+  --bg: #0b0d14;
+  --surface: #13151f;
+  --surface2: #1a1d2e;
+  --border: #252836;
+  --text: #f0f2f8;
+  --text2: #9ca3b8;
+  --text3: #6b7280;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --blue-light: rgba(30,106,245,0.15);
+  --green-light: rgba(16,185,129,0.12);
+  --orange-light: rgba(249,115,22,0.12);
+  --maroon-light: rgba(155,28,28,0.15);
+  --yellow-light: rgba(245,158,11,0.12);
+  --purple-light: rgba(124,58,237,0.12);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);transition:background var(--transition),color var(--transition);min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:var(--font)}
+input,select,textarea{font-family:var(--font)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+.layout{display:flex;min-height:100vh}
+
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--sidebar-bg);
+  display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;
+  transition:width var(--transition);overflow:hidden;
+}
+.sidebar.collapsed{width:var(--sidebar-collapsed)}
+
+.sidebar-logo{
+  padding:20px 18px 16px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid rgba(255,255,255,0.07);min-height:68px;
+}
+.logo-icon{
+  width:36px;height:36px;background:linear-gradient(135deg,#1e6af5,#7c3aed);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.logo-text{color:#fff;font-weight:800;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden}
+.logo-text span{display:block;color:rgba(255,255,255,0.45);font-weight:400;font-size:11px;margin-top:1px}
+
+.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto;overflow-x:hidden}
+.nav-section{margin-bottom:20px}
+.nav-label{
+  font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);
+  text-transform:uppercase;letter-spacing:0.1em;padding:0 8px;margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;
+  color:rgba(255,255,255,0.55);cursor:pointer;transition:all var(--transition);
+  margin-bottom:2px;white-space:nowrap;position:relative;text-decoration:none;
+}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:rgba(30,106,245,0.18);color:#fff}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--blue);border-radius:0 3px 3px 0;
+}
+.nav-icon{
+  width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;transition:background var(--transition);
+}
+.nav-item.active .nav-icon{background:rgba(30,106,245,0.25)}
+.nav-text{font-size:13px;font-weight:500;overflow:hidden;transition:opacity var(--transition)}
+.sidebar.collapsed .nav-text,.sidebar.collapsed .nav-label,.sidebar.collapsed .logo-text{opacity:0;pointer-events:none}
+.nav-badge{
+  margin-left:auto;background:var(--blue);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap;
+}
+.sidebar.collapsed .nav-badge{display:none}
+
+.sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,0.07)}
+.clock-widget{background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px;text-align:center}
+.clock-time{font-size:20px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:0.05em}
+.clock-date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px}
+.sidebar.collapsed .clock-widget{display:none}
+.collapse-btn{
+  width:100%;padding:10px;background:none;border:none;color:rgba(255,255,255,0.35);
+  font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+  transition:all var(--transition);margin-top:8px;
+}
+.collapse-btn:hover{background:var(--sidebar-hover);color:#fff}
+
+.main{
+  margin-left:var(--sidebar-w);flex:1;transition:margin-left var(--transition);
+  min-height:100vh;display:flex;flex-direction:column;
+}
+.sidebar.collapsed ~ .main{margin-left:var(--sidebar-collapsed)}
+
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;
+  box-shadow:var(--shadow-sm);
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.page-title{font-size:18px;font-weight:700;color:var(--text)}
+.page-subtitle{font-size:12px;color:var(--text2);margin-top:1px}
+.live-badge{
+  display:flex;align-items:center;gap:6px;background:var(--green-light);color:var(--green);
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid rgba(16,185,129,0.2);
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-btn{
+  width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;transition:all var(--transition);position:relative;
+}
+.topbar-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,106,245,0.3)}
+.role-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap}
+.role-badge.editor{background:var(--green-light);color:#059669}
+.role-badge.viewer{background:var(--blue-light);color:var(--blue)}
+
+.page{display:none;flex:1;padding:24px;animation:fadeIn 0.3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.section-title{font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm);transition:all var(--transition);position:relative;overflow:hidden;
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.stat-card::before{
+  content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;
+  opacity:0.07;transform:translate(20px,-20px);
+}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.maroon::before{background:var(--maroon)}
+.stat-card.yellow::before{background:var(--yellow)}
+.stat-card.purple::before{background:var(--purple)}
+
+.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.blue .stat-icon{background:var(--blue-light);color:var(--blue)}
+.green .stat-icon{background:var(--green-light);color:var(--green)}
+.orange .stat-icon{background:var(--orange-light);color:var(--orange)}
+.maroon .stat-icon{background:var(--maroon-light);color:var(--maroon)}
+.yellow .stat-icon{background:var(--yellow-light);color:var(--yellow)}
+.purple .stat-icon{background:var(--purple-light);color:var(--purple)}
+
+.stat-value{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1}
+.stat-label{font-size:12px;color:var(--text2);margin-top:6px;font-weight:500}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+.progress-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.progress-title{font-size:15px;font-weight:700;margin-bottom:18px}
+.progress-item{margin-bottom:16px}
+.progress-item:last-child{margin-bottom:0}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-label{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.progress-pct{font-family:var(--mono);font-size:13px;font-weight:700}
+.progress-bar-bg{height:10px;background:var(--surface2);border-radius:99px;border:1px solid var(--border);overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
+.progress-bar-fill::after{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite;
+}
+@keyframes shimmer{to{left:200%}}
+.progress-bar-fill.blue{background:linear-gradient(90deg,#1e6af5,#3b82f6)}
+.progress-bar-fill.green{background:linear-gradient(90deg,#059669,#10b981)}
+.progress-bar-fill.orange{background:linear-gradient(90deg,#ea580c,#f97316)}
+.progress-bar-fill.maroon{background:linear-gradient(90deg,#7f1d1d,#9b1c1c)}
+.progress-bar-fill.yellow{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.progress-info{display:flex;gap:16px;margin-top:5px}
+.progress-info span{font-size:11px;color:var(--text3)}
+
+.timeline-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.timeline{display:flex;gap:0;overflow-x:auto;padding-bottom:8px}
+.timeline-step{flex:1;min-width:120px;display:flex;flex-direction:column;align-items:center;position:relative}
+.timeline-step:not(:last-child)::after{content:'';position:absolute;top:20px;left:50%;width:100%;height:3px;background:var(--border);z-index:0}
+.timeline-step.done:not(:last-child)::after{background:var(--green)}
+.timeline-step.active:not(:last-child)::after{background:linear-gradient(90deg,var(--blue),var(--border))}
+.tl-node{
+  width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:16px;z-index:1;position:relative;border:3px solid var(--border);background:var(--surface2);transition:all var(--transition);
+}
+.timeline-step.done .tl-node{background:var(--green-light);border-color:var(--green);color:var(--green)}
+.timeline-step.active .tl-node{background:var(--blue-light);border-color:var(--blue);color:var(--blue);animation:ring 2s infinite}
+@keyframes ring{0%,100%{box-shadow:0 0 0 0 rgba(30,106,245,0.3)}50%{box-shadow:0 0 0 8px rgba(30,106,245,0)}}
+.tl-label{font-size:11px;font-weight:600;margin-top:8px;text-align:center}
+.tl-value{font-size:13px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.tl-time{font-size:10px;color:var(--text3);margin-top:2px}
+
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.table-title{font-size:14px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{background:var(--surface2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text2);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);transition:background var(--transition)}
+tr:hover td{background:var(--surface2)}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.badge-done{background:var(--green-light);color:var(--green)}
+.badge-process{background:var(--blue-light);color:var(--blue)}
+.badge-wait{background:var(--yellow-light);color:var(--yellow)}
+
+.time-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.time-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px}
+.time-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.time-icon.blue{background:var(--blue-light)}
+.time-icon.green{background:var(--green-light)}
+.time-icon.orange{background:var(--orange-light)}
+.time-label{font-size:11px;color:var(--text2);font-weight:500}
+.time-value{font-size:15px;font-weight:700;font-family:var(--mono);margin-top:3px}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm)}
+.form-card-title{font-size:14px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:14px}
+.form-group:last-child{margin-bottom:0}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);transition:all var(--transition);outline:none;
+}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,106,245,0.12)}
+.form-input::placeholder{color:var(--text3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;border:none;transition:all var(--transition);cursor:pointer}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,106,245,0.35)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#059669;transform:translateY(-1px)}
+.btn-danger{background:var(--maroon);color:#fff}
+.btn-danger:hover{background:#7f1d1d;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--surface2)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+.distrib-item{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.distrib-item input{flex:1;min-width:120px}
+.distrib-item select{width:130px}
+.distrib-remove{
+  background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;
+  padding:6px 10px;font-size:12px;cursor:pointer;flex-shrink:0;font-weight:700;transition:all var(--transition);
+}
+.distrib-remove:hover{background:var(--maroon);color:#fff}
+
+.notif{
+  position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;z-index:999;
+  transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);max-width:320px;
+}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.success{border-left:3px solid var(--green)}
+.notif.error{border-left:3px solid var(--maroon)}
+.notif-icon{font-size:18px}
+
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm)}
+.chart-bars{display:flex;align-items:flex-end;gap:10px;height:100px;padding-top:10px}
+.chart-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:6px}
+.chart-bar{width:100%;border-radius:6px 6px 0 0;transition:height 1s cubic-bezier(0.4,0,0.2,1);min-height:4px}
+.chart-bar-label{font-size:10px;color:var(--text3);font-weight:600;text-align:center}
+
+.overview-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:900px){.overview-grid{grid-template-columns:1fr}}
+
+.save-indicator{
+  position:fixed;top:12px;right:24px;z-index:200;background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--blue);
+  display:none;align-items:center;gap:8px;box-shadow:var(--shadow);
+}
+.save-indicator.visible{display:flex}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1s infinite}
+
+.refresh-indicator{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.spin{animation:spin-anim 2s linear infinite}
+@keyframes spin-anim{to{transform:rotate(360deg)}}
+
+.section-divider{height:1px;background:var(--border);margin:24px 0}
+.color-green{color:var(--green)}
+.color-orange{color:var(--orange)}
+.color-maroon{color:var(--maroon)}
+.color-blue{color:var(--blue)}
+.font-mono{font-family:var(--mono)}
+.fw-700{font-weight:700}
+
+body[data-role="viewer"] .editor-only{display:none!important}
+
+@media(max-width:768px){
+  .sidebar{width:var(--sidebar-collapsed)}
+  .sidebar .nav-text,.sidebar .nav-label,.sidebar .logo-text,.sidebar .clock-widget{opacity:0;pointer-events:none}
+  .main{margin-left:var(--sidebar-collapsed)}
+  .page{padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:0 16px}
+  .form-grid{grid-template-columns:1fr}
+  .overview-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .time-grid{grid-template-columns:1fr 1fr}
+}
+
+@media print{
+  .sidebar,.topbar,.save-indicator{display:none!important}
+  .main{margin-left:0!important}
+  .page.active{padding:16px}
+}
+</style>
+</head>
+<body data-role={role}>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">&#x1f411;</div>
+    <div class="logo-text">
+      Al-Fatihah
+      <span>Qurban Day 2 Monitor</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Monitoring</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <div class="nav-icon">&#x1f4ca;</div>
+        <span class="nav-text">Dashboard Utama</span>
+      </div>
+      <div class="nav-item" onclick="showPage('abf',this)">
+        <div class="nav-icon">&#x1f9ca;</div>
+        <span class="nav-text">ABF / Karkas</span>
+      </div>
+      <div class="nav-item" onclick="showPage('pencacahan',this)">
+        <div class="nav-icon">&#x1f52a;</div>
+        <span class="nav-text">Pencacahan</span>
+      </div>
+      <div class="nav-item" onclick="showPage('packing',this)">
+        <div class="nav-icon">&#x1f4e6;</div>
+        <span class="nav-text">Packing</span>
+      </div>
+      <div class="nav-item" onclick="showPage('distribusi',this)">
+        <div class="nav-icon">&#x1f69a;</div>
+        <span class="nav-text">Distribusi</span>
+        <span class="nav-badge" id="distrib-badge">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Operasional</div>
+      <div class="nav-item editor-only" onclick="showPage('input',this)">
+        <div class="nav-icon">&#x270f;&#xfe0f;</div>
+        <span class="nav-text">Input Data</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Navigasi</div>
+      <a class="nav-item" href="/" style="text-decoration:none">
+        <div class="nav-icon">&#x1f3e0;</div>
+        <span class="nav-text">Day 1 Dashboard</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="clock-widget">
+      <div class="clock-time" id="sidebar-clock">00:00:00</div>
+      <div class="clock-date" id="sidebar-date">—</div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()">&#x21d4;</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="page-title" id="topbar-title">Dashboard Utama</div>
+        <div class="page-subtitle">Monitoring Realtime Qurban Day 2</div>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div> LIVE
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="refresh-indicator">
+        <span class="spin">&#x21bb;</span>
+        <span id="last-refresh">—</span>
+      </div>
+      <span class={`role-badge ${role}`}>{role === 'editor' ? 'Editor' : 'Viewer'}</span>
+      <button class="topbar-btn" onclick="toggleDark()" title="Dark Mode">&#x1f319;</button>
+      <button class="topbar-btn" onclick="exportCSV()" title="Export CSV">&#x1f4e5;</button>
+      <button class="topbar-btn" onclick="window.print()" title="Print">&#x1f5a8;&#xfe0f;</button>
+      <button class="topbar-btn" onclick="window.location.href='/'" title="Day 1">&#x1f3e0;</button>
+    </div>
+  </div>
+
+  <!-- Save Indicator -->
+  <div class="save-indicator" id="saveIndicator">
+    <div class="save-dot"></div>
+    <span>Menyimpan...</span>
+  </div>
+
+  <!-- PAGE: DASHBOARD UTAMA -->
+  <div class="page active" id="page-dashboard">
+    <div class="section-header">
+      <div class="section-title">Ringkasan Keseluruhan</div>
+      <div class="live-badge"><div class="live-dot"></div> Auto Refresh</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">&#x1f411;</div>
+        <div class="stat-value color-blue" id="d-total-karkas">0</div>
+        <div class="stat-label">Total Karkas</div>
+        <div class="stat-sub">Keseluruhan tersedia</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">&#x1f9ca;</div>
+        <div class="stat-value color-green" id="d-abf-keluar">0</div>
+        <div class="stat-label">Keluar ABF</div>
+        <div class="stat-sub">Sudah diambil dari cold storage</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">&#x2744;&#xfe0f;</div>
+        <div class="stat-value color-blue" id="d-sisa-karkas">0</div>
+        <div class="stat-label">Sisa Karkas di ABF</div>
+        <div class="stat-sub">Total Karkas - Keluar ABF</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">&#x1f52a;</div>
+        <div class="stat-value color-orange" id="d-cacah">0</div>
+        <div class="stat-label">Dicacah</div>
+        <div class="stat-sub">Proses pencacahan selesai</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">&#x1f4e6;</div>
+        <div class="stat-value" id="d-packing" style="color:var(--yellow)">0</div>
+        <div class="stat-label">Dipacking</div>
+        <div class="stat-sub">Total paket packing</div>
+      </div>
+      <div class="stat-card maroon">
+        <div class="stat-icon">&#x1f69a;</div>
+        <div class="stat-value color-maroon" id="d-distrib">0</div>
+        <div class="stat-label">Distribusi Selesai</div>
+        <div class="stat-sub">Terkirim ke penerima</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">&#x1f4c8;</div>
+        <div class="stat-value" id="d-overall-pct" style="color:var(--purple)">0%</div>
+        <div class="stat-label">Progress Keseluruhan</div>
+        <div class="stat-sub">Dari ABF &#x2192; Distribusi</div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-card" style="margin-bottom:20px">
+      <div class="table-header" style="border:none;padding:0 0 16px">
+        <div class="table-title">Alur Proses Qurban Day 2</div>
+      </div>
+      <div class="timeline" id="main-timeline">
+        <div class="timeline-step active" id="tl-abf">
+          <div class="tl-node">&#x1f9ca;</div>
+          <div class="tl-label">ABF Keluar</div>
+          <div class="tl-value" id="tl-abf-val">0</div>
+          <div class="tl-time" id="tl-abf-time">—</div>
+        </div>
+        <div class="timeline-step" id="tl-cacah">
+          <div class="tl-node">&#x1f52a;</div>
+          <div class="tl-label">Pencacahan</div>
+          <div class="tl-value" id="tl-cacah-val">0</div>
+          <div class="tl-time" id="tl-cacah-time">—</div>
+        </div>
+        <div class="timeline-step" id="tl-pack">
+          <div class="tl-node">&#x1f4e6;</div>
+          <div class="tl-label">Packing</div>
+          <div class="tl-value" id="tl-pack-val">0</div>
+          <div class="tl-time" id="tl-pack-time">—</div>
+        </div>
+        <div class="timeline-step" id="tl-dist">
+          <div class="tl-node">&#x1f69a;</div>
+          <div class="tl-label">Distribusi</div>
+          <div class="tl-value" id="tl-dist-val">0</div>
+          <div class="tl-time" id="tl-dist-time">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview Grid -->
+    <div class="overview-grid">
+      <div class="progress-section">
+        <div class="progress-title">Progress Per Proses</div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <div class="progress-label"><span style="color:var(--green)">&#x25cf;</span> ABF / Karkas Keluar</div>
+            <div class="progress-pct color-green" id="pct-abf">0%</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill green" id="bar-abf" style="width:0%"></div></div>
+          <div class="progress-info"><span id="info-abf">0 dari 0 karkas</span></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <div class="progress-label"><span style="color:var(--orange)">&#x25cf;</span> Pencacahan</div>
+            <div class="progress-pct color-orange" id="pct-cacah">0%</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill orange" id="bar-cacah" style="width:0%"></div></div>
+          <div class="progress-info"><span id="info-cacah">0 dari 0 karkas</span></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <div class="progress-label"><span style="color:var(--yellow)">&#x25cf;</span> Packing</div>
+            <div class="progress-pct" id="pct-pack" style="color:var(--yellow)">0%</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill yellow" id="bar-pack" style="width:0%"></div></div>
+          <div class="progress-info"><span id="info-pack">0 box, 0 pack</span></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <div class="progress-label"><span style="color:var(--maroon)">&#x25cf;</span> Distribusi</div>
+            <div class="progress-pct color-maroon" id="pct-dist">0%</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill maroon" id="bar-dist" style="width:0%"></div></div>
+          <div class="progress-info"><span id="info-dist">0 dari 0 lokasi</span></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="table-title" style="margin-bottom:16px">Statistik Visual</div>
+        <div class="chart-bars" id="main-chart">
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" id="chart-abf" style="background:var(--green);height:4%"></div>
+            <div class="chart-bar-label">ABF</div>
+          </div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" id="chart-cacah" style="background:var(--orange);height:4%"></div>
+            <div class="chart-bar-label">Cacah</div>
+          </div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" id="chart-pack" style="background:var(--yellow);height:4%"></div>
+            <div class="chart-bar-label">Pack</div>
+          </div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" id="chart-dist" style="background:var(--maroon);height:4%"></div>
+            <div class="chart-bar-label">Distrib</div>
+          </div>
+        </div>
+        <div style="margin-top:20px">
+          <div class="time-card" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+            <div class="time-icon blue">&#x23f1;&#xfe0f;</div>
+            <div>
+              <div class="time-label">Durasi Keseluruhan</div>
+              <div class="time-value" id="d-total-durasi">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Cards -->
+    <div style="margin-top:20px">
+      <div class="section-title" style="margin-bottom:14px">Waktu Proses</div>
+      <div class="time-grid">
+        <div class="time-card"><div class="time-icon blue">&#x1f550;</div><div><div class="time-label">Waktu Mulai</div><div class="time-value" id="d-mulai">—</div></div></div>
+        <div class="time-card"><div class="time-icon green">&#x1f554;</div><div><div class="time-label">Waktu Selesai</div><div class="time-value" id="d-selesai">—</div></div></div>
+        <div class="time-card"><div class="time-icon orange">&#x1f4c5;</div><div><div class="time-label">Tanggal</div><div class="time-value font-mono" style="font-size:12px" id="d-tanggal">—</div></div></div>
+        <div class="time-card"><div class="time-icon" style="background:var(--purple-light)">&#x1f550;</div><div><div class="time-label">Jam WIB Sekarang</div><div class="time-value" id="d-jam-wib">—</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: ABF -->
+  <div class="page" id="page-abf">
+    <div class="section-header"><div class="section-title">ABF / Cold Storage</div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">&#x1f411;</div><div class="stat-value color-blue" id="abf-total">0</div><div class="stat-label">Total Karkas Tersedia</div><div class="stat-sub">Di cold storage / ABF</div></div>
+      <div class="stat-card green"><div class="stat-icon">&#x2705;</div><div class="stat-value color-green" id="abf-keluar">0</div><div class="stat-label">Karkas Diambil</div><div class="stat-sub">Sudah keluar dari ABF</div></div>
+      <div class="stat-card orange"><div class="stat-icon">&#x2744;&#xfe0f;</div><div class="stat-value color-orange" id="abf-sisa">0</div><div class="stat-label">Sisa di ABF</div><div class="stat-sub">Belum diambil</div></div>
+      <div class="stat-card maroon"><div class="stat-icon">&#x1f4ca;</div><div class="stat-value color-maroon" id="abf-pct">0%</div><div class="stat-label">Progress ABF</div><div class="stat-sub">Persentase pengambilan</div></div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-title">Progress Pengambilan Karkas dari ABF</div>
+      <div class="progress-item">
+        <div class="progress-header"><div class="progress-label">Karkas Keluar ABF</div><div class="progress-pct color-green" id="abf-bar-pct">0%</div></div>
+        <div class="progress-bar-bg" style="height:16px"><div class="progress-bar-fill green" id="abf-bar" style="width:0%"></div></div>
+        <div class="progress-info"><span id="abf-bar-info">0 dari 0 karkas diambil</span></div>
+      </div>
+    </div>
+    <div class="time-grid">
+      <div class="time-card"><div class="time-icon blue">&#x1f550;</div><div><div class="time-label">Mulai ABF</div><div class="time-value" id="abf-mulai">—</div></div></div>
+      <div class="time-card"><div class="time-icon green">&#x1f554;</div><div><div class="time-label">Selesai ABF</div><div class="time-value" id="abf-selesai">—</div></div></div>
+      <div class="time-card"><div class="time-icon orange">&#x23f1;&#xfe0f;</div><div><div class="time-label">Durasi</div><div class="time-value" id="abf-durasi">—</div></div></div>
+    </div>
+  </div>
+
+  <!-- PAGE: PENCACAHAN -->
+  <div class="page" id="page-pencacahan">
+    <div class="section-header"><div class="section-title">Pencacahan Karkas</div></div>
+    <div class="stats-grid">
+      <div class="stat-card orange"><div class="stat-icon">&#x1f52a;</div><div class="stat-value color-orange" id="cac-total">0</div><div class="stat-label">Total Dicacah</div><div class="stat-sub">Karkas selesai dicacah</div></div>
+      <div class="stat-card blue"><div class="stat-icon">&#x231b;</div><div class="stat-value color-blue" id="cac-sisa">0</div><div class="stat-label">Sisa Karkas</div><div class="stat-sub">Belum dicacah</div></div>
+      <div class="stat-card green"><div class="stat-icon">&#x1f4ca;</div><div class="stat-value color-green" id="cac-pct">0%</div><div class="stat-label">Progress</div><div class="stat-sub">Pencacahan selesai</div></div>
+    </div>
+    <div class="overview-grid">
+      <div class="progress-section">
+        <div class="progress-title">Progress Pencacahan</div>
+        <div class="progress-item">
+          <div class="progress-header"><div class="progress-label">Pencacahan Karkas</div><div class="progress-pct color-orange" id="cac-bar-pct">0%</div></div>
+          <div class="progress-bar-bg" style="height:16px"><div class="progress-bar-fill orange" id="cac-bar" style="width:0%"></div></div>
+          <div class="progress-info"><span id="cac-bar-info">0 dari 0 karkas</span></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="table-title" style="margin-bottom:12px">Rasio Cacah</div>
+        <div class="chart-bars">
+          <div class="chart-bar-wrap"><div class="chart-bar" id="cac-chart1" style="background:var(--orange);height:0%"></div><div class="chart-bar-label">Dicacah</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" id="cac-chart2" style="background:var(--border);height:0%"></div><div class="chart-bar-label">Sisa</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="time-grid" style="margin-top:20px">
+      <div class="time-card"><div class="time-icon orange">&#x1f550;</div><div><div class="time-label">Mulai Pencacahan</div><div class="time-value" id="cac-mulai">—</div></div></div>
+      <div class="time-card"><div class="time-icon green">&#x1f554;</div><div><div class="time-label">Selesai Pencacahan</div><div class="time-value" id="cac-selesai">—</div></div></div>
+      <div class="time-card"><div class="time-icon blue">&#x23f1;&#xfe0f;</div><div><div class="time-label">Durasi</div><div class="time-value" id="cac-durasi">—</div></div></div>
+    </div>
+  </div>
+
+  <!-- PAGE: PACKING -->
+  <div class="page" id="page-packing">
+    <div class="section-header"><div class="section-title">Packing</div></div>
+    <div class="stats-grid">
+      <div class="stat-card yellow"><div class="stat-icon">&#x1f4e6;</div><div class="stat-value" id="pack-box" style="color:var(--yellow)">0</div><div class="stat-label">Total Box</div><div class="stat-sub">Jumlah packing box</div></div>
+      <div class="stat-card blue"><div class="stat-icon">&#x1f6cd;&#xfe0f;</div><div class="stat-value color-blue" id="pack-pack">0</div><div class="stat-label">Total Pack</div><div class="stat-sub">Jumlah packing pack</div></div>
+      <div class="stat-card green"><div class="stat-icon">&#x2705;</div><div class="stat-value color-green" id="pack-total">0</div><div class="stat-label">Total Packing Selesai</div><div class="stat-sub">Box + Pack</div></div>
+      <div class="stat-card maroon"><div class="stat-icon">&#x1f4ca;</div><div class="stat-value color-maroon" id="pack-pct">0%</div><div class="stat-label">Progress Packing</div><div class="stat-sub">Dari total pencacahan</div></div>
+    </div>
+    <div class="overview-grid">
+      <div class="progress-section">
+        <div class="progress-title">Progress Packing</div>
+        <div class="progress-item">
+          <div class="progress-header"><div class="progress-label"><span style="color:var(--yellow)">&#x25cf;</span> Packing Box</div><div class="progress-pct" id="pack-bar-pct1" style="color:var(--yellow)">0%</div></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill yellow" id="pack-bar1" style="width:0%"></div></div>
+          <div class="progress-info"><span id="pack-bar-info1">0 box</span></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header"><div class="progress-label"><span style="color:var(--blue)">&#x25cf;</span> Packing Pack</div><div class="progress-pct color-blue" id="pack-bar-pct2">0%</div></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill blue" id="pack-bar2" style="width:0%"></div></div>
+          <div class="progress-info"><span id="pack-bar-info2">0 pack</span></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="table-title" style="margin-bottom:12px">Komposisi Packing</div>
+        <div class="chart-bars">
+          <div class="chart-bar-wrap"><div class="chart-bar" id="pack-chart1" style="background:var(--yellow);height:0%"></div><div class="chart-bar-label">Box</div></div>
+          <div class="chart-bar-wrap"><div class="chart-bar" id="pack-chart2" style="background:var(--blue);height:0%"></div><div class="chart-bar-label">Pack</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="time-grid" style="margin-top:20px">
+      <div class="time-card"><div class="time-icon" style="background:var(--yellow-light)">&#x1f550;</div><div><div class="time-label">Mulai Packing</div><div class="time-value" id="pack-mulai">—</div></div></div>
+      <div class="time-card"><div class="time-icon green">&#x1f554;</div><div><div class="time-label">Selesai Packing</div><div class="time-value" id="pack-selesai">—</div></div></div>
+      <div class="time-card"><div class="time-icon blue">&#x23f1;&#xfe0f;</div><div><div class="time-label">Durasi</div><div class="time-value" id="pack-durasi">—</div></div></div>
+    </div>
+  </div>
+
+  <!-- PAGE: DISTRIBUSI -->
+  <div class="page" id="page-distribusi">
+    <div class="section-header"><div class="section-title">Distribusi</div></div>
+    <div class="stats-grid">
+      <div class="stat-card green"><div class="stat-icon">&#x2705;</div><div class="stat-value color-green" id="dist-selesai">0</div><div class="stat-label">Distribusi Selesai</div><div class="stat-sub">Lokasi terdistribusi</div></div>
+      <div class="stat-card blue"><div class="stat-icon">&#x1f504;</div><div class="stat-value color-blue" id="dist-proses">0</div><div class="stat-label">Sedang Proses</div><div class="stat-sub">Dalam perjalanan</div></div>
+      <div class="stat-card orange"><div class="stat-icon">&#x1f4cd;</div><div class="stat-value color-orange" id="dist-total-loc">0</div><div class="stat-label">Total Lokasi</div><div class="stat-sub">Semua titik distribusi</div></div>
+      <div class="stat-card maroon"><div class="stat-icon">&#x1f4ca;</div><div class="stat-value color-maroon" id="dist-pct">0%</div><div class="stat-label">Progress Distribusi</div><div class="stat-sub">Persentase selesai</div></div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-title">Progress Distribusi</div>
+      <div class="progress-item">
+        <div class="progress-header"><div class="progress-label">Lokasi Terkirim</div><div class="progress-pct color-maroon" id="dist-bar-pct">0%</div></div>
+        <div class="progress-bar-bg" style="height:14px"><div class="progress-bar-fill maroon" id="dist-bar" style="width:0%"></div></div>
+        <div class="progress-info"><span id="dist-bar-info">0 dari 0 lokasi</span></div>
+      </div>
+    </div>
+    <div class="time-grid" style="margin-bottom:20px">
+      <div class="time-card"><div class="time-icon" style="background:var(--maroon-light)">&#x1f550;</div><div><div class="time-label">Mulai Distribusi</div><div class="time-value" id="dist-mulai">—</div></div></div>
+      <div class="time-card"><div class="time-icon green">&#x1f554;</div><div><div class="time-label">Selesai Distribusi</div><div class="time-value" id="dist-selesai-time">—</div></div></div>
+      <div class="time-card"><div class="time-icon blue">&#x23f1;&#xfe0f;</div><div><div class="time-label">Durasi</div><div class="time-value" id="dist-durasi">—</div></div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Daftar Distribusi</div>
+        <div class="live-badge"><div class="live-dot"></div>Realtime</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="distrib-table">
+          <thead><tr><th>#</th><th>Nama Lokasi / Alamat</th><th>Jumlah</th><th>Status</th><th>Catatan</th></tr></thead>
+          <tbody id="distrib-tbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:30px">Belum ada data distribusi</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: INPUT DATA -->
+  <div class="page editor-only" id="page-input">
+    <div class="section-header">
+      <div class="section-title">Input & Kelola Data</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="resetAll()">Reset Semua</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <!-- Karkas & ABF -->
+      <div class="form-card">
+        <div class="form-card-title">Karkas & ABF</div>
+        <div class="form-group"><label class="form-label">Total Karkas (keseluruhan)</label><input type="number" class="form-input" id="inp-total-karkas" placeholder="contoh: 150" min="0"></div>
+        <div class="form-group"><label class="form-label">Karkas Keluar ABF</label><input type="number" class="form-input" id="inp-abf-keluar" placeholder="contoh: 120" min="0"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Mulai ABF</label><input type="time" class="form-input" id="inp-abf-mulai"></div>
+          <div class="form-group"><label class="form-label">Selesai ABF</label><input type="time" class="form-input" id="inp-abf-selesai"></div>
+        </div>
+        <div class="btn-group"><button class="btn btn-success" onclick="saveABF()">Simpan ABF</button></div>
+      </div>
+
+      <!-- Pencacahan per Meja -->
+      <div class="form-card" style="grid-column:1/-1">
+        <div class="form-card-title">Pencacahan — Per Meja (6 Meja)</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+            <thead><tr>
+              <th style="background:var(--surface2);border:1px solid var(--border);padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;width:90px">Meja</th>
+              <th style="background:var(--surface2);border:1px solid var(--border);padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left">Jumlah Karkas</th>
+              <th style="background:var(--surface2);border:1px solid var(--border);padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left">Waktu Mulai</th>
+              <th style="background:var(--surface2);border:1px solid var(--border);padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left">Waktu Selesai</th>
+              <th style="background:var(--surface2);border:1px solid var(--border);padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;width:100px">Durasi</th>
+            </tr></thead>
+            <tbody id="meja-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--text2);font-weight:600">Total Cacah Semua Meja:</div>
+          <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--orange)" id="meja-total-display">0</div>
+          <div style="font-size:12px;color:var(--text3)">karkas</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-success" onclick="saveCacah()">Simpan Pencacahan</button>
+          <button class="btn btn-outline btn-sm" onclick="resetMeja()">Reset Meja</button>
+        </div>
+      </div>
+
+      <!-- Packing -->
+      <div class="form-card">
+        <div class="form-card-title">Packing</div>
+        <div class="form-group"><label class="form-label">Total Packing Box</label><input type="number" class="form-input" id="inp-pack-box" placeholder="contoh: 80" min="0"></div>
+        <div class="form-group"><label class="form-label">Total Packing Pack</label><input type="number" class="form-input" id="inp-pack-pack" placeholder="contoh: 200" min="0"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Mulai Packing</label><input type="time" class="form-input" id="inp-pack-mulai"></div>
+          <div class="form-group"><label class="form-label">Selesai Packing</label><input type="time" class="form-input" id="inp-pack-selesai"></div>
+        </div>
+        <div class="btn-group"><button class="btn btn-success" onclick="savePacking()">Simpan Packing</button></div>
+      </div>
+
+      <!-- Waktu Keseluruhan -->
+      <div class="form-card">
+        <div class="form-card-title">Waktu & Info Keseluruhan</div>
+        <div class="form-group"><label class="form-label">Tanggal Qurban Day 2</label><input type="date" class="form-input" id="inp-tanggal"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Jam Mulai Proses</label><input type="time" class="form-input" id="inp-mulai"></div>
+          <div class="form-group"><label class="form-label">Jam Selesai Proses</label><input type="time" class="form-input" id="inp-selesai"></div>
+        </div>
+        <div class="btn-group"><button class="btn btn-success" onclick="saveInfo()">Simpan Info</button></div>
+      </div>
+    </div>
+
+    <!-- Distribusi Input -->
+    <div class="form-card" style="margin-top:20px">
+      <div class="form-card-title">Input Distribusi</div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Mulai Distribusi</label><input type="time" class="form-input" id="inp-dist-mulai"></div>
+        <div class="form-group"><label class="form-label">Selesai Distribusi</label><input type="time" class="form-input" id="inp-dist-selesai"></div>
+      </div>
+      <div class="form-card-title" style="font-size:13px;margin-bottom:10px">Daftar Lokasi Distribusi</div>
+      <div id="distrib-inputs"></div>
+      <div class="btn-group">
+        <button class="btn btn-outline btn-sm" onclick="addDistribRow()">+ Tambah Lokasi</button>
+        <button class="btn btn-success" onclick="saveDistrib()">Simpan Distribusi</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif">
+  <div class="notif-icon" id="notif-icon">&#x2705;</div>
+  <div id="notif-msg">Data berhasil disimpan!</div>
+</div>
+
+<script is:inline>
+// ================================================================
+// DATA STORE
+// ================================================================
+let data = {
+  totalKarkas: 0,
+  abfKeluar: 0,
+  abfMulai: '', abfSelesai: '',
+  cacah: 0,
+  cacahMulai: '', cacahSelesai: '',
+  mejaCacah: Array.from({length:6},(_,i)=>({nama:'Meja '+(i+1),jumlah:0,mulai:'',selesai:''})),
+  packBox: 0, packPack: 0,
+  packMulai: '', packSelesai: '',
+  distribMulai: '', distribSelesai: '',
+  tanggal: '',
+  mulai: '', selesai: '',
+  distribusi: []
+};
+
+let isSaving = false;
+let pendingSave = false;
+
+// ================================================================
+// API CALLS
+// ================================================================
+async function loadStateFromAPI() {
+  try {
+    const res = await fetch('/api/day2-state');
+    if (res.ok) {
+      const d = await res.json();
+      if (d && typeof d === 'object' && d.totalKarkas !== undefined) {
+        data = d;
+        if (!data.mejaCacah || data.mejaCacah.length === 0) {
+          data.mejaCacah = Array.from({length:6},(_,i)=>({nama:'Meja '+(i+1),jumlah:0,mulai:'',selesai:''}));
+        }
+        if (!data.distribusi) data.distribusi = [];
+      }
+    }
+  } catch(e) {
+    console.warn('Failed to load Day 2 state from API');
+  }
+}
+
+async function saveStateToAPI() {
+  if (isSaving) { pendingSave = true; return; }
+  isSaving = true;
+  showSaveIndicator(true);
+  try {
+    const res = await fetch('/api/day2-state', {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Save failed');
+  } catch(e) {
+    showNotif('Gagal menyimpan data', 'error');
+  } finally {
+    isSaving = false;
+    showSaveIndicator(false);
+    if (pendingSave) { pendingSave = false; saveStateToAPI(); }
+  }
+}
+
+function showSaveIndicator(show) {
+  const el = document.getElementById('saveIndicator');
+  if (el) el.classList.toggle('visible', show);
+}
+
+// ================================================================
+// SIDEBAR NAVIGATION
+// ================================================================
+function showPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard: 'Dashboard Utama', abf: 'ABF / Karkas',
+    pencacahan: 'Pencacahan', packing: 'Packing',
+    distribusi: 'Distribusi', input: 'Input Data'
+  };
+  document.getElementById('topbar-title').textContent = titles[page] || page;
+  updateAll();
+  if (page === 'input') fillInputFields();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ================================================================
+// DARK MODE
+// ================================================================
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('qurban_day2_dark', document.body.classList.contains('dark') ? '1' : '0');
+}
+
+// ================================================================
+// CLOCK
+// ================================================================
+function updateClock() {
+  const now = new Date();
+  const wib = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+  const h = String(wib.getHours()).padStart(2, '0');
+  const m = String(wib.getMinutes()).padStart(2, '0');
+  const s = String(wib.getSeconds()).padStart(2, '0');
+  const timeStr = h+':'+m+':'+s;
+  const dateStr = wib.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  document.getElementById('sidebar-clock').textContent = timeStr;
+  document.getElementById('sidebar-date').textContent = dateStr;
+  const jamEl = document.getElementById('d-jam-wib');
+  if (jamEl) jamEl.textContent = timeStr;
+}
+
+// ================================================================
+// DURATION CALC
+// ================================================================
+function calcDuration(mulai, selesai) {
+  if (!mulai || !selesai) return '—';
+  const [h1, m1] = mulai.split(':').map(Number);
+  const [h2, m2] = selesai.split(':').map(Number);
+  let total = (h2 * 60 + m2) - (h1 * 60 + m1);
+  if (total < 0) total += 1440;
+  const hh = Math.floor(total / 60), mm = total % 60;
+  return hh+'j '+mm+'m';
+}
+
+// ================================================================
+// UPDATE ALL
+// ================================================================
+function updateAll() {
+  const d = data;
+  const total = d.totalKarkas || 0;
+  const abf = d.abfKeluar || 0;
+  const cacah = d.cacah || 0;
+  const box = d.packBox || 0;
+  const pack = d.packPack || 0;
+  const packTotal = box + pack;
+  const distribList = d.distribusi || [];
+  const distribSelesai = distribList.filter(function(x){return x.status === 'selesai'}).length;
+  const distribProses = distribList.filter(function(x){return x.status === 'proses'}).length;
+  const distribTotal = distribList.length;
+
+  const pctABF = total > 0 ? Math.min(100, Math.round(abf / total * 100)) : 0;
+  const pctCacah = total > 0 ? Math.min(100, Math.round(cacah / total * 100)) : 0;
+  const pctPack = cacah > 0 ? Math.min(100, Math.round(packTotal / cacah * 100)) : 0;
+  const pctDist = distribTotal > 0 ? Math.min(100, Math.round(distribSelesai / distribTotal * 100)) : 0;
+  const overall = Math.round((pctABF + pctCacah + pctPack + pctDist) / 4);
+
+  setText('d-total-karkas', total);
+  setText('d-abf-keluar', abf);
+  setText('d-sisa-karkas', Math.max(0, total - abf));
+  setText('d-cacah', cacah);
+  setText('d-packing', packTotal);
+  setText('d-distrib', distribSelesai);
+  setText('d-overall-pct', overall + '%');
+  setText('d-mulai', d.mulai || '—');
+  setText('d-selesai', d.selesai || '—');
+  setText('d-tanggal', d.tanggal || '—');
+  setText('d-total-durasi', calcDuration(d.mulai, d.selesai));
+
+  setBar('bar-abf', pctABF); setText('pct-abf', pctABF + '%');
+  setText('info-abf', abf+' dari '+total+' karkas');
+  setBar('bar-cacah', pctCacah); setText('pct-cacah', pctCacah + '%');
+  setText('info-cacah', cacah+' dari '+total+' karkas');
+  setBar('bar-pack', pctPack); setText('pct-pack', pctPack + '%');
+  setText('info-pack', box+' box, '+pack+' pack');
+  setBar('bar-dist', pctDist); setText('pct-dist', pctDist + '%');
+  setText('info-dist', distribSelesai+' dari '+distribTotal+' lokasi');
+
+  setBarH('chart-abf', pctABF); setBarH('chart-cacah', pctCacah);
+  setBarH('chart-pack', pctPack); setBarH('chart-dist', pctDist);
+
+  updateTimeline(pctABF, pctCacah, pctPack, pctDist, abf, cacah, packTotal, distribSelesai);
+
+  setText('abf-total', total); setText('abf-keluar', abf);
+  setText('abf-sisa', Math.max(0, total - abf)); setText('abf-pct', pctABF + '%');
+  setBar('abf-bar', pctABF); setText('abf-bar-pct', pctABF + '%');
+  setText('abf-bar-info', abf+' dari '+total+' karkas diambil');
+  setText('abf-mulai', d.abfMulai || '—'); setText('abf-selesai', d.abfSelesai || '—');
+  setText('abf-durasi', calcDuration(d.abfMulai, d.abfSelesai));
+
+  setText('cac-total', cacah); setText('cac-sisa', Math.max(0, total - cacah));
+  setText('cac-pct', pctCacah + '%');
+  setBar('cac-bar', pctCacah); setText('cac-bar-pct', pctCacah + '%');
+  setText('cac-bar-info', cacah+' dari '+total+' karkas');
+  setText('cac-mulai', d.cacahMulai || '—'); setText('cac-selesai', d.cacahSelesai || '—');
+  setText('cac-durasi', calcDuration(d.cacahMulai, d.cacahSelesai));
+  setBarH('cac-chart1', total > 0 ? cacah / total * 100 : 0);
+  setBarH('cac-chart2', total > 0 ? Math.max(0, total - cacah) / total * 100 : 0);
+
+  setText('pack-box', box); setText('pack-pack', pack);
+  setText('pack-total', packTotal); setText('pack-pct', pctPack + '%');
+  setBar('pack-bar1', cacah > 0 ? Math.min(100, box / cacah * 100) : 0);
+  setText('pack-bar-pct1', cacah > 0 ? Math.round(box/cacah*100) + '%' : '0%');
+  setText('pack-bar-info1', box+' box');
+  setBar('pack-bar2', cacah > 0 ? Math.min(100, pack / cacah * 100) : 0);
+  setText('pack-bar-pct2', cacah > 0 ? Math.round(pack/cacah*100) + '%' : '0%');
+  setText('pack-bar-info2', pack+' pack');
+  var maxPack = Math.max(box, pack, 1);
+  setBarH('pack-chart1', box / maxPack * 100); setBarH('pack-chart2', pack / maxPack * 100);
+  setText('pack-mulai', d.packMulai || '—'); setText('pack-selesai', d.packSelesai || '—');
+  setText('pack-durasi', calcDuration(d.packMulai, d.packSelesai));
+
+  setText('dist-selesai', distribSelesai); setText('dist-proses', distribProses);
+  setText('dist-total-loc', distribTotal); setText('dist-pct', pctDist + '%');
+  setBar('dist-bar', pctDist); setText('dist-bar-pct', pctDist + '%');
+  setText('dist-bar-info', distribSelesai+' dari '+distribTotal+' lokasi');
+  setText('dist-mulai', d.distribMulai || '—');
+  setText('dist-selesai-time', d.distribSelesai || '—');
+  setText('dist-durasi', calcDuration(d.distribMulai, d.distribSelesai));
+  renderDistribTable(distribList);
+
+  var badge = document.getElementById('distrib-badge');
+  if (badge) badge.textContent = distribTotal;
+
+  var now = new Date();
+  document.getElementById('last-refresh').textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+}
+
+function updateTimeline(pABF, pCacah, pPack, pDist, abf, cacah, pack, dist) {
+  var steps = [
+    { id: 'tl-abf', val: abf, pct: pABF, time: data.abfMulai, valId: 'tl-abf-val', timeId: 'tl-abf-time' },
+    { id: 'tl-cacah', val: cacah, pct: pCacah, time: data.cacahMulai, valId: 'tl-cacah-val', timeId: 'tl-cacah-time' },
+    { id: 'tl-pack', val: pack, pct: pPack, time: data.packMulai, valId: 'tl-pack-val', timeId: 'tl-pack-time' },
+    { id: 'tl-dist', val: dist, pct: pDist, time: data.distribMulai, valId: 'tl-dist-val', timeId: 'tl-dist-time' }
+  ];
+  steps.forEach(function(s) {
+    var el = document.getElementById(s.id);
+    if (!el) return;
+    el.classList.remove('done', 'active');
+    if (s.pct >= 100) el.classList.add('done');
+    else if (s.pct > 0) el.classList.add('active');
+    setText(s.valId, s.val);
+    setText(s.timeId, s.time || '—');
+  });
+}
+
+function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+function setBar(id, pct) { var el = document.getElementById(id); if (el) el.style.width = Math.min(100, pct) + '%'; }
+function setBarH(id, pct) { var el = document.getElementById(id); if (el) el.style.height = Math.min(100, Math.max(4, pct)) + '%'; }
+
+// ================================================================
+// RENDER DISTRIBUSI TABLE
+// ================================================================
+function renderDistribTable(list) {
+  var tbody = document.getElementById('distrib-tbody');
+  if (!tbody) return;
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:30px">Belum ada data distribusi</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(item, i) {
+    return '<tr>'+
+      '<td class="font-mono" style="color:var(--text3)">'+String(i + 1).padStart(2, '0')+'</td>'+
+      '<td><strong>'+(item.nama || '—')+'</strong></td>'+
+      '<td class="font-mono fw-700">'+(item.jumlah || 0)+'</td>'+
+      '<td><span class="badge '+(item.status === 'selesai' ? 'badge-done' : item.status === 'proses' ? 'badge-process' : 'badge-wait')+'">'+
+      (item.status === 'selesai' ? 'Selesai' : item.status === 'proses' ? 'Proses' : 'Menunggu')+'</span></td>'+
+      '<td style="color:var(--text3);font-size:12px">'+(item.catatan || '—')+'</td></tr>';
+  }).join('');
+}
+
+// ================================================================
+// DISTRIBUSI INPUT ROWS
+// ================================================================
+function addDistribRow(item) {
+  if (!item) data.distribusi.push({ nama: '', jumlah: 0, status: 'proses', catatan: '' });
+  renderDistribInputs();
+}
+function renderDistribInputs() {
+  var c = document.getElementById('distrib-inputs');
+  if (!c) return;
+  var list = data.distribusi;
+  if (!list || list.length === 0) { c.innerHTML = '<p style="color:var(--text3);font-size:12px;margin-bottom:12px">Belum ada lokasi. Klik "+ Tambah Lokasi".</p>'; return; }
+  c.innerHTML = list.map(function(item, i) {
+    return '<div class="distrib-item">'+
+      '<span style="font-size:12px;color:var(--text3);min-width:22px">'+(i + 1)+'.</span>'+
+      '<input type="text" class="form-input" placeholder="Nama lokasi / alamat" value="'+(item.nama || '')+'" style="flex:2;min-width:150px" onchange="updateDistribRow('+i+',\'nama\',this.value)">'+
+      '<input type="number" class="form-input" placeholder="Jumlah" value="'+(item.jumlah || '')+'" style="width:80px" onchange="updateDistribRow('+i+',\'jumlah\',this.value)">'+
+      '<select class="form-input" style="width:120px" onchange="updateDistribRow('+i+',\'status\',this.value)">'+
+      '<option value="proses" '+(item.status==='proses'?'selected':'')+'>Proses</option>'+
+      '<option value="selesai" '+(item.status==='selesai'?'selected':'')+'>Selesai</option>'+
+      '<option value="menunggu" '+(item.status==='menunggu'?'selected':'')+'>Menunggu</option>'+
+      '</select>'+
+      '<input type="text" class="form-input" placeholder="Catatan" value="'+(item.catatan || '')+'" style="flex:1;min-width:100px" onchange="updateDistribRow('+i+',\'catatan\',this.value)">'+
+      '<button class="distrib-remove" onclick="removeDistribRow('+i+')">&#x2715;</button></div>';
+  }).join('');
+}
+function updateDistribRow(i, field, val) {
+  if (data.distribusi[i]) data.distribusi[i][field] = field === 'jumlah' ? Number(val) : val;
+}
+function removeDistribRow(i) {
+  data.distribusi.splice(i, 1);
+  renderDistribInputs();
+}
+
+// ================================================================
+// FILL INPUT FIELDS
+// ================================================================
+function fillInputFields() {
+  var d = data;
+  setVal('inp-total-karkas', d.totalKarkas);
+  setVal('inp-abf-keluar', d.abfKeluar);
+  setVal('inp-abf-mulai', d.abfMulai);
+  setVal('inp-abf-selesai', d.abfSelesai);
+  renderMejaTable();
+  setVal('inp-pack-box', d.packBox);
+  setVal('inp-pack-pack', d.packPack);
+  setVal('inp-pack-mulai', d.packMulai);
+  setVal('inp-pack-selesai', d.packSelesai);
+  setVal('inp-dist-mulai', d.distribMulai);
+  setVal('inp-dist-selesai', d.distribSelesai);
+  setVal('inp-tanggal', d.tanggal);
+  setVal('inp-mulai', d.mulai);
+  setVal('inp-selesai', d.selesai);
+  renderDistribInputs();
+}
+function setVal(id, val) { var el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; }
+function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+function getNum(id) { return Number(getVal(id)) || 0; }
+
+// ================================================================
+// SAVE FUNCTIONS
+// ================================================================
+function saveABF() {
+  var total = getNum('inp-total-karkas'), keluar = getNum('inp-abf-keluar');
+  if (total === 0) { showNotif('Total karkas tidak boleh 0!', 'error'); return; }
+  if (keluar > total) { showNotif('Karkas keluar melebihi total!', 'error'); return; }
+  data.totalKarkas = total; data.abfKeluar = keluar;
+  data.abfMulai = getVal('inp-abf-mulai'); data.abfSelesai = getVal('inp-abf-selesai');
+  saveStateToAPI(); updateAll(); showNotif('Data ABF berhasil disimpan!', 'success');
+}
+function saveCacah() {
+  var totalCacah = 0;
+  var earliestMulai = '', latestSelesai = '';
+  data.mejaCacah.forEach(function(m, i) {
+    var jumlah = Number(document.getElementById('meja-jumlah-' + i)?.value) || 0;
+    var mulai  = document.getElementById('meja-mulai-'  + i)?.value || '';
+    var selesai= document.getElementById('meja-selesai-'+ i)?.value || '';
+    data.mejaCacah[i].jumlah  = jumlah;
+    data.mejaCacah[i].mulai   = mulai;
+    data.mejaCacah[i].selesai = selesai;
+    totalCacah += jumlah;
+    if (mulai  && (!earliestMulai  || mulai  < earliestMulai )) earliestMulai  = mulai;
+    if (selesai&& (!latestSelesai  || selesai> latestSelesai)) latestSelesai  = selesai;
+  });
+  if (data.totalKarkas > 0 && totalCacah > data.totalKarkas) {
+    showNotif('Total cacah melebihi total karkas!', 'error'); return;
+  }
+  data.cacah = totalCacah;
+  data.cacahMulai = earliestMulai;
+  data.cacahSelesai = latestSelesai;
+  renderMejaTable();
+  saveStateToAPI(); updateAll(); showNotif('Data Pencacahan berhasil disimpan!', 'success');
+}
+function resetMeja() {
+  data.mejaCacah = Array.from({length:6},function(_,i){return {nama:'Meja '+(i+1),jumlah:0,mulai:'',selesai:''}});
+  data.cacah=0; data.cacahMulai=''; data.cacahSelesai='';
+  renderMejaTable(); saveStateToAPI(); updateAll();
+  showNotif('Data meja direset!','success');
+}
+function renderMejaTable() {
+  var tbody = document.getElementById('meja-tbody');
+  if (!tbody) return;
+  if (!data.mejaCacah || data.mejaCacah.length === 0) {
+    data.mejaCacah = Array.from({length:6},function(_,i){return {nama:'Meja '+(i+1),jumlah:0,mulai:'',selesai:''}});
+  }
+  tbody.innerHTML = data.mejaCacah.map(function(m, i) {
+    var dur = calcDuration(m.mulai, m.selesai);
+    return '<tr>'+
+      '<td style="border:1px solid var(--border);padding:8px 12px;font-weight:700;font-size:13px;background:var(--surface2)">'+
+      '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--orange-light);color:var(--orange);border-radius:8px;font-weight:800;font-size:12px">'+(i+1)+'</span>'+
+      '&nbsp;'+m.nama+'</td>'+
+      '<td style="border:1px solid var(--border);padding:6px 10px"><input type="number" id="meja-jumlah-'+i+'" class="form-input" value="'+(m.jumlah||'')+'" placeholder="0" min="0" style="width:90px;padding:7px 10px" oninput="updateMejaDurasi('+i+')"></td>'+
+      '<td style="border:1px solid var(--border);padding:6px 10px"><input type="time" id="meja-mulai-'+i+'" class="form-input" value="'+(m.mulai||'')+'" style="width:120px;padding:7px 10px" oninput="updateMejaDurasi('+i+')"></td>'+
+      '<td style="border:1px solid var(--border);padding:6px 10px"><input type="time" id="meja-selesai-'+i+'" class="form-input" value="'+(m.selesai||'')+'" style="width:120px;padding:7px 10px" oninput="updateMejaDurasi('+i+')"></td>'+
+      '<td style="border:1px solid var(--border);padding:8px 12px;font-family:var(--mono);font-weight:700;font-size:13px;color:'+(dur!=='—'?'var(--green)':'var(--text3)')+'" id="meja-durasi-'+i+'">'+dur+'</td></tr>';
+  }).join('');
+  updateMejaTotalDisplay();
+}
+function updateMejaDurasi(i) {
+  var mulai   = document.getElementById('meja-mulai-'  + i)?.value || '';
+  var selesai = document.getElementById('meja-selesai-'+ i)?.value || '';
+  var dur = calcDuration(mulai, selesai);
+  var el = document.getElementById('meja-durasi-' + i);
+  if (el) { el.textContent = dur; el.style.color = dur !== '—' ? 'var(--green)' : 'var(--text3)'; }
+  updateMejaTotalDisplay();
+}
+function updateMejaTotalDisplay() {
+  var total = 0;
+  if (!data.mejaCacah) return;
+  data.mejaCacah.forEach(function(_, i) {
+    total += Number(document.getElementById('meja-jumlah-' + i)?.value) || 0;
+  });
+  var el = document.getElementById('meja-total-display');
+  if (el) el.textContent = total;
+}
+function savePacking() {
+  data.packBox = getNum('inp-pack-box'); data.packPack = getNum('inp-pack-pack');
+  data.packMulai = getVal('inp-pack-mulai'); data.packSelesai = getVal('inp-pack-selesai');
+  saveStateToAPI(); updateAll(); showNotif('Data Packing berhasil disimpan!', 'success');
+}
+function saveInfo() {
+  data.tanggal = getVal('inp-tanggal'); data.mulai = getVal('inp-mulai'); data.selesai = getVal('inp-selesai');
+  saveStateToAPI(); updateAll(); showNotif('Info waktu berhasil disimpan!', 'success');
+}
+function saveDistrib() {
+  data.distribMulai = getVal('inp-dist-mulai'); data.distribSelesai = getVal('inp-dist-selesai');
+  saveStateToAPI(); updateAll(); showNotif('Data Distribusi berhasil disimpan!', 'success');
+}
+
+// ================================================================
+// NOTIFICATION
+// ================================================================
+var notifTimer;
+function showNotif(msg, type) {
+  type = type || 'success';
+  var el = document.getElementById('notif');
+  var icon = document.getElementById('notif-icon');
+  var msgEl = document.getElementById('notif-msg');
+  icon.textContent = type === 'success' ? '✅' : '⚠️';
+  msgEl.textContent = msg;
+  el.className = 'notif show ' + type;
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(function(){ el.classList.remove('show'); }, 3000);
+}
+
+// ================================================================
+// EXPORT CSV
+// ================================================================
+function exportCSV() {
+  var d = data;
+  var rows = [
+    ['Qurban Day 2 — Laporan Monitoring', '', ''],
+    ['Tanggal', d.tanggal, ''],
+    ['', '', ''],
+    ['KARKAS & ABF', '', ''],
+    ['Total Karkas', d.totalKarkas, ''],
+    ['Karkas Keluar ABF', d.abfKeluar, ''],
+    ['Sisa di ABF', Math.max(0, d.totalKarkas - d.abfKeluar), ''],
+    ['Waktu ABF', d.abfMulai + ' - ' + d.abfSelesai, ''],
+    ['', '', ''],
+    ['PENCACAHAN', '', ''],
+    ['Total Dicacah', d.cacah, ''],
+    ['Waktu Cacah', d.cacahMulai + ' - ' + d.cacahSelesai, ''],
+    ['', '', ''],
+    ['PACKING', '', ''],
+    ['Total Box', d.packBox, ''],
+    ['Total Pack', d.packPack, ''],
+    ['Total Packing', d.packBox + d.packPack, ''],
+    ['', '', ''],
+    ['DISTRIBUSI', '', ''],
+    ['No', 'Lokasi', 'Jumlah', 'Status']
+  ];
+  (d.distribusi||[]).forEach(function(x, i) { rows.push([i + 1, x.nama, x.jumlah, x.status]); });
+  var csv = rows.map(function(r){ return r.join(','); }).join('\n');
+  var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url;
+  a.download = 'Qurban_Day2_'+(d.tanggal || 'laporan')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showNotif('File CSV berhasil diunduh!', 'success');
+}
+
+// ================================================================
+// RESET
+// ================================================================
+function resetAll() {
+  if (!confirm('Reset semua data? Tindakan ini tidak bisa dibatalkan.')) return;
+  data = {
+    totalKarkas: 0, abfKeluar: 0, abfMulai: '', abfSelesai: '',
+    cacah: 0, cacahMulai: '', cacahSelesai: '',
+    mejaCacah: Array.from({length:6},function(_,i){return {nama:'Meja '+(i+1),jumlah:0,mulai:'',selesai:''}}),
+    packBox: 0, packPack: 0, packMulai: '', packSelesai: '',
+    distribMulai: '', distribSelesai: '', tanggal: '', mulai: '', selesai: '',
+    distribusi: []
+  };
+  saveStateToAPI(); updateAll(); fillInputFields();
+  showNotif('Semua data berhasil direset!', 'success');
+}
+
+// ================================================================
+// AUTO REFRESH
+// ================================================================
+function startAutoRefresh() {
+  setInterval(async function() {
+    await loadStateFromAPI();
+    updateAll();
+  }, 30000);
+  setInterval(updateClock, 1000);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', async function() {
+  if (localStorage.getItem('qurban_day2_dark') === '1') document.body.classList.add('dark');
+  await loadStateFromAPI();
+  updateAll();
+  renderDistribInputs();
+  renderMejaTable();
+  startAutoRefresh();
+  updateClock();
+  setTimeout(updateAll, 100);
+});
+</script>
+</body>
+</html>
