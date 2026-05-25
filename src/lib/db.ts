@@ -148,3 +148,20 @@ export async function resetDay2State() {
   await saveDay2State(data);
   return data;
 }
+
+export async function getDay2Settings() {
+  const sql = createSql();
+  const result = await sql`SELECT data FROM qurban_state WHERE id = 'day2-settings'`;
+  return result.length > 0 ? result[0].data : null;
+}
+
+export async function saveDay2Settings(data: unknown) {
+  const sql = createSql();
+  const json = JSON.stringify(data);
+  await sql`
+    INSERT INTO qurban_state (id, data, updated_at)
+    VALUES ('day2-settings', ${json}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+}
