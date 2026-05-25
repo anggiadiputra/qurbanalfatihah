@@ -807,9 +807,12 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-exit{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition)}
 .monitor-exit:hover{background:var(--green);color:#fff;border-color:var(--green)}
 .monitor-widget-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm)}
-.mw-toggle{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-secondary);transition:all var(--transition);user-select:none}
+.mw-toggle{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:grab;border:1px solid var(--border);background:var(--surface2);color:var(--text-secondary);transition:all var(--transition);user-select:none}
+.mw-toggle:active{cursor:grabbing}
 .mw-toggle.on{background:var(--green);border-color:var(--green);color:#fff}
 .mw-toggle:hover{border-color:var(--green)}
+.mw-toggle.drag-over{margin-left:24px}
+.mw-toggle.dragging{opacity:.4}
 .mw-toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background var(--transition)}
 .mw-toggle.on .mw-toggle-dot{background:#fff}
 .mon-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
@@ -1591,99 +1594,89 @@ function loadMonitorWidgets() {
   if (saved && typeof saved === 'object') {
     monitorWidgetReg.forEach(w => { if (saved[w.id] !== undefined) w.on = !!saved[w.id]; });
   }
+  const order = settings.monitorOrder;
+  if (order && Array.isArray(order) && order.length) {
+    const sorted = [];
+    order.forEach(id => { const w = monitorWidgetReg.find(x => x.id === id); if (w) sorted.push(w); });
+    monitorWidgetReg.forEach(w => { if (!sorted.includes(w)) sorted.push(w); });
+    monitorWidgetReg.length = 0; sorted.forEach(w => monitorWidgetReg.push(w));
+  }
 }
 function saveMonitorWidgets() {
   const obj = {};
   monitorWidgetReg.forEach(w => { obj[w.id] = w.on; });
   settings.monitorWidgets = obj;
+  settings.monitorOrder = monitorWidgetReg.map(w => w.id);
   queueSettingsSave();
 }
 
+let mwDragEl = null;
 function renderMonitorWidgetBar() {
-  document.getElementById('monitorWidgetBar').innerHTML =
+  const bar = document.getElementById('monitorWidgetBar');
+  bar.innerHTML =
     '<span style="font-size:12px;font-weight:700;color:var(--text-muted);margin-right:4px">Widgets:</span>' +
     monitorWidgetReg.map(w =>
-      '<div class="mw-toggle' + (w.on ? ' on' : '') + '" data-mw="' + w.id + '" title="' + w.desc + '"><span class="mw-toggle-dot"></span>' + w.name + '</div>'
+      '<div class="mw-toggle' + (w.on ? ' on' : '') + '" data-mw="' + w.id + '" title="' + w.desc + '" draggable="true"><span class="mw-toggle-dot"></span>' + w.name + '</div>'
     ).join('');
+  bar.querySelectorAll('.mw-toggle').forEach(el => {
+    el.addEventListener('dragstart', e => { mwDragEl = el; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    el.addEventListener('dragend', () => { if (mwDragEl) mwDragEl.classList.remove('dragging'); mwDragEl = null; bar.querySelectorAll('.mw-toggle').forEach(t => t.classList.remove('drag-over')); });
+    el.addEventListener('dragover', e => { if (!mwDragEl || mwDragEl === el) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; bar.querySelectorAll('.mw-toggle').forEach(t => t.classList.remove('drag-over')); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', e => {
+      e.preventDefault(); el.classList.remove('drag-over'); if (!mwDragEl || mwDragEl === el) return;
+      const fromId = mwDragEl.dataset.mw, toId = el.dataset.mw;
+      const fromIdx = monitorWidgetReg.findIndex(w => w.id === fromId);
+      const toIdx = monitorWidgetReg.findIndex(w => w.id === toId);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const item = monitorWidgetReg.splice(fromIdx, 1)[0]; monitorWidgetReg.splice(toIdx, 0, item);
+      saveMonitorWidgets(); renderMonitorWidgetBar(); renderMonitorDashboard();
+    });
+  });
 }
 
 function monStatCard(color, label, value, badge) {
   return '<div class="stat-card ' + color + '"><div class="stat-label">' + label + '</div><div class="stat-value" style="color:var(--' + color + ')">' + value + '</div><div class="stat-badge ' + color + '">' + badge + '</div></div>';
 }
 
+function d1mw_stats(v) {
+  return '<div class="mon-stats-grid">' + monStatCard('green','Total Hewan',v.total,'Target') + monStatCard('blue','Tersembelih',v.dipotong,pct(v.dipotong,v.total)+'%') + monStatCard('amber','Keluar Kandang',v.keluar,pct(v.keluar,v.total)+'%') + monStatCard('purple','Sudah Dicacah',v.dicacah,pct(v.dicacah,v.total)+'%') + monStatCard('maroon','Distribusi',v.distrib,pct(v.distrib,v.total)+'%') + '</div>';
+}
+function d1mw_bigstats(v) {
+  return '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">' + monStatCard('green','Hewan Terkuliti',v.dikuliti,pct(v.dikuliti,v.total)+'%') + monStatCard('blue','Hewan Terkarkas',v.karkas,pct(v.karkas,v.total)+'%') + monStatCard('purple','Total Box Packing',v.totalPack,'Packing') + '</div>';
+}
+function d1mw_clock() {
+  const t = new Date().toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  return '<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">' + t + '</div><div style="font-size:14px;color:var(--text-secondary);margin-top:8px">' + (state.tanggal||'—') + '</div></div>';
+}
+function d1mw_progress(v) {
+  return '<div class="card" style="margin-bottom:24px"><div class="monitor-progress-head"><div class="monitor-progress-title">Progress Keseluruhan</div><div class="mono monitor-progress-pct">' + v.overallPct + '%</div></div><div style="margin-bottom:16px"><div class="progress-bar"><div class="progress-fill green" style="width:' + v.overallPct + '%"></div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px"><div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.waktuMulai||'—') + '</div></div><div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.waktuSelesai||(v.overallPct>=100?'Selesai':'Berjalan...')) + '</div></div><div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.waktuMulai,state.waktuSelesai) + '</div></div></div></div>';
+}
+function d1mw_processlist(v) {
+  const procs = [{name:'Kandang',done:v.keluar,color:'green'},{name:'Penyembelihan',done:v.dipotong,color:'maroon'},{name:'Transit',done:state.transit.hewan||0,color:'amber'},{name:'Pengulitan',done:v.dikuliti,color:'blue'},{name:'Cacah & Karkas',done:v.dicacah+v.karkas,color:'purple'},{name:'Distribusi',done:v.distrib,color:'blue'}];
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status Tiap Proses</div><div class="process-row">' + procs.map((p,i) => { const p2=pct(p.done,v.total),st=p2>=100?'selesai':p.done>0?'berjalan':'belum'; return '<div class="process-item"><div class="process-num">'+String(i+1).padStart(2,'0')+'</div><div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' dari '+v.total+' hewan</div></div><div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div><div class="process-count">'+p2+'%</div><div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>'; }).join('') + '</div></div>';
+}
+function d1mw_kandang() {
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 8 Kandang</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' + state.kandang.map(k => { const p2=pct(k.keluar||0,k.total||1); return '<div class="stat-card green" style="padding:14px"><div class="stat-label">Kandang #'+k.no+'</div><div class="stat-value" style="font-size:22px;color:var(--green)">'+(k.keluar||0)+'<span style="font-size:12px;color:var(--text-muted)">/'+(k.total||0)+'</span></div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:'+p2+'%"></div></div></div>'; }).join('') + '</div></div>';
+}
+function d1mw_sembelih() {
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 10 Lubang Penyembelihan</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' + state.sembelih.map(s => '<div class="stat-card maroon" style="padding:14px"><div class="stat-label">Lubang #'+s.no+'</div><div class="stat-value" style="font-size:22px;color:var(--maroon)">'+(s.dipotong||0)+'</div><div style="margin-top:6px"><span class="status-badge '+statusClass(s.status)+'">'+statusLabel(s.status)+'</span></div></div>').join('') + '</div></div>';
+}
+
+const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih};
+
 function renderMonitorDashboard() {
   const total = state.totalHewan;
   const keluar = totalKeluar(), dipotong = totalDipotong(), dikuliti = totalDikuliti(), dicacah = totalDicacah();
   const karkas = state.karkas.sudah || 0, distrib = state.distribusi.selesai || 0, totalPack = state.distribusi.totalPacking || 0;
   const overallPct = pct(distrib, total);
-  const on = id => monitorWidgetReg.find(w => w.id === id)?.on;
+  const v = {total,keluar,dipotong,dikuliti,dicacah,karkas,distrib,totalPack,overallPct};
   let html = '';
-
-  if (on('stats')) {
-    html += '<div class="mon-stats-grid">' +
-      monStatCard('green', 'Total Hewan', total, 'Target') +
-      monStatCard('blue', 'Tersembelih', dipotong, pct(dipotong, total) + '%') +
-      monStatCard('amber', 'Keluar Kandang', keluar, pct(keluar, total) + '%') +
-      monStatCard('purple', 'Sudah Dicacah', dicacah, pct(dicacah, total) + '%') +
-      monStatCard('maroon', 'Distribusi', distrib, pct(distrib, total) + '%') +
-      '</div>';
-  }
-
-  if (on('big-stats')) {
-    html += '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">' +
-      monStatCard('green', 'Hewan Terkuliti', dikuliti, pct(dikuliti, total) + '%') +
-      monStatCard('blue', 'Hewan Terkarkas', karkas, pct(karkas, total) + '%') +
-      monStatCard('purple', 'Total Box Packing', totalPack, 'Packing') +
-      '</div>';
-  }
-
-  if (on('clock')) {
-    const now2 = new Date();
-    const t = now2.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    html += '<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">' + t + '</div><div style="font-size:14px;color:var(--text-secondary);margin-top:8px">' + (state.tanggal || '—') + '</div></div>';
-  }
-
-  if (on('progress')) {
-    html += '<div class="card" style="margin-bottom:24px"><div class="monitor-progress-head"><div class="monitor-progress-title">Progress Keseluruhan</div><div class="mono monitor-progress-pct">' + overallPct + '%</div></div>' +
-      '<div style="margin-bottom:16px"><div class="progress-bar"><div class="progress-fill green" style="width:' + overallPct + '%"></div></div></div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
-      '<div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.waktuMulai || '—') + '</div></div>' +
-      '<div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.waktuSelesai || (overallPct >= 100 ? 'Selesai' : 'Berjalan...')) + '</div></div>' +
-      '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.waktuMulai, state.waktuSelesai) + '</div></div></div></div>';
-  }
-
-  if (on('process-list')) {
-    const processes = [
-      {name:'Kandang', done:keluar, color:'green'},
-      {name:'Penyembelihan', done:dipotong, color:'maroon'},
-      {name:'Transit', done:state.transit.hewan||0, color:'amber'},
-      {name:'Pengulitan', done:dikuliti, color:'blue'},
-      {name:'Cacah & Karkas', done:dicacah+karkas, color:'purple'},
-      {name:'Distribusi', done:distrib, color:'blue'}
-    ];
-    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status Tiap Proses</div><div class="process-row">' +
-      processes.map((p, i) => {
-        const p2 = pct(p.done, total);
-        const st = p2 >= 100 ? 'selesai' : p.done > 0 ? 'berjalan' : 'belum';
-        return '<div class="process-item"><div class="process-num">' + String(i+1).padStart(2,'0') + '</div><div class="process-info"><div class="process-name">' + p.name + '</div><div class="process-sub">' + p.done + ' dari ' + total + ' hewan</div></div><div class="process-progress"><div class="progress-bar"><div class="progress-fill ' + p.color + '" style="width:' + p2 + '%"></div></div></div><div class="process-count">' + p2 + '%</div><div class="process-status"><span class="status-badge ' + statusClass(st) + '">' + statusLabel(st) + '</span></div></div>';
-      }).join('') + '</div></div>';
-  }
-
-  if (on('kandang')) {
-    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 8 Kandang</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' +
-      state.kandang.map(k => {
-        const p2 = pct(k.keluar||0, k.total||1);
-        return '<div class="stat-card green" style="padding:14px"><div class="stat-label">Kandang #' + k.no + '</div><div class="stat-value" style="font-size:22px;color:var(--green)">' + (k.keluar||0) + '<span style="font-size:12px;color:var(--text-muted)">/' + (k.total||0) + '</span></div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:' + p2 + '%"></div></div></div>';
-      }).join('') + '</div></div>';
-  }
-
-  if (on('sembelih')) {
-    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 10 Lubang Penyembelihan</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' +
-      state.sembelih.map(s => {
-        return '<div class="stat-card maroon" style="padding:14px"><div class="stat-label">Lubang #' + s.no + '</div><div class="stat-value" style="font-size:22px;color:var(--maroon)">' + (s.dipotong||0) + '</div><div style="margin-top:6px"><span class="status-badge ' + statusClass(s.status) + '">' + statusLabel(s.status) + '</span></div></div>';
-      }).join('') + '</div></div>';
-  }
-
+  monitorWidgetReg.forEach(w => {
+    if (!w.on) return;
+    const fn = d1mwRenderers[w.id];
+    if (fn) html += fn(v);
+  });
   document.getElementById('monitorContent').innerHTML = html;
 
   const now = new Date();
