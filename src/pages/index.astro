@@ -17,20 +17,21 @@ const role = getRole(auth) || 'viewer';
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Monitor overlay — fullscreen slideshow -->
+<!-- Monitor overlay — grid dashboard -->
 <div class="monitor-overlay" id="monitorOverlay">
-  <button class="monitor-exit" id="monitorExitBtn">✕ ESC</button>
-  <div class="monitor-slide" id="monitorSlide"></div>
-  <div class="monitor-nav">
-    <button class="monitor-nav-btn" id="monitorPrev" aria-label="Slide sebelumnya">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-    </button>
-    <div class="monitor-nav-dots" id="monitorDots"></div>
-    <button class="monitor-nav-btn" id="monitorNext" aria-label="Slide berikutnya">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-    </button>
-    <span class="monitor-nav-info" id="monitorInfo"></span>
+  <div class="monitor-header">
+    <div class="monitor-header-left">
+      <div class="monitor-header-title">Qurban Command Center — Day 1</div>
+      <div class="live-badge" style="font-size:11px"><span class="autosave-dot"></span> LIVE</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="monitor-header-date" id="monitorDate">—</div>
+      <div class="monitor-header-clock" id="monitorClock">--:--:--</div>
+      <button class="monitor-exit" id="monitorExitBtn">✕ ESC</button>
+    </div>
   </div>
+  <div class="monitor-widget-bar" id="monitorWidgetBar"></div>
+  <div id="monitorContent"></div>
 </div>
 
 <!-- Widget Picker Modal -->
@@ -794,82 +795,39 @@ input,select,textarea{font-family:inherit}
 .widget-picker-item .wpi-name{font-size:13px;font-weight:600}
 .widget-picker-item .wpi-desc{font-size:11px;color:var(--text-muted)}
 
-/* Monitor mode — fullscreen slideshow per card */
+/* Monitor mode — grid dashboard */
 html.monitoring,body.monitoring{height:100%;overflow:hidden}
-.monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:48px 6vw 72px;cursor:none}
+.monitor-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column;overflow-y:auto;padding:24px 32px}
 .monitor-overlay.visible{display:flex}
-.monitor-overlay.controls-visible{cursor:default}
-.monitor-slide{width:100%;max-width:1200px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:min(74vh,640px)}
-.monitor-slide *{transition:none!important;animation:none!important}
-.monitor-slide *:hover{transform:none!important;box-shadow:none!important}
-.monitor-widget{width:100%;display:flex;align-items:center;justify-content:center}
-.monitor-slide .stat-card,.monitor-slide .big-stat-card,.monitor-slide .card,.monitor-slide .clock-widget{width:100%;border:none;box-shadow:none;background:transparent;padding:0}
-.monitor-slide .stat-card::before,.monitor-slide .big-stat-card::after{display:none}
-.monitor-slide .big-stat-card .deco-icon{display:none}
-.monitor-slide .stat-card:hover,.monitor-slide .big-stat-card:hover,.monitor-slide .card:hover,.monitor-slide .clock-widget:hover{transform:none;box-shadow:none}
-.monitor-slide .stat-value{font-size:11rem;line-height:.94;white-space:nowrap;word-break:normal}
-.monitor-slide .stat-label{font-size:2rem;margin-bottom:22px}
-.monitor-slide .stat-badge{font-size:1.5rem;padding:8px 24px;border-radius:30px;margin-top:22px}
-.monitor-slide .big-stat-num{font-size:10rem;line-height:.95;white-space:nowrap;word-break:normal}
-.monitor-slide .big-stat-label{font-size:1.7rem;margin-bottom:12px}
-.monitor-slide .big-stat-sub{font-size:1.35rem;margin-top:14px}
-.monitor-slide .big-stat-top{justify-content:center;margin-bottom:18px}
-.monitor-slide .big-stat-icon{display:none}
-.monitor-slide .big-stat-footer{display:none}
-.monitor-slide .clock-widget{padding:0}
-.monitor-slide .clock-widget-time{font-size:10.5rem;text-align:center;line-height:.92;white-space:nowrap;word-break:normal;overflow-wrap:normal}
-.monitor-slide .clock-widget-label{font-size:2.4rem;text-align:center;margin-bottom:26px}
-.monitor-slide .clock-widget-date{display:none}
-.monitor-slide .progress-widget-card{max-width:920px;margin:0 auto}
-.monitor-slide .monitor-progress-head{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;margin-bottom:22px}
-.monitor-slide .monitor-progress-title{font-size:1.45rem;font-weight:800;text-align:left}
-.monitor-slide .monitor-progress-pct{font-size:2rem;font-weight:800;color:var(--green)}
-.monitor-slide .progress-bar{height:16px!important;border-radius:99px}
-.monitor-slide .progress-fill{border-radius:99px}
-.monitor-slide .progress-fill::after{display:none}
-.monitor-slide .monitor-progress-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:28px!important;margin-top:34px}
-.monitor-slide .info-chip{min-width:0;padding:0;border:none;background:transparent;text-align:left}
-.monitor-slide .info-chip-label{font-size:1.7rem;line-height:1.15;color:var(--text-secondary)}
-.monitor-slide .info-chip-val{font-size:2.65rem;line-height:1.05;margin-top:14px;white-space:normal;overflow-wrap:anywhere}
-.monitor-slide .process-item{padding:18px 0;border:none;box-shadow:none;background:transparent}
-.monitor-slide .process-item:hover{transform:none;box-shadow:none}
-.monitor-slide .process-name{font-size:2rem}
-.monitor-slide .process-sub{font-size:1.15rem}
-.monitor-slide .process-count{font-size:2rem}
-.monitor-slide .process-num{font-size:1.1rem}
-.monitor-slide .process-progress{width:360px}
-.monitor-slide .status-badge{font-size:1rem;padding:4px 14px}
-.monitor-slide .status-badge::before{display:none}
-.monitor-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;opacity:0;pointer-events:none;transition:opacity .25s}
-.monitor-overlay.controls-visible .monitor-nav{opacity:1;pointer-events:auto}
-.monitor-nav-btn{background:var(--surface);border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s;padding:0}
-.monitor-nav-btn svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.monitor-nav-btn:hover{background:var(--surface2);color:var(--text-primary)}
-.monitor-nav-dots{display:flex;gap:6px}
-.monitor-nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .2s}
-.monitor-nav-dot.active{background:var(--green);width:24px;border-radius:4px}
-.monitor-nav-info{font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
-.monitor-exit{position:fixed;top:16px;right:16px;z-index:510;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s}
-.monitor-overlay.controls-visible .monitor-exit{opacity:.6;pointer-events:auto}
-.monitor-exit:hover{opacity:1!important}
-@media(max-width:900px){
-  .monitor-overlay{padding:40px 5vw 72px}
-  .monitor-slide{min-height:72vh}
-  .monitor-slide .stat-value,.monitor-slide .big-stat-num,.monitor-slide .clock-widget-time{font-size:6.2rem}
-  .monitor-slide .clock-widget-label{font-size:1.5rem}
-  .monitor-slide .stat-label,.monitor-slide .big-stat-label{font-size:1.35rem}
-  .monitor-slide .monitor-progress-grid{grid-template-columns:1fr!important;gap:24px!important}
-  .monitor-slide .monitor-progress-head{align-items:flex-start;flex-direction:column;gap:8px}
-  .monitor-slide .info-chip{text-align:center}
-  .monitor-slide .info-chip-label{font-size:1.2rem}
-  .monitor-slide .info-chip-val{font-size:2.1rem}
+.monitor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-shrink:0}
+.monitor-header-left{display:flex;align-items:center;gap:16px}
+.monitor-header-title{font-size:20px;font-weight:800}
+.monitor-header-clock{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green)}
+.monitor-header-date{font-size:13px;color:var(--text-secondary);font-weight:500}
+.monitor-exit{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition)}
+.monitor-exit:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.monitor-widget-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm)}
+.mw-toggle{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-secondary);transition:all var(--transition);user-select:none}
+.mw-toggle.on{background:var(--green);border-color:var(--green);color:#fff}
+.mw-toggle:hover{border-color:var(--green)}
+.mw-toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background var(--transition)}
+.mw-toggle.on .mw-toggle-dot{background:#fff}
+.mon-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.mon-stats-grid .stat-card{padding:22px}
+.mon-stats-grid .stat-card:hover{transform:none}
+.mon-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(min-width:1600px){
+  .mon-stats-grid{grid-template-columns:repeat(5,1fr)}
+  .mon-stats-grid .stat-value{font-size:36px}
 }
-@media(max-width:520px){
-  .monitor-slide .stat-value,.monitor-slide .big-stat-num,.monitor-slide .clock-widget-time{font-size:4rem}
-  .monitor-slide .stat-badge,.monitor-slide .big-stat-sub{font-size:1rem}
-  .monitor-nav{gap:10px}
-  .monitor-nav-dots{max-width:140px;flex-wrap:wrap;justify-content:center}
+@media(min-width:2400px){
+  .monitor-overlay{padding:40px 60px}
+  .mon-stats-grid .stat-card{padding:32px}
+  .mon-stats-grid .stat-value{font-size:48px}
+  .monitor-header-title{font-size:28px}
+  .monitor-header-clock{font-size:24px}
 }
+@media(max-width:900px){.mon-bottom-grid{grid-template-columns:1fr}}
 
 /* Clock widget */
 .clock-widget{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow);padding:1.5em;text-align:center;transition:all var(--transition)}
@@ -1615,31 +1573,135 @@ function addWidgetToLayout(id) {
   toast('Widget ditambahkan', 'success');
 }
 
-// Monitor mode
-let monitorSlideIdx = 0;
-let monitorWidgets = [];
+// Monitor mode — grid dashboard with custom widgets
 let monitorInterval = null;
-let monitorControlsTimer = null;
 
-function getVisibleWidgetIds() {
-  const layout = loadLayout();
-  return layout.order.filter(id => !layout.hidden.includes(id));
+const monitorWidgetReg = [
+  {id:'stats',name:'Stat Cards',desc:'Kartu statistik utama',on:true},
+  {id:'big-stats',name:'Kartu Besar',desc:'Terkuliti, Terkarkas, Total Box',on:true},
+  {id:'progress',name:'Progress',desc:'Progress keseluruhan + waktu',on:true},
+  {id:'process-list',name:'Status Proses',desc:'Status tiap proses',on:true},
+  {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime',on:false},
+  {id:'kandang',name:'Kandang',desc:'Status 8 kandang',on:false},
+  {id:'sembelih',name:'Penyembelihan',desc:'Status 10 lubang',on:false}
+];
+
+function loadMonitorWidgets() {
+  const saved = settings.monitorWidgets;
+  if (saved && typeof saved === 'object') {
+    monitorWidgetReg.forEach(w => { if (saved[w.id] !== undefined) w.on = !!saved[w.id]; });
+  }
+}
+function saveMonitorWidgets() {
+  const obj = {};
+  monitorWidgetReg.forEach(w => { obj[w.id] = w.on; });
+  settings.monitorWidgets = obj;
+  queueSettingsSave();
+}
+
+function renderMonitorWidgetBar() {
+  document.getElementById('monitorWidgetBar').innerHTML =
+    '<span style="font-size:12px;font-weight:700;color:var(--text-muted);margin-right:4px">Widgets:</span>' +
+    monitorWidgetReg.map(w =>
+      '<div class="mw-toggle' + (w.on ? ' on' : '') + '" data-mw="' + w.id + '" title="' + w.desc + '"><span class="mw-toggle-dot"></span>' + w.name + '</div>'
+    ).join('');
+}
+
+function monStatCard(color, label, value, badge) {
+  return '<div class="stat-card ' + color + '"><div class="stat-label">' + label + '</div><div class="stat-value" style="color:var(--' + color + ')">' + value + '</div><div class="stat-badge ' + color + '">' + badge + '</div></div>';
+}
+
+function renderMonitorDashboard() {
+  const total = state.totalHewan;
+  const keluar = totalKeluar(), dipotong = totalDipotong(), dikuliti = totalDikuliti(), dicacah = totalDicacah();
+  const karkas = state.karkas.sudah || 0, distrib = state.distribusi.selesai || 0, totalPack = state.distribusi.totalPacking || 0;
+  const overallPct = pct(distrib, total);
+  const on = id => monitorWidgetReg.find(w => w.id === id)?.on;
+  let html = '';
+
+  if (on('stats')) {
+    html += '<div class="mon-stats-grid">' +
+      monStatCard('green', 'Total Hewan', total, 'Target') +
+      monStatCard('blue', 'Tersembelih', dipotong, pct(dipotong, total) + '%') +
+      monStatCard('amber', 'Keluar Kandang', keluar, pct(keluar, total) + '%') +
+      monStatCard('purple', 'Sudah Dicacah', dicacah, pct(dicacah, total) + '%') +
+      monStatCard('maroon', 'Distribusi', distrib, pct(distrib, total) + '%') +
+      '</div>';
+  }
+
+  if (on('big-stats')) {
+    html += '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">' +
+      monStatCard('green', 'Hewan Terkuliti', dikuliti, pct(dikuliti, total) + '%') +
+      monStatCard('blue', 'Hewan Terkarkas', karkas, pct(karkas, total) + '%') +
+      monStatCard('purple', 'Total Box Packing', totalPack, 'Packing') +
+      '</div>';
+  }
+
+  if (on('clock')) {
+    const now2 = new Date();
+    const t = now2.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    html += '<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">' + t + '</div><div style="font-size:14px;color:var(--text-secondary);margin-top:8px">' + (state.tanggal || '—') + '</div></div>';
+  }
+
+  if (on('progress')) {
+    html += '<div class="card" style="margin-bottom:24px"><div class="monitor-progress-head"><div class="monitor-progress-title">Progress Keseluruhan</div><div class="mono monitor-progress-pct">' + overallPct + '%</div></div>' +
+      '<div style="margin-bottom:16px"><div class="progress-bar"><div class="progress-fill green" style="width:' + overallPct + '%"></div></div></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
+      '<div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.waktuMulai || '—') + '</div></div>' +
+      '<div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.waktuSelesai || (overallPct >= 100 ? 'Selesai' : 'Berjalan...')) + '</div></div>' +
+      '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.waktuMulai, state.waktuSelesai) + '</div></div></div></div>';
+  }
+
+  if (on('process-list')) {
+    const processes = [
+      {name:'Kandang', done:keluar, color:'green'},
+      {name:'Penyembelihan', done:dipotong, color:'maroon'},
+      {name:'Transit', done:state.transit.hewan||0, color:'amber'},
+      {name:'Pengulitan', done:dikuliti, color:'blue'},
+      {name:'Cacah & Karkas', done:dicacah+karkas, color:'purple'},
+      {name:'Distribusi', done:distrib, color:'blue'}
+    ];
+    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status Tiap Proses</div><div class="process-row">' +
+      processes.map((p, i) => {
+        const p2 = pct(p.done, total);
+        const st = p2 >= 100 ? 'selesai' : p.done > 0 ? 'berjalan' : 'belum';
+        return '<div class="process-item"><div class="process-num">' + String(i+1).padStart(2,'0') + '</div><div class="process-info"><div class="process-name">' + p.name + '</div><div class="process-sub">' + p.done + ' dari ' + total + ' hewan</div></div><div class="process-progress"><div class="progress-bar"><div class="progress-fill ' + p.color + '" style="width:' + p2 + '%"></div></div></div><div class="process-count">' + p2 + '%</div><div class="process-status"><span class="status-badge ' + statusClass(st) + '">' + statusLabel(st) + '</span></div></div>';
+      }).join('') + '</div></div>';
+  }
+
+  if (on('kandang')) {
+    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 8 Kandang</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' +
+      state.kandang.map(k => {
+        const p2 = pct(k.keluar||0, k.total||1);
+        return '<div class="stat-card green" style="padding:14px"><div class="stat-label">Kandang #' + k.no + '</div><div class="stat-value" style="font-size:22px;color:var(--green)">' + (k.keluar||0) + '<span style="font-size:12px;color:var(--text-muted)">/' + (k.total||0) + '</span></div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:' + p2 + '%"></div></div></div>';
+      }).join('') + '</div></div>';
+  }
+
+  if (on('sembelih')) {
+    html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 10 Lubang Penyembelihan</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' +
+      state.sembelih.map(s => {
+        return '<div class="stat-card maroon" style="padding:14px"><div class="stat-label">Lubang #' + s.no + '</div><div class="stat-value" style="font-size:22px;color:var(--maroon)">' + (s.dipotong||0) + '</div><div style="margin-top:6px"><span class="status-badge ' + statusClass(s.status) + '">' + statusLabel(s.status) + '</span></div></div>';
+      }).join('') + '</div></div>';
+  }
+
+  document.getElementById('monitorContent').innerHTML = html;
+
+  const now = new Date();
+  document.getElementById('monitorClock').textContent = now.toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'}) + ' WIB';
+  document.getElementById('monitorDate').textContent = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric'});
 }
 
 function enterMonitorMode() {
   if (monitorMode) return;
   monitorMode = true;
-  monitorWidgets = getVisibleWidgetIds();
-  if (monitorWidgets.length === 0) { monitorMode = false; toast('Tidak ada widget aktif','error'); return; }
-  monitorSlideIdx = 0;
+  loadMonitorWidgets();
   document.documentElement.classList.add('monitoring');
   document.body.classList.add('monitoring');
   document.getElementById('monitorOverlay').classList.add('visible');
-  renderMonitorSlide();
-  renderMonitorDots();
-  showMonitorControls();
+  renderMonitorWidgetBar();
+  renderMonitorDashboard();
   if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
-  monitorInterval = setInterval(() => { renderMonitorSlide(); }, 1000);
+  monitorInterval = setInterval(() => { renderMonitorDashboard(); }, 1000);
 }
 
 function exitMonitorMode() {
@@ -1647,64 +1709,29 @@ function exitMonitorMode() {
   monitorMode = false;
   document.documentElement.classList.remove('monitoring');
   document.body.classList.remove('monitoring');
-  const overlay = document.getElementById('monitorOverlay');
-  overlay.classList.remove('visible','controls-visible');
+  document.getElementById('monitorOverlay').classList.remove('visible');
   if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
-  if (monitorControlsTimer) { clearTimeout(monitorControlsTimer); monitorControlsTimer = null; }
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-}
-
-function hideMonitorControls() {
-  const overlay = document.getElementById('monitorOverlay');
-  overlay.classList.remove('controls-visible');
-  monitorControlsTimer = null;
-}
-
-function showMonitorControls() {
-  if (!monitorMode) return;
-  const overlay = document.getElementById('monitorOverlay');
-  overlay.classList.add('controls-visible');
-  if (monitorControlsTimer) clearTimeout(monitorControlsTimer);
-  monitorControlsTimer = setTimeout(hideMonitorControls, 1800);
-}
-
-function renderMonitorSlide() {
-  const id = monitorWidgets[monitorSlideIdx];
-  if (!id) return;
-  const slide = document.getElementById('monitorSlide');
-  const tempDiv = document.createElement('div');
-  tempDiv.id = 'dw-' + id;
-  tempDiv.className = 'monitor-widget monitor-widget-' + id;
-  slide.innerHTML = '';
-  slide.appendChild(tempDiv);
-  renderWidgetContent(id);
-  document.getElementById('monitorInfo').textContent = (monitorSlideIdx+1) + ' / ' + monitorWidgets.length;
-}
-
-function renderMonitorDots() {
-  const dots = document.getElementById('monitorDots');
-  dots.innerHTML = monitorWidgets.map((_, i) =>
-    '<div class="monitor-nav-dot'+(i===monitorSlideIdx?' active':'')+'"></div>'
-  ).join('');
-}
-
-function monitorGo(dir) {
-  monitorSlideIdx = (monitorSlideIdx + dir + monitorWidgets.length) % monitorWidgets.length;
-  renderMonitorSlide();
-  renderMonitorDots();
-  showMonitorControls();
 }
 
 function toggleMonitorMode() { monitorMode ? exitMonitorMode() : enterMonitorMode(); }
 
 document.addEventListener('keydown', e => {
   if (!monitorMode) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); monitorGo(1); }
-  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); monitorGo(-1); }
-  else if (e.key === 'Escape') { e.preventDefault(); exitMonitorMode(); }
+  if (e.key === 'Escape') { e.preventDefault(); exitMonitorMode(); }
 });
 document.addEventListener('fullscreenchange', () => {
   if (!document.fullscreenElement && monitorMode) exitMonitorMode();
+});
+document.addEventListener('click', e => {
+  const tog = e.target.closest('.mw-toggle');
+  if (!tog) return;
+  const id = tog.dataset.mw, w = monitorWidgetReg.find(x => x.id === id);
+  if (!w) return;
+  w.on = !w.on;
+  tog.classList.toggle('on', w.on);
+  saveMonitorWidgets();
+  renderMonitorDashboard();
 });
 
 function setupDashLayout() {
@@ -1715,10 +1742,6 @@ function setupDashLayout() {
   document.getElementById('widgetPickerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
   document.getElementById('monitorModeBtn').addEventListener('click', toggleMonitorMode);
   document.getElementById('monitorExitBtn').addEventListener('click', exitMonitorMode);
-  document.getElementById('monitorPrev').addEventListener('click', () => monitorGo(-1));
-  document.getElementById('monitorNext').addEventListener('click', () => monitorGo(1));
-  document.getElementById('monitorOverlay').addEventListener('mousemove', showMonitorControls);
-  document.getElementById('monitorOverlay').addEventListener('mousedown', showMonitorControls);
   window.addEventListener('resize', refreshWidgetSpans);
   setupWidgetPickerDelegation();
 }
