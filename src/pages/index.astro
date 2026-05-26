@@ -249,6 +249,14 @@ input,select,textarea{font-family:inherit}
 .form-group{display:flex;flex-direction:column;gap:6px}
 .form-group label{font-size:12px;font-weight:600;color:var(--text-secondary)}
 .form-control{padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-primary);font-size:13px;transition:all var(--transition);outline:none}
+input[type=number].form-control{-moz-appearance:textfield}
+input[type=number].form-control::-webkit-inner-spin-button,input[type=number].form-control::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.num-input-wrap{display:flex;align-items:stretch;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:all var(--transition)}
+.num-input-wrap:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+.num-input-wrap input{flex:1;border:none;padding:10px 14px;background:var(--surface);color:var(--text-primary);font-size:13px;outline:none;min-width:0;text-align:center}
+.num-btn{width:38px;background:var(--surface2);border:none;color:var(--text-secondary);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);user-select:none;flex-shrink:0}
+.num-btn:hover{background:var(--green);color:#fff}
+.num-btn:active{transform:scale(.95)}
 .form-control:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
 .form-control:hover{border-color:var(--text-muted)}
 .form-section{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border-light);padding:22px;margin-bottom:20px;box-shadow:var(--shadow)}
@@ -568,7 +576,7 @@ function defaultDayState() {
     totalHewan:0, tanggal:'', waktuMulai:'', waktuSelesai:'',
     kandang: Array.from({length:8},function(_,i){return {no:i+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:'',status:'belum'};}),
     sembelih: Array.from({length:10},function(_,i){return {no:i+1,dipotong:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
-    transit:{kaki:0,kepala:0,hewan:0},
+    transit:{kakiKepala:0,hewan:0},
     kalet: Array.from({length:45},function(_,i){return {no:i+1,total:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
     karkas:{total:0,waktuMulai:'',waktuSelesai:''},
     abf:{keluar:0,waktuMulai:'',waktuSelesai:''},
@@ -1037,16 +1045,20 @@ function renderSembelihPage(state) {
 function renderTransitPage(state) {
   var t = state.transit||{};
   var dip = totalDipotongDay(state);
+  var dik = totalDikulitiDay(state);
+  var hewanTransit = Math.max(0, dip - dik);
   var html = '<div class="page-header"><div><div class="page-title">Transit</div><div class="page-subtitle">Monitoring area transit</div></div></div>';
   html += '<div class="stats-grid">';
-  html += statCardHtml('blue','Total Kaki',t.kaki||0,'Tersedia','blue');
-  html += statCardHtml('green','Total Kepala',t.kepala||0,'Tersedia','green');
-  html += statCardHtml('amber','Hewan Transit',t.hewan||0,'Menunggu','amber');
+  html += statCardHtml('blue','Kaki & Kepala',t.kakiKepala||0,'Tersedia','blue');
+  html += statCardHtml('amber','Hewan Transit',hewanTransit,'Menunggu kuliti','amber');
+  html += statCardHtml('green','Disembelih',dip,'Total','green');
+  html += statCardHtml('purple','Dikuliti',dik,'Total','purple');
   html += '</div>';
   html += '<div class="card"><div style="font-weight:700;margin-bottom:14px">Timeline Transit</div><div class="timeline">';
-  html += tlItem((t.hewan||0)>0?'green':'gray','Hewan Masuk Transit',(t.hewan||0)+' hewan');
-  html += tlItem((t.kepala||0)>0?'blue':'gray','Kepala Tersedia',(t.kepala||0)+' kepala');
-  html += tlItem((t.kaki||0)>0?'amber':'gray','Kaki Tersedia',(t.kaki||0)+' kaki',true);
+  html += tlItem(dip>0?'green':'gray','Disembelih',dip+' hewan');
+  html += tlItem(hewanTransit>0?'amber':'gray','Transit Menunggu',hewanTransit+' hewan');
+  html += tlItem((t.kakiKepala||0)>0?'blue':'gray','Kaki & Kepala',(t.kakiKepala||0)+' tersedia');
+  html += tlItem(dik>0?'green':'gray','Dikuliti',dik+' hewan',true);
   html += '</div></div>';
   return html;
 }
@@ -1247,8 +1259,7 @@ function renderInputPage(state) {
   // Transit
   if (feat.transit) {
     html += '<div class="form-section"><div class="form-section-title">Data Transit</div><div class="form-grid">';
-    html += fg('Total Kaki','number','inp_kakiTransit',state.transit?.kaki||0);
-    html += fg('Total Kepala','number','inp_kepalaTransit',state.transit?.kepala||0);
+    html += fg('Kaki & Kepala','number','inp_kakiKepalaTransit',state.transit?.kakiKepala||0);
     html += '</div></div>';
   }
 
@@ -1339,8 +1350,17 @@ function renderInputPage(state) {
 }
 
 function fg(label,type,id,val) {
-  var extra = type === 'number' ? ' min="0"' : '';
-  return '<div class="form-group"><label>'+label+'</label><input type="'+type+'" class="form-control" id="'+id+'" value="'+(val!=null?val:'')+'"'+extra+'></div>';
+  if (type === 'number') {
+    return '<div class="form-group"><label>'+label+'</label><div class="num-input-wrap"><button type="button" class="num-btn" onclick="numStep(\''+id+'\',-1)">-</button><input type="number" class="form-control" id="'+id+'" value="'+(val!=null?val:0)+'" min="0"><button type="button" class="num-btn" onclick="numStep(\''+id+'\',1)">+</button></div></div>';
+  }
+  return '<div class="form-group"><label>'+label+'</label><input type="'+type+'" class="form-control" id="'+id+'" value="'+(val!=null?val:'')+'"></div>';
+}
+function numStep(id, dir) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var v = parseInt(el.value) || 0;
+  el.value = Math.max(0, v + dir);
+  el.dispatchEvent(new Event('input', {bubbles:true}));
 }
 function fgSelect(label,id,current) {
   return '<div class="form-group"><label>'+label+'</label><select class="form-control" id="'+id+'">'+statusOpts(current)+'</select></div>';
@@ -1370,8 +1390,7 @@ function collectCurrentFormData() {
     s.waktuSelesai = gv('f_sembelih_selesai_'+s.no);
   });
   if (state.transit) {
-    state.transit.kaki = gi('inp_kakiTransit');
-    state.transit.kepala = gi('inp_kepalaTransit');
+    state.transit.kakiKepala = gi('inp_kakiKepalaTransit');
   }
   (state.kalet||[]).forEach(function(k) {
     k.total = gi('f_kalet_total_'+k.no);
@@ -1653,10 +1672,12 @@ function mwSembelih(state) {
 }
 
 function mwTransit(state) {
-  var k=state.transit?state.transit.kaki||0:0, kp=state.transit?state.transit.kepala||0:0, hw=state.transit?state.transit.hewan||0:0;
-  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Transit</div>'+
-    '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">'+
-    monStatCard('blue','Kaki',k,'Tersedia')+monStatCard('green','Kepala',kp,'Tersedia')+monStatCard('amber','Hewan Transit',hw,'Menunggu')+
+  var t=state.transit||{};
+  var dip=totalDipotongDay(state), dik=totalDikulitiDay(state);
+  var hewanTransit=Math.max(0,dip-dik);
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Transit - '+hewanTransit+' Menunggu</div>'+
+    '<div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
+    monStatCard('blue','Kaki & Kepala',t.kakiKepala||0,'Tersedia')+monStatCard('amber','Hewan Transit',hewanTransit,'Menunggu')+monStatCard('green','Disembelih',dip,'Total')+monStatCard('purple','Dikuliti',dik,'Total')+
     '</div></div>';
 }
 
