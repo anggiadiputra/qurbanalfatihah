@@ -706,7 +706,7 @@ function navigate(page) {
 }
 
 function updateHeaderTitle() {
-  var titles = {dashboard:'Dashboard',kandang:'Kandang',sembelih:'Penyembelihan',transit:'Transit',pengulitan:'Pengulitan',karkas:'Karkas & ABF',cacah:'Pencacahan',packing:'Packing',distribusi:'Distribusi',input:'Input Data',pengaturan:'Pengaturan',ringkasan:'Ringkasan per Day'};
+  var titles = {dashboard:'Dashboard',kandang:'Kandang',sembelih:'Penyembelihan',transit:'Transit',pengulitan:'Pengulitan',karkas:'Karkas & ABF',cacah:'Pencacahan',packing:'Packing',distKecil:'Distribusi Kecil',distKarkas:'Distribusi Karkas',input:'Input Data',pengaturan:'Pengaturan',ringkasan:'Ringkasan per Day'};
   var t = titles[currentPage] || currentPage;
   if (currentView !== 'all' && currentPage !== 'pengaturan') t += ' - Day ' + currentView;
   document.getElementById('headerTitle').textContent = t;
@@ -733,7 +733,8 @@ function renderSidebar() {
     if (feat.karkas || feat.abf) html += navItem('karkas','Karkas & ABF','&#128230;');
     if (feat.cacah) html += navItem('cacah','Pencacahan','&#9986;');
     if (feat.packingKecil || feat.packingKarkas) html += navItem('packing','Packing','&#128230;');
-    if (feat.distribusiKecil || feat.distribusiKarkas) html += navItem('distribusi','Distribusi','&#128666;');
+    if (feat.distribusiKecil) html += navItem('distKecil','Distribusi Kecil','&#128666;');
+    if (feat.distribusiKarkas) html += navItem('distKarkas','Distribusi Karkas','&#128666;');
     html += '<div class="nav-section-label editor-only">Manajemen</div>';
     html += navItem('input','Input Data','&#9999;','editor-only');
     html += navItem('pengaturan','Pengaturan','&#9881;','admin-only');
@@ -862,7 +863,8 @@ function renderCurrentPage() {
     else if (currentPage === 'karkas') container.innerHTML = renderKarkasPage(state);
     else if (currentPage === 'cacah') container.innerHTML = renderCacahPage(state);
     else if (currentPage === 'packing') container.innerHTML = renderPackingPage(state);
-    else if (currentPage === 'distribusi') container.innerHTML = renderDistribusiPage(state);
+    else if (currentPage === 'distKecil') container.innerHTML = renderDistKecilPage(state);
+    else if (currentPage === 'distKarkas') container.innerHTML = renderDistKarkasPage(state);
     else if (currentPage === 'input') container.innerHTML = renderInputPage(state);
     else if (currentPage === 'pengaturan') container.innerHTML = renderPengaturan();
     else container.innerHTML = '';
@@ -1213,51 +1215,54 @@ function renderPackingPage(state) {
 }
 
 // ================================================================
-// DISTRIBUSI PAGE
+// DISTRIBUSI KECIL PAGE
 // ================================================================
-function renderDistribusiPage(state) {
-  var feat = getFeatureConfig(currentView);
+function renderDistKecilPage(state) {
   var dk = state.distribusiKecil||{};
-  var dkk = state.distribusiKarkas||{};
-  var html = '<div class="page-header"><div><div class="page-title">Distribusi</div><div class="page-subtitle">Monitoring distribusi daging qurban</div></div></div>';
+  var dkL = dk.lokasi||[];
+  var dkS = dkL.filter(function(x){return x.status==='selesai'}).length;
+  var dkT = dkL.length;
+  var dkJumlah = dkL.reduce(function(a,x){return a+(x.jumlah||0)},0);
+  var p1 = pct(dkS, dkT||1);
+  var html = '<div class="page-header"><div><div class="page-title">Distribusi Kecil</div><div class="page-subtitle">Monitoring distribusi packing kecil</div></div></div>';
   html += '<div class="stats-grid">';
-  if (feat.distribusiKecil) {
-    var dkLok = dk.lokasi||[];
-    var dkSelesai = dkLok.filter(function(x){return x.status==='selesai'}).length;
-    var dkTotal = dkLok.length;
-    html += statCardHtml('green','Distribusi Kecil',dkSelesai+'/'+dkTotal,pct(dkSelesai,dkTotal||1)+'%','green');
-  }
-  if (feat.distribusiKarkas) {
-    html += statCardHtml('amber','Distribusi Karkas',dkk.selesai||0,pct(dkk.selesai||0,dkk.total||1)+'%','amber');
-  }
+  html += statCardHtml('green','Selesai',dkS,pct(dkS,dkT||1)+'%','green');
+  html += statCardHtml('blue','Proses',dkT-dkS,'Berjalan','blue');
+  html += statCardHtml('amber','Total Lokasi',dkT,'Lokasi','amber');
+  html += statCardHtml('purple','Total Unit',dkJumlah,'Unit','purple');
   html += '</div>';
-  if (feat.distribusiKecil) {
-    var dkL = dk.lokasi||[];
-    var dkS = dkL.filter(function(x){return x.status==='selesai'}).length;
-    var dkT = dkL.length;
-    var dkJumlah = dkL.reduce(function(a,x){return a+(x.jumlah||0)},0);
-    var p1 = pct(dkS, dkT||1);
-    html += '<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div style="font-weight:700;font-size:16px">Distribusi Kecil - '+dkS+' / '+dkT+' Selesai</div><div style="font-size:13px;color:var(--text-muted)">Total: <strong style="color:var(--text-primary);font-family:\'JetBrains Mono\',monospace">'+dkJumlah+'</strong> unit</div></div>';
-    html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Progress</span><span class="progress-pct">'+p1+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill green" style="width:'+p1+'%"></div></div></div>';
-    if (dkL.length > 0) {
-      html += '<div style="overflow-x:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm)"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">#</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Lokasi</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Jumlah</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Status</th></tr></thead><tbody>';
-      dkL.forEach(function(lok, idx) {
-        var badge = lok.status === 'selesai' ? 'status-selesai' : 'status-berjalan';
-        var label = lok.status === 'selesai' ? 'Selesai' : 'Proses';
-        html += '<tr style="transition:background .15s"><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);font-size:13px">'+String(idx+1).padStart(2,'0')+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-weight:600;font-size:14px">'+(lok.nama||'-')+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;font-weight:700;font-size:15px">'+(lok.jumlah||0)+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light)"><span class="status-badge '+badge+'">'+label+'</span></td></tr>';
-      });
-      html += '</tbody></table></div>';
-    } else {
-      html += '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Belum ada data lokasi distribusi</div>';
-    }
-    html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dk.waktuMulai)+infoChip('Selesai',dk.waktuSelesai)+infoChip('Durasi',durationStr(dk.waktuMulai,dk.waktuSelesai))+'</div></div>';
+  html += '<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div style="font-weight:700;font-size:16px">Daftar Lokasi - '+dkS+' / '+dkT+' Selesai</div></div>';
+  html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Progress</span><span class="progress-pct">'+p1+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill green" style="width:'+p1+'%"></div></div></div>';
+  if (dkL.length > 0) {
+    html += '<div style="overflow-x:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm)"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">#</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Lokasi</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Jumlah</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Status</th></tr></thead><tbody>';
+    dkL.forEach(function(lok, idx) {
+      var badge = lok.status === 'selesai' ? 'status-selesai' : 'status-berjalan';
+      var label = lok.status === 'selesai' ? 'Selesai' : 'Proses';
+      html += '<tr><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);font-size:13px">'+String(idx+1).padStart(2,'0')+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-weight:600;font-size:14px">'+(lok.nama||'-')+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;font-weight:700;font-size:15px">'+(lok.jumlah||0)+'</td><td style="padding:12px 16px;border-bottom:1px solid var(--border-light)"><span class="status-badge '+badge+'">'+label+'</span></td></tr>';
+    });
+    html += '</tbody></table></div>';
+  } else {
+    html += '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Belum ada data lokasi distribusi</div>';
   }
-  if (feat.distribusiKarkas) {
-    var p2 = pct(dkk.selesai||0, dkk.total||1);
-    html += '<div class="card" style="margin-bottom:20px"><div style="font-weight:700;margin-bottom:16px">Distribusi Karkas</div>';
-    html += '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Selesai '+(dkk.selesai||0)+' / '+(dkk.total||0)+'</span><span class="progress-pct">'+p2+'%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:'+p2+'%"></div></div></div>';
-    html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dkk.waktuMulai)+infoChip('Selesai',dkk.waktuSelesai)+infoChip('Durasi',durationStr(dkk.waktuMulai,dkk.waktuSelesai))+'</div></div>';
-  }
+  html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dk.waktuMulai)+infoChip('Selesai',dk.waktuSelesai)+infoChip('Durasi',durationStr(dk.waktuMulai,dk.waktuSelesai))+'</div></div>';
+  return html;
+}
+
+// ================================================================
+// DISTRIBUSI KARKAS PAGE
+// ================================================================
+function renderDistKarkasPage(state) {
+  var dkk = state.distribusiKarkas||{};
+  var p2 = pct(dkk.selesai||0, dkk.total||1);
+  var html = '<div class="page-header"><div><div class="page-title">Distribusi Karkas</div><div class="page-subtitle">Monitoring distribusi packing karkas ke ABF</div></div></div>';
+  html += '<div class="stats-grid">';
+  html += statCardHtml('green','Selesai',dkk.selesai||0,p2+'%','green');
+  html += statCardHtml('amber','Total',dkk.total||0,'Target','amber');
+  html += statCardHtml('maroon','Belum',Math.max(0,(dkk.total||0)-(dkk.selesai||0)),'Sisa','maroon');
+  html += '</div>';
+  html += '<div class="card" style="margin-bottom:20px"><div style="font-weight:700;font-size:16px;margin-bottom:16px">Progress Distribusi Karkas</div>';
+  html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Selesai '+(dkk.selesai||0)+' / '+(dkk.total||0)+'</span><span class="progress-pct">'+p2+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill amber" style="width:'+p2+'%"></div></div></div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dkk.waktuMulai)+infoChip('Selesai',dkk.waktuSelesai)+infoChip('Durasi',durationStr(dkk.waktuMulai,dkk.waktuSelesai))+'</div></div>';
   return html;
 }
 
