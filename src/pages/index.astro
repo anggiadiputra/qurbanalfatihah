@@ -1372,7 +1372,7 @@ function renderInputPage(state) {
       dkRows.forEach(function(lok, idx) {
         html += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;flex-wrap:wrap">';
         html += '<span style="font-size:12px;color:var(--text-muted);min-width:22px">'+(idx+1)+'.</span>';
-        html += '<input type="text" class="form-control" placeholder="Nama lokasi" value="'+(lok.nama||'')+'" style="flex:2;min-width:140px" onchange="updateDistKecilRow('+idx+',\'nama\',this.value)">';
+        html += '<input type="text" class="form-control" placeholder="Lokasi" value="'+(lok.nama||'')+'" style="flex:1;min-width:100px;max-width:180px" onchange="updateDistKecilRow('+idx+',\'nama\',this.value)">';
         html += '<div class="num-input-wrap" style="width:110px"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',-1)">-</button><input type="number" class="form-control" id="dk_jumlah_'+idx+'" value="'+(lok.jumlah||0)+'" min="0" onchange="updateDistKecilRow('+idx+',\'jumlah\',Number(this.value))"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',1)">+</button></div>';
         html += '<select class="form-control" style="width:110px" onchange="updateDistKecilRow('+idx+',\'status\',this.value)"><option value="proses"'+(lok.status==='proses'?' selected':'')+'>Proses</option><option value="selesai"'+(lok.status==='selesai'?' selected':'')+'>Selesai</option></select>';
         html += '<button style="background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="removeDistKecilRow('+idx+')">&#x2715;</button>';
