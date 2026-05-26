@@ -112,8 +112,10 @@ input,select,textarea{font-family:var(--font)}
 .topbar-left{display:flex;align-items:center;gap:12px}
 .page-title{font-size:18px;font-weight:700;color:var(--text)}
 .page-subtitle{font-size:12px;color:var(--text2);margin-top:1px}
-.live-badge{display:flex;align-items:center;gap:6px;background:var(--green-light);color:var(--green);font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid rgba(16,185,129,0.2)}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
+.live-badge{display:flex;align-items:center;gap:6px;background:var(--green-light);color:var(--green);font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid rgba(16,185,129,0.2);animation:liveBadgeText 3s ease-in-out infinite}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:liveGlow 2s ease-in-out infinite}
+@keyframes liveGlow{0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(16,185,129,0.5)}30%{opacity:1;transform:scale(1.15);box-shadow:0 0 8px 3px rgba(16,185,129,0.35)}60%{opacity:0.6;transform:scale(0.85);box-shadow:0 0 2px 1px rgba(16,185,129,0.15)}}
+@keyframes liveBadgeText{0%,100%{letter-spacing:0.02em}50%{letter-spacing:0.08em}}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
 .topbar-right{display:flex;align-items:center;gap:10px}
 .topbar-btn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all var(--transition);position:relative}
@@ -293,10 +295,20 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-exit{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition)}
 .monitor-exit:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
 .monitor-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
-.monitor-stats-grid .stat-card{padding:24px}
-.monitor-stats-grid .stat-value{font-size:36px}
-.monitor-stats-grid .stat-label{font-size:14px}
-.monitor-stats-grid .stat-icon{width:48px;height:48px;font-size:24px;margin-bottom:16px}
+.monitor-stats-grid .stat-card{padding:28px}
+.monitor-stats-grid .stat-value{font-size:40px}
+.monitor-stats-grid .stat-label{font-size:15px}
+.monitor-stats-grid .stat-icon{width:52px;height:52px;font-size:24px;margin-bottom:16px}
+.monitor-overlay .progress-title{font-size:18px}
+.monitor-overlay .table-title{font-size:16px}
+.monitor-overlay .progress-pct{font-size:15px}
+.monitor-overlay .tl-value{font-size:16px}
+.monitor-overlay .tl-label{font-size:13px}
+.monitor-overlay .time-value{font-size:18px}
+.monitor-overlay .progress-bar-bg{height:14px}
+.monitor-overlay .badge{font-size:13px;padding:5px 12px}
+.monitor-overlay .table-card td{font-size:15px;padding:14px 18px}
+.monitor-overlay .table-card th{font-size:13px;padding:14px 18px}
 .monitor-timeline-section{margin-bottom:24px}
 .monitor-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
 .monitor-bottom-grid .progress-section{margin-bottom:0}
@@ -312,17 +324,20 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .mw-toggle.on .mw-toggle-dot{background:#fff}
 @media(min-width:1600px){
   .monitor-stats-grid{grid-template-columns:repeat(7,1fr)}
-  .monitor-stats-grid .stat-value{font-size:42px}
-  .monitor-stats-grid .stat-label{font-size:15px}
+  .monitor-stats-grid .stat-value{font-size:52px}
+  .monitor-stats-grid .stat-label{font-size:17px}
+  .monitor-stats-grid .stat-card{padding:36px}
+  .monitor-header-title{font-size:26px}
+  .monitor-header-clock{font-size:22px}
 }
 @media(min-width:2400px){
   .monitor-overlay{padding:40px 60px}
-  .monitor-stats-grid .stat-card{padding:32px}
-  .monitor-stats-grid .stat-value{font-size:54px}
-  .monitor-stats-grid .stat-label{font-size:17px}
-  .monitor-stats-grid .stat-icon{width:56px;height:56px;font-size:28px}
-  .monitor-header-title{font-size:28px}
-  .monitor-header-clock{font-size:24px}
+  .monitor-stats-grid .stat-card{padding:44px}
+  .monitor-stats-grid .stat-value{font-size:68px}
+  .monitor-stats-grid .stat-label{font-size:20px}
+  .monitor-stats-grid .stat-icon{width:64px;height:64px;font-size:32px}
+  .monitor-header-title{font-size:34px}
+  .monitor-header-clock{font-size:28px}
 }
 @media(max-width:900px){.monitor-bottom-grid{grid-template-columns:1fr}}
 
@@ -918,6 +933,7 @@ var monitorWidgetRegistry=[
   {id:'progress',name:'Progress Bars',desc:'Progress per proses',on:true},
   {id:'times',name:'Waktu Proses',desc:'Waktu mulai/selesai per proses',on:true},
   {id:'distrib',name:'Tabel Distribusi',desc:'Daftar lokasi distribusi',on:true},
+  {id:'chart',name:'Chart Bar',desc:'Visualisasi bar chart proses',on:true},
   {id:'meja',name:'Pencacahan per Meja',desc:'Breakdown 6 meja pencacahan',on:false},
   {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime ukuran besar',on:false}
 ];
@@ -973,7 +989,32 @@ function mwRender_times(v){return'<div class="progress-section" style="margin-bo
 function mwRender_meja(v){var h='<div class="table-card" style="margin-bottom:24px"><div class="table-header"><div class="table-title">Pencacahan per Meja</div></div><div style="overflow-x:auto"><table><thead><tr><th>Meja</th><th>Jumlah</th><th>Mulai</th><th>Selesai</th><th>Durasi</th></tr></thead><tbody>';(v.d.mejaCacah||[]).forEach(function(m){h+='<tr><td class="fw-700">'+m.nama+'</td><td class="font-mono fw-700">'+(m.jumlah||0)+'</td><td class="font-mono">'+(m.mulai||'—')+'</td><td class="font-mono">'+(m.selesai||'—')+'</td><td class="font-mono" style="color:var(--green)">'+calcDuration(m.mulai,m.selesai)+'</td></tr>'});return h+'</tbody></table></div></div>'}
 function mwRender_distrib(v){if(!v.distribList.length)return'';return'<div class="table-card" style="margin-bottom:24px"><div class="table-header"><div class="table-title">Daftar Distribusi ('+v.distribSelesai+'/'+v.distribTotal+' selesai)</div><div class="live-badge"><div class="live-dot"></div>Realtime</div></div><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Lokasi</th><th>Jumlah</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+v.distribList.map(function(item,i){return'<tr><td class="font-mono" style="color:var(--text3)">'+String(i+1).padStart(2,'0')+'</td><td><strong>'+(item.nama||'—')+'</strong></td><td class="font-mono fw-700">'+(item.jumlah||0)+'</td><td><span class="badge '+(item.status==='selesai'?'badge-done':item.status==='proses'?'badge-process':'badge-wait')+'">'+(item.status==='selesai'?'Selesai':item.status==='proses'?'Proses':'Menunggu')+'</span></td><td style="color:var(--text3);font-size:12px">'+(item.catatan||'—')+'</td></tr>'}).join('')+'</tbody></table></div></div>'}
 
-var mwRenderers={stats:mwRender_stats,clock:mwRender_clock,timeline:mwRender_timeline,progress:mwRender_progress,times:mwRender_times,meja:mwRender_meja,distrib:mwRender_distrib};
+function mwRender_chart(v){
+  var items=[
+    {label:'ABF',pct:v.pA,val:v.abf,color:'var(--green)'},
+    {label:'Cacah',pct:v.pC,val:v.cacah,color:'var(--orange)'},
+    {label:'Packing',pct:v.pP,val:v.packTotal,color:'var(--yellow)'},
+    {label:'Distribusi',pct:v.pD,val:v.distribSelesai,color:'var(--maroon)'}
+  ];
+  var maxH=220;
+  var bars=items.map(function(it){
+    var h=Math.max(8,Math.round(maxH*it.pct/100));
+    return'<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">'+
+      '<div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--text)">'+it.val+'</div>'+
+      '<div style="width:100%;display:flex;align-items:flex-end;justify-content:center;height:'+maxH+'px">'+
+        '<div style="width:80%;height:'+h+'px;background:'+it.color+';border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;transition:height 1s cubic-bezier(0.4,0,0.2,1);min-height:8px">'+
+          (it.pct>5?'<span style="font-size:14px;font-weight:800;color:#fff;font-family:var(--mono)">'+it.pct+'%</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--text2);text-align:center">'+it.label+'</div>'+
+    '</div>';
+  }).join('');
+  return'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">'+
+    '<div style="font-size:16px;font-weight:700;margin-bottom:20px">Visualisasi Progress</div>'+
+    '<div style="display:flex;align-items:flex-end;gap:16px;padding:10px 0">'+bars+'</div>'+
+  '</div>';
+}
+var mwRenderers={stats:mwRender_stats,clock:mwRender_clock,timeline:mwRender_timeline,progress:mwRender_progress,times:mwRender_times,chart:mwRender_chart,meja:mwRender_meja,distrib:mwRender_distrib};
 
 function renderMonitorDashboard(){
   var d=data,total=d.totalKarkas||0,abf=d.abfKeluar||0,cacah=d.cacah||0,box=d.packBox||0,pack=d.packPack||0,packTotal=box+pack;

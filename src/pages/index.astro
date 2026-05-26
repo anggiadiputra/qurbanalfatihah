@@ -22,7 +22,7 @@ const role = getRole(auth) || 'viewer';
   <div class="monitor-header">
     <div class="monitor-header-left">
       <div class="monitor-header-title">Qurban Command Center — Day 1</div>
-      <div class="live-badge" style="font-size:11px"><span class="autosave-dot"></span> LIVE</div>
+      <div class="monitor-live-badge"><span class="monitor-live-dot"></span> LIVE</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
       <div class="monitor-header-date" id="monitorDate">—</div>
@@ -818,19 +818,65 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .mw-toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background var(--transition)}
 .mw-toggle.on .mw-toggle-dot{background:#fff}
 .mon-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.mon-stats-grid .stat-card{padding:22px}
+.mon-stats-grid .stat-card{padding:26px}
 .mon-stats-grid .stat-card:hover{transform:none}
+.mon-stats-grid .stat-value{font-size:38px}
+.mon-stats-grid .stat-label{font-size:14px}
 .mon-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.monitor-overlay .progress-bar{height:12px}
+.monitor-overlay .progress-fill{border-radius:99px}
+.monitor-overlay .process-name{font-size:16px}
+.monitor-overlay .process-count{font-size:16px}
+.monitor-overlay .process-sub{font-size:13px}
+.monitor-overlay .info-chip-val{font-size:18px}
+.monitor-overlay .stat-badge{font-size:13px;padding:4px 12px}
+.monitor-overlay .card{padding:28px}
+/* Monitor LIVE badge */
+.monitor-live-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--green);letter-spacing:.04em;animation:monLiveText 3s ease-in-out infinite}
+.monitor-live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green),0 0 8px rgba(34,197,94,.4);animation:monLiveDot 2s ease-in-out infinite}
+@keyframes monLiveDot{0%,100%{box-shadow:0 0 4px var(--green),0 0 8px rgba(34,197,94,.3);opacity:.85}50%{box-shadow:0 0 8px var(--green),0 0 16px rgba(34,197,94,.5);opacity:1}}
+@keyframes monLiveText{0%,100%{opacity:.8;letter-spacing:.04em}50%{opacity:1;letter-spacing:.06em}}
+/* Monitor chart widget */
+.mon-chart-wrap{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:220px;padding:16px 8px 0}
+.mon-chart-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;max-width:120px;height:100%}
+.mon-chart-val{font-size:14px;font-weight:700;margin-bottom:4px;white-space:nowrap}
+.mon-chart-bar-area{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.mon-chart-bar{width:100%;border-radius:6px 6px 0 0;min-height:4px;display:flex;align-items:center;justify-content:center;transition:height .4s ease}
+.mon-chart-pct{font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.mon-chart-label{font-size:11px;color:var(--text-secondary);font-weight:600;margin-top:8px;text-align:center;line-height:1.2}
 @media(min-width:1600px){
   .mon-stats-grid{grid-template-columns:repeat(5,1fr)}
-  .mon-stats-grid .stat-value{font-size:36px}
+  .mon-stats-grid .stat-value{font-size:52px}
+  .mon-stats-grid .stat-label{font-size:16px}
+  .mon-stats-grid .stat-card{padding:34px}
+  .monitor-header-title{font-size:26px}
+  .monitor-header-clock{font-size:22px}
+  .monitor-overlay .process-name{font-size:18px}
+  .monitor-overlay .process-count{font-size:18px}
+  .monitor-overlay .info-chip-val{font-size:22px}
+  .monitor-overlay .card{padding:34px}
+  .mon-chart-wrap{height:280px;gap:20px}
+  .mon-chart-val{font-size:18px}
+  .mon-chart-pct{font-size:13px}
+  .mon-chart-label{font-size:13px}
 }
 @media(min-width:2400px){
   .monitor-overlay{padding:40px 60px}
-  .mon-stats-grid .stat-card{padding:32px}
-  .mon-stats-grid .stat-value{font-size:48px}
-  .monitor-header-title{font-size:28px}
-  .monitor-header-clock{font-size:24px}
+  .mon-stats-grid .stat-card{padding:44px}
+  .mon-stats-grid .stat-value{font-size:68px}
+  .mon-stats-grid .stat-label{font-size:20px}
+  .monitor-header-title{font-size:34px}
+  .monitor-header-clock{font-size:28px}
+  .monitor-overlay .process-name{font-size:22px}
+  .monitor-overlay .process-count{font-size:22px}
+  .monitor-overlay .info-chip-val{font-size:28px}
+  .monitor-overlay .card{padding:44px}
+  .mon-chart-wrap{height:360px;gap:28px}
+  .mon-chart-val{font-size:22px}
+  .mon-chart-pct{font-size:15px}
+  .mon-chart-label{font-size:16px}
+  .monitor-live-badge{font-size:14px}
+  .monitor-live-dot{width:10px;height:10px}
 }
 @media(max-width:900px){.mon-bottom-grid{grid-template-columns:1fr}}
 
@@ -1618,7 +1664,8 @@ const monitorWidgetReg = [
   {id:'process-list',name:'Status Proses',desc:'Status tiap proses',on:true},
   {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime',on:false},
   {id:'kandang',name:'Kandang',desc:'Status 8 kandang',on:false},
-  {id:'sembelih',name:'Penyembelihan',desc:'Status 10 lubang',on:false}
+  {id:'sembelih',name:'Penyembelihan',desc:'Status 10 lubang',on:false},
+  {id:'chart',name:'Chart Bar',desc:'Visualisasi bar chart proses',on:true}
 ];
 
 function loadMonitorWidgets() {
@@ -1695,7 +1742,25 @@ function d1mw_sembelih() {
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 10 Lubang Penyembelihan</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' + state.sembelih.map(s => '<div class="stat-card maroon" style="padding:14px"><div class="stat-label">Lubang #'+s.no+'</div><div class="stat-value" style="font-size:22px;color:var(--maroon)">'+(s.dipotong||0)+'</div><div style="margin-top:6px"><span class="status-badge '+statusClass(s.status)+'">'+statusLabel(s.status)+'</span></div></div>').join('') + '</div></div>';
 }
 
-const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih};
+function d1mw_chart(v) {
+  const items = [
+    {label:'Kandang',val:v.keluar,color:'var(--green)'},
+    {label:'Penyembelihan',val:v.dipotong,color:'var(--maroon)'},
+    {label:'Pengulitan',val:v.dikuliti,color:'var(--blue)'},
+    {label:'Cacah',val:v.dicacah,color:'var(--purple)'},
+    {label:'Karkas',val:v.karkas,color:'var(--amber)'},
+    {label:'Distribusi',val:v.distrib,color:'var(--blue)'}
+  ];
+  const maxVal = Math.max(1, ...items.map(i => i.val));
+  const bars = items.map(i => {
+    const h = Math.max(2, Math.round(i.val / maxVal * 100));
+    const p = pct(i.val, v.total);
+    return '<div class="mon-chart-bar-col"><div class="mon-chart-val" style="color:'+i.color+'">'+i.val+'</div><div class="mon-chart-bar-area"><div class="mon-chart-bar" style="height:'+h+'%;background:'+i.color+'"><span class="mon-chart-pct">'+p+'%</span></div></div><div class="mon-chart-label">'+i.label+'</div></div>';
+  }).join('');
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:12px">Visualisasi Proses</div><div class="mon-chart-wrap">'+bars+'</div></div>';
+}
+
+const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih,chart:d1mw_chart};
 
 function renderMonitorDashboard() {
   const total = state.totalHewan;
