@@ -598,12 +598,34 @@ var isSettingsSaving=false, pendingSettingsSave=false, settingsSaveTimeout=null;
 var autoRefreshInterval=null;
 var monitorMode=false, monitorInterval=null;
 
+function migrateState(s) {
+  if (!s) return s;
+  // kalet → lane migration
+  if (!s.lane && s.kalet) {
+    s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};});
+  }
+  if (!s.lane) s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};});
+  if (s.pengulitanMulai === undefined) s.pengulitanMulai = '';
+  if (s.pengulitanSelesai === undefined) s.pengulitanSelesai = '';
+  // sembelih 10→8
+  if (s.sembelih && s.sembelih.length > 8) s.sembelih = s.sembelih.slice(0,8);
+  if (s.sembelih && s.sembelih.length < 8) {
+    while (s.sembelih.length < 8) s.sembelih.push({no:s.sembelih.length+1,dipotong:0,waktuMulai:'',waktuSelesai:''});
+  }
+  // transit kaki+kepala merge
+  if (s.transit && s.transit.kaki !== undefined && s.transit.kakiKepala === undefined) {
+    s.transit.kakiKepala = (s.transit.kaki||0) + (s.transit.kepala||0);
+  }
+  if (s.transit && s.transit.kakiKepala === undefined) s.transit.kakiKepala = 0;
+  return s;
+}
+
 function loadAllStates() {
   return fetch('/api/day-state?day=all').then(function(r) {
     if (r.ok) return r.json();
     return null;
   }).then(function(d) {
-    if (d) { for (var i = 1; i <= 4; i++) dayStates[i] = d[String(i)] || defaultDayState(); }
+    if (d) { for (var i = 1; i <= 4; i++) dayStates[i] = migrateState(d[String(i)] || defaultDayState()); }
     else { for (var i = 1; i <= 4; i++) if (!dayStates[i]) dayStates[i] = defaultDayState(); }
   }).catch(function() {
     for (var i = 1; i <= 4; i++) if (!dayStates[i]) dayStates[i] = defaultDayState();
@@ -2031,7 +2053,7 @@ function exportExcel() {
     XLSX.utils.book_append_sheet(wb, styledSheet(sembData,[{wch:12},{wch:10},{wch:10},{wch:12},{wch:12}]), 'Penyembelihan');
 
     var kaletData = [['ID','Dikuliti','Status','Mulai','Selesai']];
-    (s.kalet||[]).forEach(function(k) { kaletData.push(['K-'+String(k.no).padStart(2,'0'),k.total||0,statusLabel(k.status),k.waktuMulai||'-',k.waktuSelesai||'-']); });
+    (s.lane||[]).forEach(function(ln) { kaletData.push(['Lane #'+ln.no,ln.total||0,'-',s.pengulitanMulai||'-',s.pengulitanSelesai||'-']); });
     XLSX.utils.book_append_sheet(wb, styledSheet(kaletData,[{wch:10},{wch:14},{wch:10},{wch:12},{wch:12}]), 'Pengulitan');
 
     var cacahData = [['No','Dicacah','Status','Mulai','Selesai']];
