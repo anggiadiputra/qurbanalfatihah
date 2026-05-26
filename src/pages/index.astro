@@ -1716,7 +1716,14 @@ const monitorWidgetReg = [
   {id:'sembelih',name:'Penyembelihan',desc:'Status 10 lubang',on:false},
   {id:'chart-proses',name:'Chart Proses',desc:'Bar/Pie semua proses',on:true},
   {id:'chart-kandang',name:'Chart Kandang',desc:'Bar/Pie per kandang',on:false},
-  {id:'chart-sembelih',name:'Chart Sembelih',desc:'Bar/Pie per lubang',on:false}
+  {id:'chart-sembelih',name:'Chart Sembelih',desc:'Bar/Pie per lubang',on:false},
+  {id:'transit',name:'Transit',desc:'Kaki, Kepala, Hewan transit',on:false},
+  {id:'pengulitan',name:'Pengulitan',desc:'45 titik pengulitan',on:false},
+  {id:'pencacahan',name:'Pencacahan',desc:'6 meja pencacahan',on:false},
+  {id:'karkas',name:'Packing Karkas',desc:'Progress packing karkas',on:false},
+  {id:'distribusi',name:'Distribusi Detail',desc:'Packing & distribusi lengkap',on:false},
+  {id:'tanggal',name:'Tanggal & Info',desc:'Tanggal, waktu mulai/selesai',on:false},
+  {id:'chart-pengulitan',name:'Chart Pengulitan',desc:'Bar/Pie status pengulitan',on:false}
 ];
 
 function loadMonitorWidgets() {
@@ -1871,7 +1878,98 @@ function d1mw_chartSembelih() {
   return monChartCard('sembelih','Penyembelihan',bars,pie);
 }
 
-const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih,'chart-proses':d1mw_chartProses,'chart-kandang':d1mw_chartKandang,'chart-sembelih':d1mw_chartSembelih};
+function d1mw_transit(v) {
+  var kaki = state.transit.kaki || 0, kepala = state.transit.kepala || 0, hewan = state.transit.hewan || 0;
+  return '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">' + monStatCard('blue','Total Kaki',kaki,'Tersedia') + monStatCard('green','Total Kepala',kepala,'Tersedia') + monStatCard('amber','Hewan Transit',hewan,'Menunggu') + '</div>';
+}
+
+function d1mw_pengulitan(v) {
+  var dikuliti = totalDikuliti();
+  var html = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">45 Titik Pengulitan — <span style="color:var(--blue)">' + dikuliti + '</span> dikuliti</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px">';
+  state.kalet.forEach(function(k) {
+    var st = k.status || 'belum';
+    var sc = st === 'selesai' ? 'var(--green)' : st === 'berjalan' ? 'var(--blue)' : st === 'menunggu' ? 'var(--amber)' : 'var(--maroon)';
+    html += '<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center;border-left:3px solid ' + sc + '"><div style="font-size:11px;font-weight:700;color:var(--text-muted)">K-' + String(k.no).padStart(2,'0') + '</div><div style="font-size:18px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:' + sc + '">' + (k.total||0) + '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function d1mw_pencacahan(v) {
+  var dicacah = totalDicacah();
+  var html = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">6 Meja Pencacahan — <span style="color:var(--purple)">' + dicacah + '</span> dicacah</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">';
+  state.cacah.forEach(function(c) {
+    var st = c.status || 'belum';
+    var sc = statusClass(st);
+    html += '<div class="stat-card purple" style="padding:14px"><div class="stat-label">Meja #' + c.no + '</div><div class="stat-value" style="font-size:22px;color:var(--purple)">' + (c.total||0) + '</div><div style="margin-top:6px"><span class="status-badge ' + sc + '">' + statusLabel(st) + '</span></div>';
+    if (c.waktuMulai) html += '<div style="font-size:10px;color:var(--text-muted);margin-top:4px">Mulai: ' + c.waktuMulai + '</div>';
+    if (c.waktuSelesai) html += '<div style="font-size:10px;color:var(--text-muted)">Selesai: ' + c.waktuSelesai + '</div>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function d1mw_karkas(v) {
+  var sudah = state.karkas.sudah || 0;
+  var p = pct(sudah, v.total);
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Packing Karkas</div>' +
+    '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px"><div style="font-size:36px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--amber)">' + sudah + '</div><span style="font-size:14px;color:var(--text-muted)">dari ' + v.total + ' hewan (' + p + '%)</span></div>' +
+    '<div class="progress-bar" style="margin-bottom:16px;height:10px"><div class="progress-fill amber" style="width:' + p + '%"></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
+    '<div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.karkas.waktuMulai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.karkas.waktuSelesai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.karkas.waktuMulai, state.karkas.waktuSelesai) + '</div></div>' +
+    '</div></div>';
+}
+
+function d1mw_distribusi(v) {
+  var totalPack = state.distribusi.totalPacking || 0;
+  var selesai = state.distribusi.selesai || 0;
+  var belum = Math.max(0, totalPack - selesai);
+  var p = pct(selesai, totalPack);
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Distribusi Detail</div>' +
+    '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">' + monStatCard('blue','Total Box',totalPack,'Packing') + monStatCard('green','Distribusi Selesai',selesai,p+'%') + monStatCard('amber','Belum Distribusi',belum,(100-p)+'%') + '</div>' +
+    '<div class="progress-bar" style="margin-bottom:16px;height:10px"><div class="progress-fill green" style="width:' + p + '%"></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
+    '<div class="info-chip"><div class="info-chip-label">Packing Mulai</div><div class="info-chip-val mono">' + (state.distribusi.packingWaktuMulai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Packing Selesai</div><div class="info-chip-val mono">' + (state.distribusi.packingWaktuSelesai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Distribusi Mulai</div><div class="info-chip-val mono">' + (state.distribusi.waktuMulai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Distribusi Selesai</div><div class="info-chip-val mono">' + (state.distribusi.waktuSelesai||'—') + '</div></div>' +
+    '</div></div>';
+}
+
+function d1mw_tanggal(v) {
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  return '<div class="card" style="margin-bottom:24px;text-align:center;padding:32px">' +
+    '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Tanggal Qurban</div>' +
+    '<div style="font-size:28px;font-weight:800;color:var(--green);margin-bottom:20px">' + (state.tanggal || dateStr) + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
+    '<div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.waktuMulai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.waktuSelesai||'—') + '</div></div>' +
+    '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.waktuMulai, state.waktuSelesai) + '</div></div>' +
+    '</div></div>';
+}
+
+function d1mw_chartPengulitan(v) {
+  var counts = {selesai:0, berjalan:0, menunggu:0, belum:0};
+  state.kalet.forEach(function(k) { var st = k.status || 'belum'; if (counts[st] !== undefined) counts[st]++; else counts.belum++; });
+  var bars = [
+    {val:counts.selesai,label:'Selesai',color:'var(--green)',pct:pct(counts.selesai,45)},
+    {val:counts.berjalan,label:'Berjalan',color:'var(--blue)',pct:pct(counts.berjalan,45)},
+    {val:counts.menunggu,label:'Menunggu',color:'var(--amber)',pct:pct(counts.menunggu,45)},
+    {val:counts.belum,label:'Belum',color:'var(--maroon)',pct:pct(counts.belum,45)}
+  ];
+  var pie = {
+    segments: bars.map(function(b) { return {val:b.val,label:b.label,color:b.color}; }),
+    centerVal: counts.selesai,
+    centerLabel: 'Selesai'
+  };
+  return monChartCard('pengulitan','Status Pengulitan',bars,pie);
+}
+
+const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih,'chart-proses':d1mw_chartProses,'chart-kandang':d1mw_chartKandang,'chart-sembelih':d1mw_chartSembelih,transit:d1mw_transit,pengulitan:d1mw_pengulitan,pencacahan:d1mw_pencacahan,karkas:d1mw_karkas,distribusi:d1mw_distribusi,tanggal:d1mw_tanggal,'chart-pengulitan':d1mw_chartPengulitan};
 
 function renderMonitorDashboard() {
   const total = state.totalHewan;

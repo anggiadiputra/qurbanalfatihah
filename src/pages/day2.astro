@@ -1052,7 +1052,14 @@ var monitorWidgetRegistry=[
   {id:'chart-packing',name:'Chart Packing',desc:'Bar/Pie komposisi packing',on:false},
   {id:'chart-distrib',name:'Chart Distribusi',desc:'Bar/Pie status distribusi',on:false},
   {id:'meja',name:'Pencacahan per Meja',desc:'Breakdown 6 meja pencacahan',on:false},
-  {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime ukuran besar',on:false}
+  {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime ukuran besar',on:false},
+  {id:'abf-detail',name:'ABF Detail',desc:'Karkas total, keluar, sisa + progress',on:false},
+  {id:'cacah-detail',name:'Pencacahan Detail',desc:'Total cacah, sisa, progress',on:false},
+  {id:'pack-detail',name:'Packing Detail',desc:'Box, pack, total, progress',on:false},
+  {id:'info',name:'Tanggal & Info',desc:'Tanggal, jam mulai/selesai, durasi',on:false},
+  {id:'chart-abf',name:'Chart ABF',desc:'Bar/Pie rasio keluar ABF',on:false},
+  {id:'chart-meja',name:'Chart Meja',desc:'Bar/Pie per meja pencacahan',on:false},
+  {id:'overall',name:'Progress Total',desc:'Overall progress besar dengan detail',on:false}
 ];
 
 function loadMonitorWidgets(){
@@ -1191,7 +1198,82 @@ function mwRender_chartDistrib(v){
   ],centerVal:selesai,centerLabel:'Selesai'};
   return monChartCard('distrib','Status Distribusi',barsData,pieData);
 }
-var mwRenderers={stats:mwRender_stats,clock:mwRender_clock,timeline:mwRender_timeline,progress:mwRender_progress,times:mwRender_times,'chart-proses':mwRender_chartProses,'chart-packing':mwRender_chartPacking,'chart-distrib':mwRender_chartDistrib,meja:mwRender_meja,distrib:mwRender_distrib};
+function mwRender_abfDetail(v){
+  var sisa=Math.max(0,v.total-v.abf);
+  return '<div style="margin-bottom:24px"><div class="monitor-stats-grid" style="grid-template-columns:repeat(4,1fr)">'+
+    sc('blue',v.total,'Total Karkas','Keseluruhan tersedia')+
+    sc('green',v.abf,'Keluar ABF','Sudah diambil')+
+    sc('orange',sisa,'Sisa','Belum diambil')+
+    sc('maroon',v.pA+'%','Progress ABF','Persentase keluar')+
+  '</div>'+
+  '<div class="progress-section" style="margin-bottom:16px"><div class="progress-title">Progress ABF</div>'+pb('green','Karkas Keluar ABF',v.pA,v.abf+' dari '+v.total+' karkas')+'</div>'+
+  '<div class="time-grid">'+tc('blue','Mulai ABF',v.d.abfMulai)+tc('green','Selesai ABF',v.d.abfSelesai)+tc('orange','Durasi ABF',calcDuration(v.d.abfMulai,v.d.abfSelesai))+'</div></div>';
+}
+function mwRender_cacahDetail(v){
+  var sisa=Math.max(0,v.total-v.cacah);
+  return '<div style="margin-bottom:24px"><div class="monitor-stats-grid" style="grid-template-columns:repeat(3,1fr)">'+
+    sc('orange',v.cacah,'Total Dicacah','Karkas selesai dicacah')+
+    sc('blue',sisa,'Sisa','Belum dicacah')+
+    sc('green',v.pC+'%','Progress','Pencacahan selesai')+
+  '</div>'+
+  '<div class="progress-section" style="margin-bottom:16px"><div class="progress-title">Progress Pencacahan</div>'+pb('orange','Pencacahan Karkas',v.pC,v.cacah+' dari '+v.total+' karkas')+'</div>'+
+  '<div class="time-grid">'+tc('orange','Mulai Cacah',v.d.cacahMulai)+tc('green','Selesai Cacah',v.d.cacahSelesai)+tc('blue','Durasi Cacah',calcDuration(v.d.cacahMulai,v.d.cacahSelesai))+'</div></div>';
+}
+function mwRender_packDetail(v){
+  var pB1=v.cacah>0?Math.min(100,Math.round(v.box/v.cacah*100)):0;
+  var pB2=v.cacah>0?Math.min(100,Math.round(v.pack/v.cacah*100)):0;
+  return '<div style="margin-bottom:24px"><div class="monitor-stats-grid" style="grid-template-columns:repeat(4,1fr)">'+
+    sc('amber',v.box,'Box','Packing box')+
+    sc('blue',v.pack,'Pack','Packing pack')+
+    sc('green',v.packTotal,'Total','Box + Pack')+
+    sc('maroon',v.pP+'%','Progress','Packing selesai')+
+  '</div>'+
+  '<div class="progress-section" style="margin-bottom:16px"><div class="progress-title">Progress Packing</div>'+pb('amber','Packing Box',pB1,v.box+' box')+pb('blue','Packing Pack',pB2,v.pack+' pack')+'</div>'+
+  '<div class="time-grid">'+tc('amber','Mulai Packing',v.d.packMulai)+tc('green','Selesai Packing',v.d.packSelesai)+tc('blue','Durasi Packing',calcDuration(v.d.packMulai,v.d.packSelesai))+'</div></div>';
+}
+function mwRender_info(v){
+  return '<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:32px;text-align:center;margin-bottom:24px">'+
+    '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Tanggal Qurban Day 2</div>'+
+    '<div style="font-size:36px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--text-primary);line-height:1.2;margin-bottom:24px">'+(v.d.tanggal||'—')+'</div>'+
+    '<div class="time-grid" style="margin-bottom:0;text-align:left">'+
+      tc('blue','Waktu Mulai',v.d.mulai)+
+      tc('green','Waktu Selesai',v.d.selesai)+
+      tc('orange','Durasi',calcDuration(v.d.mulai,v.d.selesai))+
+    '</div></div>';
+}
+function mwRender_chartAbf(v){
+  var sisa=Math.max(0,v.total-v.abf);
+  var barsData=[
+    {val:v.abf,label:'Keluar',color:'var(--green)',pct:v.pA},
+    {val:sisa,label:'Sisa',color:'var(--border)',pct:v.total>0?Math.round(sisa/v.total*100):0}
+  ];
+  var pieData={segments:[
+    {val:v.abf,label:'Keluar ABF',color:'var(--green)'},
+    {val:sisa,label:'Sisa',color:'var(--text-muted)'}
+  ],centerVal:v.pA+'%',centerLabel:'Keluar'};
+  return monChartCard('abf','Rasio ABF / Karkas',barsData,pieData);
+}
+function mwRender_chartMeja(v){
+  var mejaArr=v.d.mejaCacah||[];
+  var orangeShades=['var(--orange)','#fb923c','#f97316','#ea580c','#c2410c','#9a3412'];
+  var barsData=mejaArr.map(function(m,i){return{val:m.jumlah||0,label:m.nama,color:orangeShades[i%orangeShades.length]}});
+  var pieData={segments:mejaArr.map(function(m,i){return{val:m.jumlah||0,label:m.nama,color:orangeShades[i%orangeShades.length]}}),centerVal:v.cacah,centerLabel:'Total'};
+  return monChartCard('meja','Pencacahan per Meja',barsData,pieData);
+}
+function mwRender_overall(v){
+  return '<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:36px;margin-bottom:24px">'+
+    '<div style="text-align:center;margin-bottom:28px">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Progress Keseluruhan</div>'+
+      '<div style="font-size:64px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+v.overall+'%</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">'+
+      '<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:var(--text-secondary)">ABF</span><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--green)">'+v.pA+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill green" style="width:'+v.pA+'%"></div></div></div>'+
+      '<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Cacah</span><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--orange)">'+v.pC+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill orange" style="width:'+v.pC+'%"></div></div></div>'+
+      '<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Pack</span><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--amber)">'+v.pP+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill amber" style="width:'+v.pP+'%"></div></div></div>'+
+      '<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Distrib</span><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--maroon)">'+v.pD+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill maroon" style="width:'+v.pD+'%"></div></div></div>'+
+    '</div></div>';
+}
+var mwRenderers={stats:mwRender_stats,clock:mwRender_clock,timeline:mwRender_timeline,progress:mwRender_progress,times:mwRender_times,'chart-proses':mwRender_chartProses,'chart-packing':mwRender_chartPacking,'chart-distrib':mwRender_chartDistrib,meja:mwRender_meja,distrib:mwRender_distrib,'abf-detail':mwRender_abfDetail,'cacah-detail':mwRender_cacahDetail,'pack-detail':mwRender_packDetail,info:mwRender_info,'chart-abf':mwRender_chartAbf,'chart-meja':mwRender_chartMeja,overall:mwRender_overall};
 
 function renderMonitorDashboard(){
   var d=data,total=d.totalKarkas||0,abf=d.abfKeluar||0,cacah=d.cacah||0,box=d.packBox||0,pack=d.packPack||0,packTotal=box+pack;
