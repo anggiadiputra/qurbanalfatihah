@@ -1492,9 +1492,20 @@ function toggleFeature(id, on) {
 // ================================================================
 var monitorWidgetReg = [
   {id:'stats',name:'Stat Cards',on:true},
-  {id:'pipeline',name:'Pipeline',on:true},
+  {id:'pipeline',name:'Pipeline Proses',on:true},
+  {id:'chart-bar',name:'Chart Bar',on:true},
+  {id:'chart-pie',name:'Chart Lingkaran',on:true},
+  {id:'kandang',name:'Kandang',on:false},
+  {id:'sembelih',name:'Penyembelihan',on:false},
+  {id:'transit',name:'Transit',on:false},
+  {id:'pengulitan',name:'Pengulitan',on:false},
+  {id:'karkas-abf',name:'Karkas & ABF',on:false},
+  {id:'cacah',name:'Pencacahan',on:false},
+  {id:'packing',name:'Packing',on:false},
+  {id:'distribusi',name:'Distribusi',on:false},
+  {id:'waktu',name:'Waktu Proses',on:true},
   {id:'clock',name:'Jam Besar',on:false},
-  {id:'chart',name:'Chart Proses',on:true}
+  {id:'day-summary',name:'Ringkasan per Day',on:false}
 ];
 
 function loadMonitorWidgets() {
@@ -1554,6 +1565,130 @@ function renderMonitorWidgetBar() {
     }).join('');
 }
 
+function mwBarChart(bars, title) {
+  var maxVal = Math.max.apply(null, bars.map(function(b){return b.v})) || 1;
+  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">' + title + '</div><div class="bar-chart-big">';
+  bars.forEach(function(b) {
+    h += '<div class="bar-wrap"><div class="bar-fill" style="background:'+b.c+';height:'+Math.max(4,b.v/maxVal*100)+'%"></div><div class="bar-val">'+b.v+'</div><div class="bar-label">'+b.l+'</div></div>';
+  });
+  return h + '</div></div>';
+}
+
+function mwPieChart(segments, centerVal, centerLabel, title) {
+  var total = 0; segments.forEach(function(s){total+=s.v}); if(!total) total=1;
+  var gradParts=[],cum=0;
+  segments.forEach(function(s){var p=s.v/total*100;gradParts.push(s.c+' '+cum+'% '+(cum+p)+'%');cum+=p;});
+  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">' + title + '</div>';
+  h += '<div style="display:flex;align-items:center;justify-content:center;gap:32px;padding:16px 0;flex-wrap:wrap">';
+  h += '<div style="width:200px;height:200px;border-radius:50%;position:relative;background:conic-gradient('+gradParts.join(',')+')">';
+  h += '<div style="position:absolute;inset:22%;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center">';
+  h += '<div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace">'+centerVal+'</div>';
+  h += '<div style="font-size:11px;color:var(--text-muted);font-weight:600">'+centerLabel+'</div></div></div>';
+  h += '<div style="display:flex;flex-direction:column;gap:10px">';
+  segments.forEach(function(s){
+    h+='<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500"><div style="width:12px;height:12px;border-radius:3px;background:'+s.c+';flex-shrink:0"></div>'+s.l+'<span style="font-family:\'JetBrains Mono\',monospace;font-weight:700;margin-left:auto">'+s.v+'</span></div>';
+  });
+  return h + '</div></div></div>';
+}
+
+function mwWaktu(state) {
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Waktu Proses</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">'+
+    '<div class="info-chip"><div class="info-chip-label">Mulai</div><div class="info-chip-val mono">'+(state.waktuMulai||'—')+'</div></div>'+
+    '<div class="info-chip"><div class="info-chip-label">Selesai</div><div class="info-chip-val mono">'+(state.waktuSelesai||'—')+'</div></div>'+
+    '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">'+durationStr(state.waktuMulai,state.waktuSelesai)+'</div></div>'+
+    '<div class="info-chip"><div class="info-chip-label">Tanggal</div><div class="info-chip-val mono">'+(state.tanggal||'—')+'</div></div>'+
+    '</div></div>';
+}
+
+function mwKandang(state) {
+  var kelPct = pct(totalKeluarDay(state), state.totalHewan||1);
+  var pieGrad = 'conic-gradient(var(--green) 0% '+kelPct+'%, var(--border) '+kelPct+'% 100%)';
+  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Kandang — '+totalKeluarDay(state)+'/'+state.totalHewan+' keluar</div>';
+  h += '<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:16px"><div style="width:120px;height:120px;border-radius:50%;position:relative;background:'+pieGrad+'"><div style="position:absolute;inset:25%;background:var(--surface);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--green)">'+kelPct+'%</div></div>';
+  h += '<div class="bar-chart-big" style="flex:1;height:120px">';
+  (state.kandang||[]).forEach(function(k){var kp=pct(k.keluar||0,k.total||1);h+='<div class="bar-wrap"><div class="bar-fill" style="background:var(--green);height:'+Math.max(4,kp)+'%"></div><div class="bar-val">'+(k.keluar||0)+'</div><div class="bar-label">#'+k.no+'</div></div>';});
+  return h + '</div></div></div>';
+}
+
+function mwSembelih(state) {
+  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Penyembelihan — '+totalDipotongDay(state)+' dipotong</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px">';
+  (state.sembelih||[]).forEach(function(s){
+    var col=s.status==='selesai'?'var(--green)':s.status==='berjalan'?'var(--blue)':'var(--maroon)';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;border-left:3px solid '+col+'"><div style="font-size:11px;font-weight:700;color:var(--text-muted)">#'+s.no+'</div><div style="font-size:20px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:'+col+'">'+(s.dipotong||0)+'</div></div>';
+  });
+  return h + '</div></div>';
+}
+
+function mwTransit(state) {
+  var k=state.transit?state.transit.kaki||0:0, kp=state.transit?state.transit.kepala||0:0, hw=state.transit?state.transit.hewan||0:0;
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Transit</div>'+
+    '<div class="mon-stats-grid" style="grid-template-columns:repeat(3,1fr)">'+
+    monStatCard('blue','Kaki',k,'Tersedia')+monStatCard('green','Kepala',kp,'Tersedia')+monStatCard('amber','Hewan Transit',hw,'Menunggu')+
+    '</div></div>';
+}
+
+function mwPengulitan(state) {
+  var dik=totalDikulitiDay(state);
+  var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pengulitan — '+dik+' dikuliti</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px">';
+  (state.kalet||[]).forEach(function(k){
+    var col=k.status==='selesai'?'var(--green)':k.status==='berjalan'?'var(--blue)':k.status==='menunggu'?'var(--amber)':'var(--maroon)';
+    h+='<div style="background:var(--surface2);border-radius:6px;padding:6px;text-align:center;border-left:2px solid '+col+'"><div style="font-size:10px;font-weight:700;color:var(--text-muted)">K-'+String(k.no).padStart(2,'0')+'</div><div style="font-size:16px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:'+col+'">'+(k.total||0)+'</div></div>';
+  });
+  return h+'</div></div>';
+}
+
+function mwKarkasAbf(state, feat) {
+  feat = feat || {};
+  var kt=state.karkas?state.karkas.total||0:0, ak=state.abf?state.abf.keluar||0:0;
+  var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Karkas & ABF</div><div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">';
+  h+=monStatCard('amber','Total Karkas',kt,pct(kt,state.totalHewan||1)+'%');
+  if(feat.abf) h+=monStatCard('purple','Keluar ABF',ak,pct(ak,kt||1)+'%');
+  h+=monStatCard('blue','Sisa di ABF',Math.max(0,kt-ak),'Tersisa');
+  return h+'</div></div>';
+}
+
+function mwCacah(state) {
+  var dc=totalDicacahDay(state), dab=state.cacahDariAbf||0;
+  var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pencacahan — '+dc+' dicacah'+(dab?' (+'+dab+' dari ABF)':'')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">';
+  (state.cacah||[]).forEach(function(c){
+    var col=c.status==='selesai'?'var(--green)':c.status==='berjalan'?'var(--blue)':'var(--maroon)';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:12px;border-left:3px solid '+col+'"><div style="font-size:11px;font-weight:700;color:var(--text-muted)">Meja #'+c.no+'</div><div style="font-size:22px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:'+col+'">'+( c.total||0)+'</div></div>';
+  });
+  return h+'</div></div>';
+}
+
+function mwPacking(state) {
+  var pk=state.packingKecil?state.packingKecil.total||0:0, pkk=state.packingKarkas?state.packingKarkas.total||0:0;
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Packing</div><div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
+    monStatCard('blue','Packing Kecil',pk,'Pack')+monStatCard('amber','Packing Karkas',pkk,'Karkas')+monStatCard('green','Total',pk+pkk,'Semua')+
+    '</div></div>';
+}
+
+function mwDistribusi(state) {
+  var dk=state.distribusiKecil?state.distribusiKecil.selesai||0:0, dkk=state.distribusiKarkas?state.distribusiKarkas.selesai||0:0;
+  var tkecil=state.distribusiKecil?state.distribusiKecil.total||0:0, tkarkas=state.distribusiKarkas?state.distribusiKarkas.total||0:0;
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Distribusi</div><div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
+    monStatCard('green','Dist. Kecil',dk+'/'+tkecil,pct(dk,tkecil||1)+'%')+
+    monStatCard('amber','Dist. Karkas',dkk+'/'+tkarkas,pct(dkk,tkarkas||1)+'%')+
+    monStatCard('blue','Total Selesai',dk+dkk,'Terkirim')+
+    '</div></div>';
+}
+
+function mwDaySummary() {
+  var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Ringkasan per Day</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">';
+  for(var i=1;i<=4;i++){
+    var s=dayStates[i];if(!s)continue;
+    var t=s.totalHewan||0,kel=totalKeluarDay(s),dk=(s.distribusiKecil?s.distribusiKecil.selesai||0:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);
+    var p2=pct(dk,t);
+    h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:16px;border-left:3px solid var(--green)"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Day '+i+'</div><div style="font-size:24px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green)">'+t+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">Keluar: '+kel+' | Dist: '+dk+'</div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:'+p2+'%"></div></div></div>';
+  }
+  return h+'</div></div>';
+}
+
 function renderMonitorDashboard() {
   var html = '';
   var now = new Date();
@@ -1561,41 +1696,47 @@ function renderMonitorDashboard() {
   document.getElementById('monitorClock').textContent = timeStr + ' WIB';
   document.getElementById('monitorDate').textContent = now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+  var procBars = [{l:'Kandang',c:'var(--green)'},{l:'Sembelih',c:'var(--maroon)'},{l:'Pengulitan',c:'var(--blue)'},{l:'Cacah',c:'var(--purple)'},{l:'Distribusi',c:'var(--amber)'}];
+  var procPie = [{c:'var(--green)'},{c:'var(--maroon)'},{c:'var(--blue)'},{c:'var(--purple)'},{c:'var(--amber)'}];
+
   if (currentView === 'all') {
-    var totalTarget = 0, totalKeluar = 0, totalDipotong = 0, totalDikuliti = 0, totalDicacah = 0, totalDist = 0;
-    for (var i = 1; i <= 4; i++) { var s = dayStates[i]; if (!s) continue; totalTarget += s.totalHewan||0; totalKeluar += totalKeluarDay(s); totalDipotong += totalDipotongDay(s); totalDikuliti += totalDikulitiDay(s); totalDicacah += totalDicacahDay(s); totalDist += (s.distribusiKecil?s.distribusiKecil.selesai||0:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0); }
-    monitorWidgetReg.forEach(function(w) {
-      if (!w.on) return;
-      if (w.id === 'stats') html += '<div class="mon-stats-grid">' + monStatCard('green','Total Target',totalTarget,'4 Hari') + monStatCard('blue','Keluar',totalKeluar,pct(totalKeluar,totalTarget)+'%') + monStatCard('maroon','Sembelih',totalDipotong,pct(totalDipotong,totalTarget)+'%') + monStatCard('purple','Pengulitan',totalDikuliti,pct(totalDikuliti,totalTarget)+'%') + monStatCard('amber','Distribusi',totalDist,pct(totalDist,totalTarget)+'%') + '</div>';
-      if (w.id === 'pipeline') { var pp = {total:totalTarget,keluar:totalKeluar,dipotong:totalDipotong,dikuliti:totalDikuliti,karkasTotal:0,abfKeluar:0,dicacah:totalDicacah,packKecil:0,packKarkas:0,distKecil:0,distKarkas:0}; html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline</div>' + renderPipelineHtml(pp) + '</div>'; }
-      if (w.id === 'clock') html += '<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">' + timeStr + '</div></div>';
-      if (w.id === 'chart') {
-        var maxVal = Math.max(totalKeluar,totalDipotong,totalDikuliti,totalDicacah,totalDist,1);
-        html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Proses Utama</div><div class="bar-chart-big">';
-        [{v:totalKeluar,l:'Kandang',c:'var(--green)'},{v:totalDipotong,l:'Sembelih',c:'var(--maroon)'},{v:totalDikuliti,l:'Pengulitan',c:'var(--blue)'},{v:totalDicacah,l:'Cacah',c:'var(--purple)'},{v:totalDist,l:'Distribusi',c:'var(--amber)'}].forEach(function(b) {
-          html += '<div class="bar-wrap"><div class="bar-fill" style="background:'+b.c+';height:'+Math.max(4,b.v/maxVal*100)+'%"></div><div class="bar-val">'+b.v+'</div><div class="bar-label">'+b.l+'</div></div>';
-        });
-        html += '</div></div>';
-      }
+    var tT=0,tK=0,tD=0,tU=0,tC=0,tDist=0;
+    for(var i=1;i<=4;i++){var s=dayStates[i];if(!s)continue;tT+=s.totalHewan||0;tK+=totalKeluarDay(s);tD+=totalDipotongDay(s);tU+=totalDikulitiDay(s);tC+=totalDicacahDay(s);tDist+=(s.distribusiKecil?s.distribusiKecil.selesai||0:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);}
+    var vals=[tK,tD,tU,tC,tDist];
+
+    monitorWidgetReg.forEach(function(w){
+      if(!w.on)return;
+      if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Total Target',tT,'4 Hari')+monStatCard('blue','Keluar',tK,pct(tK,tT)+'%')+monStatCard('maroon','Sembelih',tD,pct(tD,tT)+'%')+monStatCard('purple','Pengulitan',tU,pct(tU,tT)+'%')+monStatCard('amber','Cacah',tC,pct(tC,tT)+'%')+monStatCard('green','Distribusi',tDist,pct(tDist,tT)+'%')+'</div>';
+      if(w.id==='pipeline'){var pp={total:tT,keluar:tK,dipotong:tD,dikuliti:tU,karkasTotal:0,abfKeluar:0,dicacah:tC,packKecil:0,packKarkas:0,distKecil:tDist,distKarkas:0};html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(pp)+'</div>';}
+      if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar — Proses Utama');
+      if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(tDist,tT)+'%','Progress','Chart Lingkaran — Proses Utama');
+      if(w.id==='day-summary') html+=mwDaySummary();
+      if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
     });
   } else {
     var state = getState();
-    if (state) {
+    if(state){
       var p = calcPipeline(state);
       var feat = getFeatureConfig(currentView);
-      monitorWidgetReg.forEach(function(w) {
-        if (!w.on) return;
-        if (w.id === 'stats') html += '<div class="mon-stats-grid">' + monStatCard('green','Target',p.total,'Total') + monStatCard('blue','Keluar',p.keluar,pct(p.keluar,p.total)+'%') + monStatCard('maroon','Sembelih',p.dipotong,pct(p.dipotong,p.total)+'%') + monStatCard('purple','Pengulitan',p.dikuliti,pct(p.dikuliti,p.total)+'%') + monStatCard('amber','Cacah',p.dicacah,pct(p.dicacah,p.total)+'%') + '</div>';
-        if (w.id === 'pipeline') html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline</div>' + renderPipelineHtml(p, feat) + '</div>';
-        if (w.id === 'clock') html += '<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">' + timeStr + '</div></div>';
-        if (w.id === 'chart') {
-          var maxVal = Math.max(p.keluar,p.dipotong,p.dikuliti,p.dicacah,p.distKecil+p.distKarkas,1);
-          html += '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Proses Utama</div><div class="bar-chart-big">';
-          [{v:p.keluar,l:'Kandang',c:'var(--green)'},{v:p.dipotong,l:'Sembelih',c:'var(--maroon)'},{v:p.dikuliti,l:'Pengulitan',c:'var(--blue)'},{v:p.dicacah,l:'Cacah',c:'var(--purple)'},{v:p.distKecil+p.distKarkas,l:'Distribusi',c:'var(--amber)'}].forEach(function(b) {
-            html += '<div class="bar-wrap"><div class="bar-fill" style="background:'+b.c+';height:'+Math.max(4,b.v/maxVal*100)+'%"></div><div class="bar-val">'+b.v+'</div><div class="bar-label">'+b.l+'</div></div>';
-          });
-          html += '</div></div>';
-        }
+      var vals=[p.keluar,p.dipotong,p.dikuliti,p.dicacah,p.distKecil+p.distKarkas];
+
+      monitorWidgetReg.forEach(function(w){
+        if(!w.on)return;
+        if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Target',p.total,'Day '+currentView)+monStatCard('blue','Keluar',p.keluar,pct(p.keluar,p.total)+'%')+monStatCard('maroon','Sembelih',p.dipotong,pct(p.dipotong,p.total)+'%')+monStatCard('purple','Pengulitan',p.dikuliti,pct(p.dikuliti,p.total)+'%')+monStatCard('amber','Cacah',p.dicacah,pct(p.dicacah,p.total)+'%')+(feat.karkas?monStatCard('blue','Karkas',p.karkasTotal,pct(p.karkasTotal,p.total)+'%'):'')+(feat.abf?monStatCard('purple','Keluar ABF',p.abfKeluar,pct(p.abfKeluar,p.karkasTotal||1)+'%'):'')+monStatCard('green','Distribusi',p.distKecil+p.distKarkas,pct(p.distKecil+p.distKarkas,p.total)+'%')+'</div>';
+        if(w.id==='pipeline') html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(p,feat)+'</div>';
+        if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar — Proses Utama');
+        if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(p.distKecil+p.distKarkas,p.total)+'%','Progress','Chart Lingkaran — Proses Utama');
+        if(w.id==='kandang') html+=mwKandang(state);
+        if(w.id==='sembelih') html+=mwSembelih(state);
+        if(w.id==='transit') html+=mwTransit(state);
+        if(w.id==='pengulitan') html+=mwPengulitan(state);
+        if(w.id==='karkas-abf') html+=mwKarkasAbf(state,feat);
+        if(w.id==='cacah') html+=mwCacah(state);
+        if(w.id==='packing') html+=mwPacking(state);
+        if(w.id==='distribusi') html+=mwDistribusi(state);
+        if(w.id==='waktu') html+=mwWaktu(state);
+        if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
+        if(w.id==='day-summary') html+=mwDaySummary();
       });
     }
   }
