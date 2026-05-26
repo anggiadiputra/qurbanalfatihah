@@ -1444,7 +1444,7 @@ function renderPengaturan() {
   html += '<div class="card" style="max-width:600px">';
   html += '<div style="font-weight:700;font-size:15px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-light)">Sistem</div>';
   html += '<div class="settings-row"><div><div class="settings-label">Dark Mode</div><div class="settings-desc">Tampilan gelap</div></div><button class="toggle-switch'+(settings.darkMode?' on':'')+'" id="darkModeSwitch"></button></div>';
-  html += '<div class="settings-row"><div><div class="settings-label">Auto Refresh</div><div class="settings-desc">Refresh data setiap 30 detik</div></div><button class="toggle-switch'+(settings.autoRefresh!==false?' on':'')+'" id="autoRefreshSwitch"></button></div>';
+  html += '<div class="settings-row"><div><div class="settings-label">Auto Refresh</div><div class="settings-desc">Refresh data setiap 1 detik</div></div><button class="toggle-switch'+(settings.autoRefresh!==false?' on':'')+'" id="autoRefreshSwitch"></button></div>';
   html += '<div class="settings-row"><div><div class="settings-label">Export Excel</div><div class="settings-desc">Download semua data</div></div><button class="btn btn-secondary btn-sm" onclick="exportExcel()">Download</button></div>';
   html += '<div class="settings-row editor-only"><div><div class="settings-label">Reset Semua Data</div><div class="settings-desc">Hapus seluruh data</div></div><button class="btn btn-danger btn-sm" onclick="resetAllData()">Reset</button></div>';
   html += '<div class="settings-row"><div><div class="settings-label">Versi</div><div class="settings-desc">Qurban Command Center</div></div><span style="font-size:12px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">v2.0.0</span></div>';
@@ -1856,7 +1856,7 @@ function startAutoRefresh() {
         renderCurrentPage();
       });
     });
-  }, 30000);
+  }, 1000);
 }
 
 function toggleAutoRefresh() {
