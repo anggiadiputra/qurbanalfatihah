@@ -1188,7 +1188,7 @@ function renderPackingPage(state) {
   var html = '<div class="page-header"><div><div class="page-title">Packing</div><div class="page-subtitle">Monitoring proses packing</div></div></div>';
   html += '<div class="stats-grid">';
   if (feat.packingKecil) html += statCardHtml('blue','Packing Kecil',pk.total||0,'Box','blue');
-  if (feat.packingKarkas) html += statCardHtml('amber','Packing Karkas',pkk.total||0,'Box','amber');
+  if (feat.packingKarkas) html += statCardHtml('amber','Packing Karkas',pkk.total||0,pct(pkk.total||0,p.karkasTotal||1)+'%','amber');
   html += '</div>';
   html += '<div class="grid-2">';
   if (feat.packingKecil) {
@@ -1351,7 +1351,7 @@ function renderInputPage(state) {
   // Packing Karkas
   if (feat.packingKarkas) {
     html += '<div class="form-section"><div class="form-section-title">Data Packing Karkas</div><div class="form-grid">';
-    html += fg('Total Box Karkas','number','inp_packKarkasTotal',state.packingKarkas?.total||0);
+    html += fg('Total Packing Karkas','number','inp_packKarkasTotal',state.packingKarkas?.total||0);
     html += fg('Mulai','time','inp_packKarkasMulai',state.packingKarkas?.waktuMulai||'');
     html += fg('Selesai','time','inp_packKarkasSelesai',state.packingKarkas?.waktuSelesai||'');
     html += '</div></div>';
