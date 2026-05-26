@@ -1866,7 +1866,7 @@ function renderMonitorDashboard() {
   document.getElementById('monitorClock').textContent = timeStr + ' WIB';
   document.getElementById('monitorDate').textContent = now.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  var procBars = [{l:'Kandang',c:'var(--green)'},{l:'Sembelih',c:'var(--maroon)'},{l:'Pengulitan',c:'var(--blue)'},{l:'Cacah',c:'var(--purple)'},{l:'Distribusi',c:'var(--amber)'}];
+  var procBars = [{l:'Keluar',c:'var(--green)'},{l:'Sembelih',c:'var(--maroon)'},{l:'Pengulitan',c:'var(--blue)'},{l:'Cacah',c:'var(--purple)'},{l:'Distribusi',c:'var(--amber)'}];
   var procPie = [{c:'var(--green)'},{c:'var(--maroon)'},{c:'var(--blue)'},{c:'var(--purple)'},{c:'var(--amber)'}];
 
   if (currentView === 'all') {
