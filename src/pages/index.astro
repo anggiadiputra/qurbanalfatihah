@@ -1909,10 +1909,7 @@ function closeMobileSidebar() {
 // REFRESH
 // ================================================================
 function refreshAll() {
-  loadAllStates().then(function() {
-    renderCurrentPage();
-    toast('Data diperbarui','info');
-  });
+  window.location.reload();
 }
 
 // ================================================================
