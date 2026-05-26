@@ -667,7 +667,7 @@ function navigate(page) {
 function updateHeaderTitle() {
   var titles = {dashboard:'Dashboard',kandang:'Kandang',sembelih:'Penyembelihan',transit:'Transit',pengulitan:'Pengulitan',karkas:'Karkas & ABF',cacah:'Pencacahan',packing:'Packing',distribusi:'Distribusi',input:'Input Data',pengaturan:'Pengaturan',ringkasan:'Ringkasan per Day'};
   var t = titles[currentPage] || currentPage;
-  if (currentView !== 'all' && currentPage !== 'pengaturan') t += ' -Day ' + currentView;
+  if (currentView !== 'all' && currentPage !== 'pengaturan') t += ' - Day ' + currentView;
   document.getElementById('headerTitle').textContent = t;
 }
 
@@ -1544,7 +1544,7 @@ function enterMonitorMode() {
   document.documentElement.classList.add('monitoring');
   document.body.classList.add('monitoring');
   document.getElementById('monitorOverlay').classList.add('visible');
-  document.getElementById('monitorTitle').textContent = currentView === 'all' ? 'Qurban Command Center' : 'Qurban Command Center -Day ' + currentView;
+  document.getElementById('monitorTitle').textContent = currentView === 'all' ? 'Qurban Command Center' : 'Qurban Command Center - Day ' + currentView;
   renderMonitorWidgetBar();
   renderMonitorDashboard();
   monitorInterval = setInterval(renderMonitorDashboard, 1000);
@@ -1739,8 +1739,8 @@ function renderMonitorDashboard() {
       if(!w.on)return;
       if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Total Target',tT,'4 Hari')+monStatCard('blue','Keluar',tK,pct(tK,tT)+'%')+monStatCard('maroon','Sembelih',tD,pct(tD,tT)+'%')+monStatCard('purple','Pengulitan',tU,pct(tU,tT)+'%')+monStatCard('amber','Cacah',tC,pct(tC,tT)+'%')+monStatCard('green','Distribusi',tDist,pct(tDist,tT)+'%')+'</div>';
       if(w.id==='pipeline'){var pp={total:tT,keluar:tK,dipotong:tD,dikuliti:tU,karkasTotal:0,abfKeluar:0,dicacah:tC,packKecil:0,packKarkas:0,distKecil:tDist,distKarkas:0};html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(pp)+'</div>';}
-      if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar -Proses Utama');
-      if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(tDist,tT)+'%','Progress','Chart Lingkaran -Proses Utama');
+      if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar - Proses Utama');
+      if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(tDist,tT)+'%','Progress','Chart Lingkaran - Proses Utama');
       if(w.id==='day-summary') html+=mwDaySummary();
       if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
     });
@@ -1755,8 +1755,8 @@ function renderMonitorDashboard() {
         if(!w.on)return;
         if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Target',p.total,'Day '+currentView)+monStatCard('blue','Keluar',p.keluar,pct(p.keluar,p.total)+'%')+monStatCard('maroon','Sembelih',p.dipotong,pct(p.dipotong,p.total)+'%')+monStatCard('purple','Pengulitan',p.dikuliti,pct(p.dikuliti,p.total)+'%')+monStatCard('amber','Cacah',p.dicacah,pct(p.dicacah,p.total)+'%')+(feat.karkas?monStatCard('blue','Karkas',p.karkasTotal,pct(p.karkasTotal,p.total)+'%'):'')+(feat.abf?monStatCard('purple','Keluar ABF',p.abfKeluar,pct(p.abfKeluar,p.karkasTotal||1)+'%'):'')+monStatCard('green','Distribusi',p.distKecil+p.distKarkas,pct(p.distKecil+p.distKarkas,p.total)+'%')+'</div>';
         if(w.id==='pipeline') html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(p,feat)+'</div>';
-        if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar -Proses Utama');
-        if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(p.distKecil+p.distKarkas,p.total)+'%','Progress','Chart Lingkaran -Proses Utama');
+        if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar - Proses Utama');
+        if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(p.distKecil+p.distKarkas,p.total)+'%','Progress','Chart Lingkaran - Proses Utama');
         if(w.id==='kandang') html+=mwKandang(state);
         if(w.id==='sembelih') html+=mwSembelih(state);
         if(w.id==='transit') html+=mwTransit(state);
