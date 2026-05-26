@@ -560,7 +560,8 @@ body[data-role="editor"] .admin-only{display:none!important}
 var currentView = 'all';
 var currentPage = 'dashboard';
 var dayStates = {1:null, 2:null, 3:null, 4:null};
-var settings = {darkMode:false, theme:{}, autoRefresh:true, featureConfig:{}, monitorWidgets:{}, monitorOrder:[]};
+var settings = {darkMode:false, theme:{}, autoRefresh:true, featureConfig:{}, monitorWidgets:{}, monitorOrder:[], forceRefreshTs:0};
+var lastKnownForceTs = 0;
 
 var defaultFeatures = {
   kandang:true, sembelih:true, transit:true, pengulitan:true,
@@ -995,6 +996,7 @@ function renderDayDashboard(state) {
   var html = '<div class="page-header"><div><div class="page-title">Dashboard Day '+currentView+'</div><div class="page-subtitle">Monitoring operasional qurban hari ke-'+currentView+'</div></div><div class="page-actions">';
   html += '<button class="btn btn-secondary btn-sm" onclick="enterMonitorMode()">Mode Monitor</button>';
   html += '<button class="btn btn-ghost btn-sm" onclick="refreshAll()">Refresh</button>';
+  html += '<button class="btn btn-danger btn-sm admin-only" onclick="forceRefreshAllDevices()">Refresh All Device</button>';
   html += '<button class="btn btn-primary btn-sm" onclick="exportExcel()">Export Excel</button>';
   html += '</div></div>';
 
@@ -1841,6 +1843,10 @@ function monitorTick() {
   loadAllStates().then(function() {
     return loadSettings();
   }).then(function() {
+    if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
+      window.location.reload(); return;
+    }
+    lastKnownForceTs = settings.forceRefreshTs || 0;
     var shouldDark = !!settings.darkMode;
     if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
     applyTheme(loadTheme());
@@ -1868,7 +1874,7 @@ function renderMonitorDashboard() {
 
     monitorWidgetReg.forEach(function(w){
       if(!w.on)return;
-      if(w.id==='stats'){var tPK=0,tPKK=0;for(var j=1;j<=4;j++){var sj=dayStates[j];if(sj){tPK+=(sj.packingKecil?sj.packingKecil.total||0:0);tPKK+=(sj.packingKarkas?sj.packingKarkas.total||0:0);}} html+='<div class="mon-stats-grid">'+monStatCard('green','Total Target',tT,'4 Hari')+monStatCard('blue','Keluar',tK,pct(tK,tT)+'%')+monStatCard('maroon','Sembelih',tD,pct(tD,tK||1)+'%')+monStatCard('purple','Pengulitan',tU,pct(tU,tD||1)+'%')+monStatCard('amber','Cacah',tC,pct(tC,tU||1)+'%')+monStatCard('blue','Packing Kecil',tPK,pct(tPK,tC||1)+'%')+monStatCard('amber','Packing Karkas',tPKK,'Karkas')+monStatCard('green','Distribusi',tDist,pct(tDist,tT)+'%')+'</div>';}
+      if(w.id==='stats'){var tPK=0,tPKK=0,tDK=0,tDKK=0;for(var j=1;j<=4;j++){var sj=dayStates[j];if(sj){tPK+=(sj.packingKecil?sj.packingKecil.total||0:0);tPKK+=(sj.packingKarkas?sj.packingKarkas.total||0:0);tDK+=(sj.distribusiKecil&&sj.distribusiKecil.lokasi?sj.distribusiKecil.lokasi.filter(function(x){return x.status==='selesai'}).length:0);tDKK+=(sj.distribusiKarkas?sj.distribusiKarkas.selesai||0:0);}} html+='<div class="mon-stats-grid">'+monStatCard('green','Total Target',tT,'4 Hari')+monStatCard('blue','Keluar',tK,pct(tK,tT)+'%')+monStatCard('maroon','Sembelih',tD,pct(tD,tK||1)+'%')+monStatCard('purple','Pengulitan',tU,pct(tU,tD||1)+'%')+monStatCard('amber','Cacah',tC,pct(tC,tU||1)+'%')+monStatCard('blue','Packing Kecil',tPK,pct(tPK,tC||1)+'%')+monStatCard('amber','Packing Karkas',tPKK,'Karkas')+monStatCard('green','Dist. Kecil',tDK,pct(tDK,tPK||1)+'%')+monStatCard('amber','Dist. Karkas',tDKK,pct(tDKK,tPKK||1)+'%')+'</div>';}
       if(w.id==='pipeline'){var pp={total:tT,keluar:tK,dipotong:tD,dikuliti:tU,karkasTotal:0,abfKeluar:0,dicacah:tC,packKecil:0,packKarkas:0,distKecil:tDist,distKarkas:0};html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(pp)+'</div>';}
       if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar - Proses Utama');
       if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(tDist,tT)+'%','Progress','Chart Lingkaran - Proses Utama');
@@ -1884,7 +1890,7 @@ function renderMonitorDashboard() {
 
       monitorWidgetReg.forEach(function(w){
         if(!w.on)return;
-        if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Target',p.total,'Day '+currentView)+monStatCard('blue','Keluar',p.keluar,pct(p.keluar,p.total)+'%')+monStatCard('maroon','Sembelih',p.dipotong,pct(p.dipotong,p.keluar||1)+'%')+monStatCard('purple','Pengulitan',p.dikuliti,pct(p.dikuliti,p.dipotong||1)+'%')+monStatCard('amber','Cacah',p.dicacah,pct(p.dicacah,p.dikuliti||1)+'%')+(feat.karkas?monStatCard('blue','Karkas',p.karkasTotal,pct(p.karkasTotal,p.dikuliti||1)+'%'):'')+(feat.abf?monStatCard('purple','Keluar ABF',p.abfKeluar,pct(p.abfKeluar,p.karkasTotal||1)+'%'):'')+(feat.packingKecil?monStatCard('blue','Packing Kecil',p.packKecil,pct(p.packKecil,p.dicacah||1)+'%'):'')+(feat.packingKarkas?monStatCard('amber','Packing Karkas',p.packKarkas,pct(p.packKarkas,p.karkasTotal||1)+'%'):'')+monStatCard('green','Distribusi',p.distKecil+p.distKarkas,pct(p.distKecil+p.distKarkas,p.total)+'%')+'</div>';
+        if(w.id==='stats') html+='<div class="mon-stats-grid">'+monStatCard('green','Target',p.total,'Day '+currentView)+monStatCard('blue','Keluar',p.keluar,pct(p.keluar,p.total)+'%')+monStatCard('maroon','Sembelih',p.dipotong,pct(p.dipotong,p.keluar||1)+'%')+monStatCard('purple','Pengulitan',p.dikuliti,pct(p.dikuliti,p.dipotong||1)+'%')+monStatCard('amber','Cacah',p.dicacah,pct(p.dicacah,p.dikuliti||1)+'%')+(feat.karkas?monStatCard('blue','Karkas',p.karkasTotal,pct(p.karkasTotal,p.dikuliti||1)+'%'):'')+(feat.abf?monStatCard('purple','Keluar ABF',p.abfKeluar,pct(p.abfKeluar,p.karkasTotal||1)+'%'):'')+(feat.packingKecil?monStatCard('blue','Packing Kecil',p.packKecil,pct(p.packKecil,p.dicacah||1)+'%'):'')+(feat.packingKarkas?monStatCard('amber','Packing Karkas',p.packKarkas,pct(p.packKarkas,p.karkasTotal||1)+'%'):'')+(feat.distribusiKecil?monStatCard('green','Dist. Kecil',p.distKecil,pct(p.distKecil,p.packKecil||1)+'%'):'')+(feat.distribusiKarkas?monStatCard('amber','Dist. Karkas',p.distKarkas,pct(p.distKarkas,p.packKarkas||1)+'%'):'')+'</div>';
         if(w.id==='pipeline') html+='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div>'+renderPipelineHtml(p,feat)+'</div>';
         if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar - Proses Utama');
         if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(p.distKecil+p.distKarkas,p.total)+'%','Progress','Chart Lingkaran - Proses Utama');
@@ -2012,12 +2018,16 @@ function startAutoRefresh() {
   autoRefreshInterval = setInterval(function() {
     if (currentPage === 'input' || currentPage === 'pengaturan') return;
     loadAllStates().then(function() {
-      loadSettings().then(function() {
-        var shouldDark = !!settings.darkMode;
-        if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
-        applyTheme(loadTheme());
-        renderCurrentPage();
-      });
+      return loadSettings();
+    }).then(function() {
+      if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
+        window.location.reload(); return;
+      }
+      lastKnownForceTs = settings.forceRefreshTs || 0;
+      var shouldDark = !!settings.darkMode;
+      if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
+      applyTheme(loadTheme());
+      renderCurrentPage();
     });
   }, 1000);
 }
@@ -2073,6 +2083,14 @@ function closeMobileSidebar() {
 // ================================================================
 function refreshAll() {
   window.location.reload();
+}
+function forceRefreshAllDevices() {
+  if (!confirm('Refresh semua device yang terhubung?')) return;
+  settings.forceRefreshTs = Date.now();
+  saveSettings().then(function() {
+    toast('Force refresh dikirim ke semua device','info');
+    setTimeout(function(){ window.location.reload(); }, 500);
+  });
 }
 
 // ================================================================
@@ -2236,6 +2254,7 @@ document.addEventListener('DOMContentLoaded', function() {
   startClock();
   loadSettings().then(function() {
     if (settings.darkMode) document.body.classList.add('dark');
+    lastKnownForceTs = settings.forceRefreshTs || 0;
     setupThemeUI();
     return loadAllStates();
   }).then(function() {
