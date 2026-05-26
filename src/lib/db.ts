@@ -165,3 +165,81 @@ export async function saveDay2Settings(data: unknown) {
     SET data = ${json}::jsonb, updated_at = NOW()
   `;
 }
+
+// --- Generic multi-day state functions ---
+
+export function defaultDayState() {
+  return {
+    totalHewan: 0,
+    tanggal: '',
+    waktuMulai: '',
+    waktuSelesai: '',
+    kandang: Array.from({ length: 8 }, (_, i) => ({
+      no: i + 1, total: 12, keluar: 0, waktuMulai: '', waktuSelesai: '', status: 'belum',
+    })),
+    sembelih: Array.from({ length: 10 }, (_, i) => ({
+      no: i + 1, dipotong: 0, status: 'belum', waktuMulai: '', waktuSelesai: '',
+    })),
+    transit: { kaki: 0, kepala: 0, hewan: 0 },
+    kalet: Array.from({ length: 45 }, (_, i) => ({
+      no: i + 1, total: 0, status: 'belum', waktuMulai: '', waktuSelesai: '',
+    })),
+    karkas: { total: 0, waktuMulai: '', waktuSelesai: '' },
+    abf: { keluar: 0, waktuMulai: '', waktuSelesai: '' },
+    cacah: Array.from({ length: 6 }, (_, i) => ({
+      no: i + 1, total: 0, status: 'belum', waktuMulai: '', waktuSelesai: '',
+    })),
+    cacahDariAbf: 0,
+    packingKecil: { total: 0, waktuMulai: '', waktuSelesai: '' },
+    distribusiKecil: { total: 0, selesai: 0, waktuMulai: '', waktuSelesai: '' },
+    packingKarkas: { total: 0, waktuMulai: '', waktuSelesai: '' },
+    distribusiKarkas: { total: 0, selesai: 0, waktuMulai: '', waktuSelesai: '' },
+  };
+}
+
+export async function getDayState(day: number) {
+  const sql = createSql();
+  const id = 'day-' + day;
+  const result = await sql`SELECT data FROM qurban_state WHERE id = ${id}`;
+  return result.length > 0 ? result[0].data : null;
+}
+
+export async function saveDayState(day: number, data: unknown) {
+  const sql = createSql();
+  const id = 'day-' + day;
+  const json = JSON.stringify(data);
+  await sql`
+    INSERT INTO qurban_state (id, data, updated_at)
+    VALUES (${id}, ${json}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+}
+
+export async function getAllDayStates() {
+  const sql = createSql();
+  const result = await sql`SELECT id, data FROM qurban_state WHERE id LIKE 'day-%' ORDER BY id`;
+  const states: Record<string, any> = {};
+  for (const row of result) {
+    const num = row.id.replace('day-', '');
+    states[num] = row.data;
+  }
+  return states;
+}
+
+export async function getGlobalSettings() {
+  const sql = createSql();
+  const result = await sql`SELECT data FROM qurban_state WHERE id = 'global-settings'`;
+  return result.length > 0 ? result[0].data : null;
+}
+
+export async function saveGlobalSettings(data: unknown) {
+  const sql = createSql();
+  const json = JSON.stringify(data);
+  await sql`
+    INSERT INTO qurban_state (id, data, updated_at)
+    VALUES ('global-settings', ${json}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET data = ${json}::jsonb, updated_at = NOW()
+  `;
+}
