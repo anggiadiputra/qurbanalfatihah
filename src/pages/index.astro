@@ -643,6 +643,10 @@ function queueDaySave(day) {
 function switchView(view) {
   currentView = view;
   currentPage = 'dashboard';
+  var url = new URL(window.location);
+  if (view === 'all') url.searchParams.delete('day');
+  else url.searchParams.set('day', view);
+  history.replaceState(null, '', url);
   document.getElementById('configBtn').style.display = view === 'all' ? 'none' : '';
   renderSidebar();
   renderCurrentPage();
