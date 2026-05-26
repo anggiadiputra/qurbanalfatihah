@@ -1879,6 +1879,7 @@ function toggleDark() {
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(function() {
+    if (currentPage === 'input' || currentPage === 'pengaturan') return;
     loadAllStates().then(function() {
       loadSettings().then(function() {
         var shouldDark = !!settings.darkMode;
