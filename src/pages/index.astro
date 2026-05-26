@@ -314,12 +314,15 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-header-title{font-size:20px;font-weight:800}
 .monitor-header-clock{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green)}
 .monitor-header-date{font-size:13px;color:var(--text-secondary);font-weight:500}
-.monitor-exit{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition)}
-.monitor-exit:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.monitor-exit{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition);color:var(--text-primary)}
+.monitor-exit:hover{background:var(--maroon);color:#fff;border-color:var(--maroon)}
 .monitor-widget-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm)}
-.mw-toggle{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-secondary);transition:all var(--transition);user-select:none}
+.mw-toggle{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:grab;border:1px solid var(--border);background:var(--surface2);color:var(--text-secondary);transition:all var(--transition);user-select:none}
+.mw-toggle:active{cursor:grabbing}
 .mw-toggle.on{background:var(--green);border-color:var(--green);color:#fff}
 .mw-toggle:hover{border-color:var(--green)}
+.mw-toggle.dragging{opacity:.4}
+.mw-toggle.drag-over{margin-left:24px}
 .mw-toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background var(--transition)}
 .mw-toggle.on .mw-toggle-dot{background:#fff}
 .mon-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
@@ -1517,12 +1520,20 @@ function loadMonitorWidgets() {
   if (saved && typeof saved === 'object') {
     monitorWidgetReg.forEach(function(w) { if (saved[w.id] !== undefined) w.on = !!saved[w.id]; });
   }
+  var order = settings.monitorOrder;
+  if (order && Array.isArray(order) && order.length) {
+    var sorted = [];
+    order.forEach(function(id) { var w = monitorWidgetReg.find(function(x){return x.id===id}); if(w) sorted.push(w); });
+    monitorWidgetReg.forEach(function(w) { if (!sorted.includes(w)) sorted.push(w); });
+    monitorWidgetReg.length = 0; sorted.forEach(function(w) { monitorWidgetReg.push(w); });
+  }
 }
 
 function saveMonitorWidgets() {
   var obj = {};
   monitorWidgetReg.forEach(function(w) { obj[w.id] = w.on; });
   settings.monitorWidgets = obj;
+  settings.monitorOrder = monitorWidgetReg.map(function(w) { return w.id; });
   queueSettingsSave();
 }
 
@@ -1560,13 +1571,29 @@ function exitMonitorMode() {
   if (document.fullscreenElement) document.exitFullscreen().catch(function(){});
 }
 
+var mwDragEl = null;
 function renderMonitorWidgetBar() {
   var bar = document.getElementById('monitorWidgetBar');
   bar.innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--text-muted);margin-right:4px">Widgets:</span>' +
     monitorWidgetReg.map(function(w) {
-      return '<div class="mw-toggle' + (w.on ? ' on' : '') + '" data-mw="' + w.id + '">' +
+      return '<div class="mw-toggle' + (w.on ? ' on' : '') + '" data-mw="' + w.id + '" draggable="true">' +
         '<span class="mw-toggle-dot"></span>' + w.name + '</div>';
     }).join('');
+  bar.querySelectorAll('.mw-toggle').forEach(function(el) {
+    el.addEventListener('dragstart', function(e) { mwDragEl = el; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    el.addEventListener('dragend', function() { if (mwDragEl) mwDragEl.classList.remove('dragging'); mwDragEl = null; bar.querySelectorAll('.mw-toggle').forEach(function(t) { t.classList.remove('drag-over'); }); });
+    el.addEventListener('dragover', function(e) { if (!mwDragEl || mwDragEl === el) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; bar.querySelectorAll('.mw-toggle').forEach(function(t) { t.classList.remove('drag-over'); }); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', function() { el.classList.remove('drag-over'); });
+    el.addEventListener('drop', function(e) {
+      e.preventDefault(); el.classList.remove('drag-over'); if (!mwDragEl || mwDragEl === el) return;
+      var fromId = mwDragEl.dataset.mw, toId = el.dataset.mw;
+      var fromIdx = monitorWidgetReg.findIndex(function(w) { return w.id === fromId; });
+      var toIdx = monitorWidgetReg.findIndex(function(w) { return w.id === toId; });
+      if (fromIdx < 0 || toIdx < 0) return;
+      var item = monitorWidgetReg.splice(fromIdx, 1)[0]; monitorWidgetReg.splice(toIdx, 0, item);
+      saveMonitorWidgets(); renderMonitorWidgetBar(); renderMonitorDashboard();
+    });
+  });
 }
 
 function mwBarChart(bars, title) {
