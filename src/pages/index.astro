@@ -1831,8 +1831,15 @@ function d1mw_progress(v) {
   return '<div class="card" style="margin-bottom:24px"><div class="monitor-progress-head"><div class="monitor-progress-title">Progress Keseluruhan</div><div class="mono monitor-progress-pct">' + v.overallPct + '%</div></div><div style="margin-bottom:16px"><div class="progress-bar"><div class="progress-fill green" style="width:' + v.overallPct + '%"></div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px"><div class="info-chip"><div class="info-chip-label">Waktu Mulai</div><div class="info-chip-val mono">' + (state.waktuMulai||'—') + '</div></div><div class="info-chip"><div class="info-chip-label">Waktu Selesai</div><div class="info-chip-val mono">' + (state.waktuSelesai||(v.overallPct>=100?'Selesai':'Berjalan...')) + '</div></div><div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">' + durationStr(state.waktuMulai,state.waktuSelesai) + '</div></div></div></div>';
 }
 function d1mw_processlist(v) {
-  const procs = [{name:'Kandang',done:v.keluar,color:'green'},{name:'Penyembelihan',done:v.dipotong,color:'maroon'},{name:'Transit',done:state.transit.hewan||0,color:'amber'},{name:'Pengulitan',done:v.dikuliti,color:'blue'},{name:'Cacah & Karkas',done:v.dicacah+v.karkas,color:'purple'},{name:'Distribusi',done:v.distrib,color:'blue'}];
-  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status Tiap Proses</div><div class="process-row">' + procs.map((p,i) => { const p2=pct(p.done,v.total),st=p2>=100?'selesai':p.done>0?'berjalan':'belum'; return '<div class="process-item"><div class="process-num">'+String(i+1).padStart(2,'0')+'</div><div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' dari '+v.total+' hewan</div></div><div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div><div class="process-count">'+p2+'%</div><div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>'; }).join('') + '</div></div>';
+  const pp = state._pipeline || {};
+  const procs = [
+    {name:'Keluar Kandang',done:pp.keluar||0,of:v.total,color:'green',sub:'dari '+v.total+' total'},
+    {name:'Penyembelihan',done:pp.dipotong||0,of:pp.keluar||0,color:'maroon',sub:'dari '+(pp.keluar||0)+' keluar'},
+    {name:'Pengulitan',done:pp.dikuliti||0,of:pp.dipotong||0,color:'blue',sub:'dari '+(pp.dipotong||0)+' disembelih'},
+    {name:'Cacah & Karkas',done:pp.cacahKarkas||0,of:pp.dikuliti||0,color:'purple',sub:'dari '+(pp.dikuliti||0)+' dikuliti'},
+    {name:'Distribusi',done:pp.distribusi||0,of:v.total,color:'blue',sub:'dari '+v.total+' total'}
+  ];
+  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Pipeline Proses</div><div class="process-row">' + procs.map((p,i) => { const p2=pct(p.done,p.of||1),st=p2>=100?'selesai':p.done>0?'berjalan':'belum'; return '<div class="process-item"><div class="process-num">'+String(i+1).padStart(2,'0')+'</div><div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' '+p.sub+'</div></div><div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div><div class="process-count">'+p2+'%</div><div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>'; }).join('') + '</div></div>';
 }
 function d1mw_kandang() {
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 8 Kandang</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' + state.kandang.map(k => { const p2=pct(k.keluar||0,k.total||1); return '<div class="stat-card green" style="padding:14px"><div class="stat-label">Kandang #'+k.no+'</div><div class="stat-value" style="font-size:22px;color:var(--green)">'+(k.keluar||0)+'<span style="font-size:12px;color:var(--text-muted)">/'+(k.total||0)+'</span></div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:'+p2+'%"></div></div></div>'; }).join('') + '</div></div>';
@@ -2157,7 +2164,32 @@ function statusOpts(current) {
 // ================================================================
 function renderAll() {
   _cardIdx = 0;
-  state.transit.hewan = Math.max(0, totalDipotong() - totalDikuliti());
+  // Pipeline: keluar → dipotong → dikuliti → (dicacah+karkas) → distribusi
+  // Cap downstream to never exceed upstream
+  const keluar = totalKeluar();
+  const rawDipotong = totalDipotong();
+  const dipotongCap = Math.min(rawDipotong, keluar);
+  const rawDikuliti = totalDikuliti();
+  const dikulitiCap = Math.min(rawDikuliti, dipotongCap);
+  const rawCacahKarkas = totalDicacah() + (state.karkas.sudah || 0);
+  const cacahKarkasCap = Math.min(rawCacahKarkas, dikulitiCap);
+
+  state.transit.hewan = Math.max(0, dipotongCap - dikulitiCap);
+
+  // Store pipeline snapshot for renderers
+  state._pipeline = {
+    total: state.totalHewan,
+    keluar: keluar,
+    dipotong: dipotongCap,
+    dikuliti: dikulitiCap,
+    dicacah: Math.min(totalDicacah(), dikulitiCap),
+    karkas: Math.min(state.karkas.sudah || 0, dikulitiCap),
+    cacahKarkas: cacahKarkasCap,
+    distribusi: state.distribusi.selesai || 0,
+    transitKuliti: Math.max(0, dipotongCap - dikulitiCap),
+    transitCacah: Math.max(0, dikulitiCap - cacahKarkasCap)
+  };
+
   renderDashboard();
   renderKandang();
   renderSembelih();
@@ -2193,21 +2225,22 @@ function renderDashboard() {
 
   const plEl = document.getElementById('processList');
   if (plEl) {
+    const pp = state._pipeline || {};
     const processes = [
-      {name:'Kandang',done:keluar,color:'green'},
-      {name:'Penyembelihan',done:dipotong,color:'maroon'},
-      {name:'Transit',done:state.transit.hewan||0,color:'amber'},
-      {name:'Pengulitan',done:dikuliti,color:'blue'},
-      {name:'Transit Cacah',done:Math.max(0,dikuliti-(dicacah+karkas)),color:'amber'},
-      {name:'Cacah & Karkas',done:dicacah+karkas,color:'purple'},
-      {name:'Distribusi',done:distrib,color:'blue'},
+      {name:'Keluar Kandang',done:pp.keluar||0,of:total,color:'green',sub:'dari '+total+' total'},
+      {name:'Penyembelihan',done:pp.dipotong||0,of:pp.keluar||0,color:'maroon',sub:'dari '+(pp.keluar||0)+' keluar'},
+      {name:'Transit Kuliti',done:pp.transitKuliti||0,of:pp.dipotong||0,color:'amber',sub:'menunggu kuliti'},
+      {name:'Pengulitan',done:pp.dikuliti||0,of:pp.dipotong||0,color:'blue',sub:'dari '+(pp.dipotong||0)+' disembelih'},
+      {name:'Transit Cacah',done:pp.transitCacah||0,of:pp.dikuliti||0,color:'amber',sub:'menunggu cacah'},
+      {name:'Cacah & Karkas',done:pp.cacahKarkas||0,of:pp.dikuliti||0,color:'purple',sub:'dari '+(pp.dikuliti||0)+' dikuliti'},
+      {name:'Distribusi',done:pp.distribusi||0,of:total,color:'blue',sub:'dari '+total+' total'},
     ];
     plEl.innerHTML = processes.map((p,i) => {
-      const p2 = pct(p.done,total);
+      const p2 = pct(p.done, p.of || 1);
       const st = p2>=100?'selesai':p.done>0?'berjalan':'belum';
       return '<div class="process-item">'+
         '<div class="process-num">'+String(i+1).padStart(2,'0')+'</div>'+
-        '<div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' dari '+total+' hewan</div></div>'+
+        '<div class="process-info"><div class="process-name">'+p.name+'</div><div class="process-sub">'+p.done+' '+p.sub+'</div></div>'+
         '<div class="process-progress"><div class="progress-bar"><div class="progress-fill '+p.color+'" style="width:'+p2+'%"></div></div></div>'+
         '<div class="process-count">'+p2+'%</div>'+
         '<div class="process-status"><span class="status-badge '+statusClass(st)+'">'+statusLabel(st)+'</span></div></div>';
@@ -2619,6 +2652,12 @@ function collectFormData() {
   state.distribusi.packingWaktuSelesai = gv('inp_selesaiPacking');
   state.distribusi.waktuMulai = gv('inp_mulaiDistribusi');
   state.distribusi.waktuSelesai = gv('inp_selesaiDistribusi');
+
+  // Pipeline validation warnings
+  const kel = totalKeluar(), dip = totalDipotong(), kul = totalDikuliti(), cac = totalDicacah(), kar = state.karkas.sudah||0;
+  if (dip > kel) toast('Tersembelih ('+dip+') > Keluar Kandang ('+kel+')','error');
+  if (kul > dip) toast('Terkuliti ('+kul+') > Tersembelih ('+dip+')','error');
+  if (cac + kar > kul) toast('Cacah+Karkas ('+(cac+kar)+') > Terkuliti ('+kul+')','error');
 }
 
 // ================================================================
