@@ -255,8 +255,8 @@ input[type=number].form-control{-moz-appearance:textfield}
 input[type=number].form-control::-webkit-inner-spin-button,input[type=number].form-control::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .num-input-wrap{display:flex;align-items:stretch;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:all var(--transition)}
 .num-input-wrap:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
-.num-input-wrap input{flex:1;border:none;padding:10px 14px;background:var(--surface);color:var(--text-primary);font-size:13px;outline:none;min-width:0;text-align:center}
-.num-btn{width:38px;background:var(--surface2);border:none;color:var(--text-secondary);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);user-select:none;flex-shrink:0}
+.num-input-wrap input{flex:1;border:none;padding:10px 6px;background:var(--surface);color:var(--text-primary);font-size:15px;font-weight:700;outline:none;min-width:0;text-align:center;font-family:'JetBrains Mono',monospace}
+.num-btn{width:36px;background:var(--surface2);border:none;color:var(--text-secondary);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);user-select:none;flex-shrink:0}
 .num-btn:hover{background:var(--green);color:#fff}
 .num-btn:active{transform:scale(.95)}
 .form-control:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
@@ -1378,7 +1378,7 @@ function renderInputPage(state) {
         html += '<span style="font-size:12px;color:var(--text-muted);padding-top:10px">'+(idx+1)+'.</span>';
         html += '<div class="dk-row-inner" style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center">';
         html += '<input type="text" class="form-control" placeholder="Nama lokasi" value="'+(lok.nama||'')+'" style="width:100%" onchange="updateDistKecilRow('+idx+',\'nama\',this.value)">';
-        html += '<div class="num-input-wrap" style="width:110px"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',-1)">-</button><input type="number" class="form-control" id="dk_jumlah_'+idx+'" value="'+(lok.jumlah||0)+'" min="0" onchange="updateDistKecilRow('+idx+',\'jumlah\',Number(this.value))"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',1)">+</button></div>';
+        html += '<div class="num-input-wrap" style="width:130px"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',-1)">-</button><input type="number" class="form-control" id="dk_jumlah_'+idx+'" value="'+(lok.jumlah||0)+'" min="0" onchange="updateDistKecilRow('+idx+',\'jumlah\',Number(this.value))"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',1)">+</button></div>';
         html += '<select class="form-control" style="width:100px" onchange="updateDistKecilRow('+idx+',\'status\',this.value)"><option value="proses"'+(lok.status==='proses'?' selected':'')+'>Proses</option><option value="selesai"'+(lok.status==='selesai'?' selected':'')+'>Selesai</option></select>';
         html += '<button style="background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="removeDistKecilRow('+idx+')">&#x2715;</button>';
         html += '</div></div>';
