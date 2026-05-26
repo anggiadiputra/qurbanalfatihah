@@ -409,9 +409,13 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 
 /* Auth role */
 body[data-role="viewer"] .editor-only{display:none!important}
+body[data-role="viewer"] .admin-only{display:none!important}
+body[data-role="editor"] .admin-only{display:none!important}
 .role-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap}
+.role-badge.admin{background:var(--purple-light);color:var(--purple)}
 .role-badge.editor{background:var(--green-light);color:var(--green-dark)}
 .role-badge.viewer{background:var(--blue-light);color:var(--blue-dark)}
+.dark .role-badge.admin{background:rgba(139,92,246,.15);color:#a78bfa}
 .dark .role-badge.editor{background:rgba(16,185,129,.15);color:var(--green)}
 .dark .role-badge.viewer{background:rgba(59,130,246,.15);color:var(--blue)}
 
@@ -521,12 +525,12 @@ body[data-role="viewer"] .editor-only{display:none!important}
       </div>
       <div style="flex:1"></div>
       <div class="header-clock" id="clockDisplay">--:--:-- WIB</div>
-      <span class={`role-badge ${role}`}>{role === 'editor' ? 'Editor' : 'Viewer'}</span>
+      <span class={`role-badge ${role}`}>{role === 'admin' ? 'Admin' : role === 'editor' ? 'Editor' : 'Viewer'}</span>
       <div class="header-actions">
         <button class="btn-icon editor-only" id="configBtn" title="Konfigurasi Fitur" style="display:none">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
-        <button class="btn-icon editor-only" id="darkToggleBtn" title="Dark Mode">
+        <button class="btn-icon admin-only" id="darkToggleBtn" title="Dark Mode">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
         <button class="btn-icon" id="exportBtn" title="Export Excel">
@@ -717,7 +721,7 @@ function renderSidebar() {
     html += navItem('dashboard','Dashboard','&#128202;') +
             navItem('ringkasan','Ringkasan per Day','&#128203;') +
             '<div class="nav-section-label editor-only">Manajemen</div>' +
-            navItem('pengaturan','Pengaturan','&#9881;','editor-only');
+            navItem('pengaturan','Pengaturan','&#9881;','admin-only');
   } else {
     var feat = getFeatureConfig(currentView);
     html += '<div class="nav-section-label">Monitoring</div>';
@@ -732,7 +736,7 @@ function renderSidebar() {
     if (feat.distribusiKecil || feat.distribusiKarkas) html += navItem('distribusi','Distribusi','&#128666;');
     html += '<div class="nav-section-label editor-only">Manajemen</div>';
     html += navItem('input','Input Data','&#9999;','editor-only');
-    html += navItem('pengaturan','Pengaturan','&#9881;','editor-only');
+    html += navItem('pengaturan','Pengaturan','&#9881;','admin-only');
   }
   document.getElementById('sidebarNavItems').innerHTML = html;
   // Bind clicks
@@ -1399,7 +1403,7 @@ function renderInputPage(state) {
     html += '</div></div>';
   }
 
-  html += '<div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn btn-danger btn-sm" onclick="resetCurrentDay()">Reset Data Day '+currentView+'</button></div>';
+  html += '<div style="display:flex;gap:12px;flex-wrap:wrap" class="admin-only"><button class="btn btn-danger btn-sm" onclick="resetCurrentDay()">Reset Data Day '+currentView+'</button></div>';
   return html;
 }
 
