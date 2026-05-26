@@ -60,9 +60,11 @@ const role = getRole(auth) || 'viewer';
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-icon" style="font-size:20px">&#x1f411;</div>
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
       <div class="brand-text">
-        <span class="brand-title">Al-Fatihah</span>
+        <span class="brand-title">Alfatihah Farm</span>
         <span class="brand-sub">Qurban Command Center</span>
       </div>
     </div>
@@ -525,7 +527,7 @@ input,select,textarea{font-family:inherit}
 .day-switcher{display:flex;gap:4px;padding:0 10px 14px;margin-bottom:4px;border-bottom:1px solid var(--border-light)}
 .day-tab{flex:1;text-align:center;padding:8px 0;border-radius:var(--radius-sm);font-size:12px;font-weight:700;text-decoration:none;transition:all var(--transition);color:var(--text-muted);background:transparent;border:1px solid transparent}
 .day-tab:hover{color:var(--text-primary);background:var(--surface2)}
-.day-tab.active{background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(16,185,129,.25)}
+.day-tab.active{background:#EA7E8F;color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(234,126,143,.25)}
 .sidebar.collapsed .day-switcher{flex-direction:column;padding:0 6px 10px}
 .sidebar.collapsed .day-tab{font-size:10px;padding:6px 0}
 .nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:all var(--transition);color:var(--text-secondary);font-size:13px;font-weight:500;white-space:nowrap;position:relative;border-radius:0;margin:1px 0}
