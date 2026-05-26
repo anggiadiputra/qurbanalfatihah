@@ -584,7 +584,7 @@ function defaultDayState() {
     cacah: Array.from({length:6},function(_,i){return {no:i+1,total:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
     cacahDariAbf:0,
     packingKecil:{total:0,waktuMulai:'',waktuSelesai:''},
-    distribusiKecil:{total:0,selesai:0,waktuMulai:'',waktuSelesai:''},
+    distribusiKecil:{lokasi:[],waktuMulai:'',waktuSelesai:''},
     packingKarkas:{total:0,waktuMulai:'',waktuSelesai:''},
     distribusiKarkas:{total:0,selesai:0,waktuMulai:'',waktuSelesai:''}
   };
@@ -617,6 +617,10 @@ function migrateState(s) {
     s.transit.kakiKepala = (s.transit.kaki||0) + (s.transit.kepala||0);
   }
   if (s.transit && s.transit.kakiKepala === undefined) s.transit.kakiKepala = 0;
+  // distribusiKecil old format migration
+  if (s.distribusiKecil && !s.distribusiKecil.lokasi) {
+    s.distribusiKecil = {lokasi:[], waktuMulai:s.distribusiKecil.waktuMulai||'', waktuSelesai:s.distribusiKecil.waktuSelesai||''};
+  }
   return s;
 }
 
@@ -803,7 +807,8 @@ function calcPipeline(state) {
   var dicacah = totalDicacahDay(state) + (state.cacahDariAbf || 0);
   var packKecil = state.packingKecil ? state.packingKecil.total || 0 : 0;
   var packKarkas = state.packingKarkas ? state.packingKarkas.total || 0 : 0;
-  var distKecil = state.distribusiKecil ? state.distribusiKecil.selesai || 0 : 0;
+  var dkLokasi = state.distribusiKecil && state.distribusiKecil.lokasi ? state.distribusiKecil.lokasi : [];
+  var distKecil = dkLokasi.filter(function(x){return x.status==='selesai'}).length;
   var distKarkas = state.distribusiKarkas ? state.distribusiKarkas.selesai || 0 : 0;
   return {total:total,keluar:keluar,dipotong:dipotong,dikuliti:dikuliti,karkasTotal:karkasTotal,abfKeluar:abfKeluar,dicacah:dicacah,packKecil:packKecil,packKarkas:packKarkas,distKecil:distKecil,distKarkas:distKarkas};
 }
@@ -1026,7 +1031,7 @@ function renderKandangPage(state) {
   var html = '<div class="page-header"><div><div class="page-title">Kandang</div><div class="page-subtitle">Monitoring 8 kandang hewan qurban</div></div></div>';
   html += '<div class="stats-grid">';
   html += statCardHtml('blue','Total Keluar',kel,pct(kel,total)+'%','blue');
-  html += statCardHtml('maroon','Sisa Kandang',sisa,pct(sisa,total)+'%','maroon');
+  html += statCardHtml('maroon','Sisa Hewan',sisa,pct(sisa,total)+'%','maroon');
   html += statCardHtml('green','Progress',pct(kel,total)+'%','Keluar','green');
   html += '</div>';
   html += '<div class="grid-4">';
@@ -1210,7 +1215,10 @@ function renderDistribusiPage(state) {
   var html = '<div class="page-header"><div><div class="page-title">Distribusi</div><div class="page-subtitle">Monitoring distribusi daging qurban</div></div></div>';
   html += '<div class="stats-grid">';
   if (feat.distribusiKecil) {
-    html += statCardHtml('green','Distribusi Kecil',dk.selesai||0,pct(dk.selesai||0,dk.total||1)+'%','green');
+    var dkLok = dk.lokasi||[];
+    var dkSelesai = dkLok.filter(function(x){return x.status==='selesai'}).length;
+    var dkTotal = dkLok.length;
+    html += statCardHtml('green','Distribusi Kecil',dkSelesai+'/'+dkTotal,pct(dkSelesai,dkTotal||1)+'%','green');
   }
   if (feat.distribusiKarkas) {
     html += statCardHtml('amber','Distribusi Karkas',dkk.selesai||0,pct(dkk.selesai||0,dkk.total||1)+'%','amber');
@@ -1218,9 +1226,21 @@ function renderDistribusiPage(state) {
   html += '</div>';
   html += '<div class="grid-2">';
   if (feat.distribusiKecil) {
-    var p1 = pct(dk.selesai||0, dk.total||1);
-    html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Distribusi Kecil</div>';
-    html += '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Selesai '+(dk.selesai||0)+' / '+(dk.total||0)+'</span><span class="progress-pct">'+p1+'%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:'+p1+'%"></div></div></div>';
+    var dkL = dk.lokasi||[];
+    var dkS = dkL.filter(function(x){return x.status==='selesai'}).length;
+    var dkT = dkL.length;
+    var p1 = pct(dkS, dkT||1);
+    html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Distribusi Kecil - '+dkS+' / '+dkT+' Selesai</div>';
+    html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Progress</span><span class="progress-pct">'+p1+'%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:'+p1+'%"></div></div></div>';
+    if (dkL.length > 0) {
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="background:var(--surface2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border)">#</th><th style="background:var(--surface2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border)">Lokasi</th><th style="background:var(--surface2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border)">Jumlah</th><th style="background:var(--surface2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border)">Status</th></tr></thead><tbody>';
+      dkL.forEach(function(lok, idx) {
+        var badge = lok.status === 'selesai' ? 'status-selesai' : 'status-berjalan';
+        var label = lok.status === 'selesai' ? 'Selesai' : 'Proses';
+        html += '<tr><td style="padding:10px 14px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);font-size:12px">'+String(idx+1).padStart(2,'0')+'</td><td style="padding:10px 14px;border-bottom:1px solid var(--border-light);font-weight:600">'+(lok.nama||'-')+'</td><td style="padding:10px 14px;border-bottom:1px solid var(--border-light);font-family:\'JetBrains Mono\',monospace;font-weight:700">'+(lok.jumlah||0)+'</td><td style="padding:10px 14px;border-bottom:1px solid var(--border-light)"><span class="status-badge '+badge+'">'+label+'</span></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
     html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dk.waktuMulai)+infoChip('Selesai',dk.waktuSelesai)+infoChip('Durasi',durationStr(dk.waktuMulai,dk.waktuSelesai))+'</div></div>';
   }
   if (feat.distribusiKarkas) {
@@ -1338,12 +1358,30 @@ function renderInputPage(state) {
 
   // Distribusi Kecil
   if (feat.distribusiKecil) {
-    html += '<div class="form-section"><div class="form-section-title">Data Distribusi Kecil</div><div class="form-grid">';
-    html += fg('Total Distribusi Kecil','number','inp_distKecilTotal',state.distribusiKecil?.total||0);
-    html += fg('Selesai','number','inp_distKecilSelesai',state.distribusiKecil?.selesai||0);
-    html += fg('Mulai','time','inp_distKecilMulai',state.distribusiKecil?.waktuMulai||'');
-    html += fg('Selesai Waktu','time','inp_distKecilWSelesai',state.distribusiKecil?.waktuSelesai||'');
-    html += '</div></div>';
+    html += '<div class="form-section"><div class="form-section-title">Data Distribusi Kecil</div>';
+    html += '<div class="form-grid" style="margin-bottom:16px">';
+    html += fg('Waktu Mulai','time','inp_distKecilMulai',state.distribusiKecil?.waktuMulai||'');
+    html += fg('Waktu Selesai','time','inp_distKecilWSelesai',state.distribusiKecil?.waktuSelesai||'');
+    html += '</div>';
+    html += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">Daftar Lokasi Distribusi</div>';
+    html += '<div id="distKecilRows">';
+    var dkRows = state.distribusiKecil?.lokasi || [];
+    if (dkRows.length === 0) {
+      html += '<div style="color:var(--text-muted);font-size:12px;margin-bottom:12px">Belum ada lokasi. Klik "+ Tambah Lokasi".</div>';
+    } else {
+      dkRows.forEach(function(lok, idx) {
+        html += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;flex-wrap:wrap">';
+        html += '<span style="font-size:12px;color:var(--text-muted);min-width:22px">'+(idx+1)+'.</span>';
+        html += '<input type="text" class="form-control" placeholder="Nama lokasi" value="'+(lok.nama||'')+'" style="flex:2;min-width:140px" onchange="updateDistKecilRow('+idx+',\'nama\',this.value)">';
+        html += '<div class="num-input-wrap" style="width:110px"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',-1)">-</button><input type="number" class="form-control" id="dk_jumlah_'+idx+'" value="'+(lok.jumlah||0)+'" min="0" onchange="updateDistKecilRow('+idx+',\'jumlah\',Number(this.value))"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',1)">+</button></div>';
+        html += '<select class="form-control" style="width:110px" onchange="updateDistKecilRow('+idx+',\'status\',this.value)"><option value="proses"'+(lok.status==='proses'?' selected':'')+'>Proses</option><option value="selesai"'+(lok.status==='selesai'?' selected':'')+'>Selesai</option></select>';
+        html += '<button style="background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="removeDistKecilRow('+idx+')">&#x2715;</button>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    html += '<div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="addDistKecilRow()">+ Tambah Lokasi</button></div>';
+    html += '</div>';
   }
 
   // Distribusi Karkas
@@ -1372,6 +1410,30 @@ function numStep(id, dir) {
   var v = parseInt(el.value) || 0;
   el.value = Math.max(0, v + dir);
   el.dispatchEvent(new Event('input', {bubbles:true}));
+}
+function addDistKecilRow() {
+  var state = getState(); if (!state) return;
+  if (!state.distribusiKecil) state.distribusiKecil = {lokasi:[],waktuMulai:'',waktuSelesai:''};
+  if (!state.distribusiKecil.lokasi) state.distribusiKecil.lokasi = [];
+  state.distribusiKecil.lokasi.push({nama:'',jumlah:0,status:'proses'});
+  saveDayState(currentView);
+  renderCurrentPage();
+}
+function removeDistKecilRow(idx) {
+  var state = getState(); if (!state || !state.distribusiKecil || !state.distribusiKecil.lokasi) return;
+  state.distribusiKecil.lokasi.splice(idx, 1);
+  saveDayState(currentView);
+  renderCurrentPage();
+}
+function updateDistKecilRow(idx, field, val) {
+  var state = getState(); if (!state || !state.distribusiKecil || !state.distribusiKecil.lokasi) return;
+  if (state.distribusiKecil.lokasi[idx]) state.distribusiKecil.lokasi[idx][field] = val;
+  saveDayState(currentView);
+}
+function distKecilNumStep(idx, dir) {
+  var el = document.getElementById('dk_jumlah_'+idx); if (!el) return;
+  var v = parseInt(el.value)||0; el.value = Math.max(0, v+dir);
+  updateDistKecilRow(idx, 'jumlah', Math.max(0, v+dir));
 }
 function fgSelect(label,id,current) {
   return '<div class="form-group"><label>'+label+'</label><select class="form-control" id="'+id+'">'+statusOpts(current)+'</select></div>';
@@ -1436,8 +1498,6 @@ function collectCurrentFormData() {
     state.packingKarkas.waktuSelesai = gv('inp_packKarkasSelesai');
   }
   if (state.distribusiKecil) {
-    state.distribusiKecil.total = gi('inp_distKecilTotal');
-    state.distribusiKecil.selesai = gi('inp_distKecilSelesai');
     state.distribusiKecil.waktuMulai = gv('inp_distKecilMulai');
     state.distribusiKecil.waktuSelesai = gv('inp_distKecilWSelesai');
   }
@@ -1737,8 +1797,11 @@ function mwPacking(state) {
 }
 
 function mwDistribusi(state) {
-  var dk=state.distribusiKecil?state.distribusiKecil.selesai||0:0, dkk=state.distribusiKarkas?state.distribusiKarkas.selesai||0:0;
-  var tkecil=state.distribusiKecil?state.distribusiKecil.total||0:0, tkarkas=state.distribusiKarkas?state.distribusiKarkas.total||0:0;
+  var dkLok=state.distribusiKecil&&state.distribusiKecil.lokasi?state.distribusiKecil.lokasi:[];
+  var dk=dkLok.filter(function(x){return x.status==='selesai'}).length;
+  var tkecil=dkLok.length;
+  var dkk=state.distribusiKarkas?state.distribusiKarkas.selesai||0:0;
+  var tkarkas=state.distribusiKarkas?state.distribusiKarkas.total||0:0;
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Distribusi</div><div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
     monStatCard('green','Dist. Kecil',dk+'/'+tkecil,pct(dk,tkecil||1)+'%')+
     monStatCard('amber','Dist. Karkas',dkk+'/'+tkarkas,pct(dkk,tkarkas||1)+'%')+
@@ -1750,7 +1813,7 @@ function mwDaySummary() {
   var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Ringkasan per Day</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">';
   for(var i=1;i<=4;i++){
     var s=dayStates[i];if(!s)continue;
-    var t=s.totalHewan||0,kel=totalKeluarDay(s),dk=(s.distribusiKecil?s.distribusiKecil.selesai||0:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);
+    var t=s.totalHewan||0,kel=totalKeluarDay(s),dk=(s.distribusiKecil&&s.distribusiKecil.lokasi?s.distribusiKecil.lokasi.filter(function(x){return x.status==='selesai'}).length:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);
     var p2=pct(dk,t);
     h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:16px;border-left:3px solid var(--green)"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Day '+i+'</div><div style="font-size:24px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green)">'+t+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">Keluar: '+kel+' | Dist: '+dk+'</div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:'+p2+'%"></div></div></div>';
   }
@@ -1769,7 +1832,7 @@ function renderMonitorDashboard() {
 
   if (currentView === 'all') {
     var tT=0,tK=0,tD=0,tU=0,tC=0,tDist=0;
-    for(var i=1;i<=4;i++){var s=dayStates[i];if(!s)continue;tT+=s.totalHewan||0;tK+=totalKeluarDay(s);tD+=totalDipotongDay(s);tU+=totalDikulitiDay(s);tC+=totalDicacahDay(s);tDist+=(s.distribusiKecil?s.distribusiKecil.selesai||0:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);}
+    for(var i=1;i<=4;i++){var s=dayStates[i];if(!s)continue;tT+=s.totalHewan||0;tK+=totalKeluarDay(s);tD+=totalDipotongDay(s);tU+=totalDikulitiDay(s);tC+=totalDicacahDay(s);tDist+=(s.distribusiKecil&&s.distribusiKecil.lokasi?s.distribusiKecil.lokasi.filter(function(x){return x.status==='selesai'}).length:0)+(s.distribusiKarkas?s.distribusiKarkas.selesai||0:0);}
     var vals=[tK,tD,tU,tC,tDist];
 
     monitorWidgetReg.forEach(function(w){

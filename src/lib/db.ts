@@ -193,7 +193,7 @@ export function defaultDayState() {
     })),
     cacahDariAbf: 0,
     packingKecil: { total: 0, waktuMulai: '', waktuSelesai: '' },
-    distribusiKecil: { total: 0, selesai: 0, waktuMulai: '', waktuSelesai: '' },
+    distribusiKecil: { lokasi: [] as Array<{ nama: string; jumlah: number; status: string }>, waktuMulai: '', waktuSelesai: '' },
     packingKarkas: { total: 0, waktuMulai: '', waktuSelesai: '' },
     distribusiKarkas: { total: 0, selesai: 0, waktuMulai: '', waktuSelesai: '' },
   };
