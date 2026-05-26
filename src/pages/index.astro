@@ -1650,7 +1650,7 @@ function enterMonitorMode() {
   document.getElementById('monitorTitle').textContent = currentView === 'all' ? 'Qurban Command Center' : 'Qurban Command Center - Day ' + currentView;
   renderMonitorWidgetBar();
   renderMonitorDashboard();
-  monitorInterval = setInterval(renderMonitorDashboard, 1000);
+  monitorInterval = setInterval(monitorTick, 1000);
 }
 
 function startLiveMonitor() {
@@ -1832,6 +1832,23 @@ function mwDaySummary() {
     h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:16px;border-left:3px solid var(--green)"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Day '+i+'</div><div style="font-size:24px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green)">'+t+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">Keluar: '+kel+' | Dist: '+dk+'</div><div class="progress-bar" style="margin-top:8px;height:6px"><div class="progress-fill green" style="width:'+p2+'%"></div></div></div>';
   }
   return h+'</div></div>';
+}
+
+var monitorTickBusy = false;
+function monitorTick() {
+  if (monitorTickBusy) return;
+  monitorTickBusy = true;
+  loadAllStates().then(function() {
+    return loadSettings();
+  }).then(function() {
+    var shouldDark = !!settings.darkMode;
+    if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
+    applyTheme(loadTheme());
+    loadMonitorWidgets();
+    renderMonitorWidgetBar();
+    renderMonitorDashboard();
+    monitorTickBusy = false;
+  }).catch(function() { monitorTickBusy = false; });
 }
 
 function renderMonitorDashboard() {
