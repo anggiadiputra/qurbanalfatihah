@@ -214,6 +214,7 @@ const role = getRole(auth) || 'viewer';
         <div class="page-actions"><button class="btn btn-primary btn-sm editor-only" data-nav="input">+ Input Data</button></div>
       </div>
       <div class="stats-grid" id="kandangStats"></div>
+      <div class="grid-2" style="margin-bottom:20px" id="kandangCharts"></div>
       <div class="grid-4" id="kandangGrid"></div>
     </section>
 
@@ -233,12 +234,13 @@ const role = getRole(auth) || 'viewer';
       </div>
       <div class="stats-grid" id="transitStats"></div>
       <div class="grid-2" style="margin-top:16px;" id="transitDetail"></div>
+      <div class="card" style="margin-top:16px;" id="transitChart"></div>
     </section>
 
     <!-- PAGE: Pengulitan -->
     <section class="page-section" id="page-pengulitan">
       <div class="page-header">
-        <div><div class="page-title">Pengulitan</div><div class="page-subtitle">Monitoring 30 ID Kalet pengulitan</div></div>
+        <div><div class="page-title">Pengulitan</div><div class="page-subtitle">Monitoring 45 titik pengulitan</div></div>
         <div class="page-actions">
           <div class="search-bar" style="margin:0;">
             <input type="text" class="search-input" id="searchKalet" placeholder="Cari ID Kalet..." style="width:200px;min-width:0;">
@@ -253,7 +255,7 @@ const role = getRole(auth) || 'viewer';
         </div>
       </div>
       <div class="stats-grid" id="pengulitanStats"></div>
-      <div class="grid-6" id="kaletGrid"></div>
+      <div class="grid-9" id="kaletGrid"></div>
     </section>
 
     <!-- PAGE: Pencacahan -->
@@ -322,7 +324,7 @@ const role = getRole(auth) || 'viewer';
       </div>
 
       <div class="form-section">
-        <div class="form-section-title">Data Pengulitan (ID Kalet)</div>
+        <div class="form-section-title">Data Pengulitan (45 Titik)</div>
         <div id="kaletFormGrid" class="form-grid"></div>
       </div>
 
@@ -590,8 +592,8 @@ input,select,textarea{font-family:inherit}
 .stat-card.amber::before{background:linear-gradient(90deg,var(--amber),var(--orange))}
 .stat-card.purple::before{background:linear-gradient(90deg,var(--purple),var(--blue))}
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.stat-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
-.stat-value{font-size:30px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.stat-label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+.stat-value{font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
 .stat-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;position:absolute;bottom:12px;right:14px}
 .stat-badge.green{background:var(--green-light);color:var(--green-dark)}
 .stat-badge.blue{background:var(--blue-light);color:var(--blue-dark)}
@@ -669,7 +671,7 @@ input,select,textarea{font-family:inherit}
 .unit-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
 .unit-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .unit-num{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
-.unit-val{font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;margin:4px 0}
+.unit-val{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;margin:4px 0}
 .unit-meta{font-size:11px;color:var(--text-muted)}
 .unit-times{margin-top:10px;font-size:11px;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .unit-time-val{font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--text-secondary)}
@@ -888,6 +890,36 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .color-picker::-webkit-color-swatch-wrapper{padding:0}
 .color-picker::-webkit-color-swatch{border:none;border-radius:4px}
 
+/* Pie chart */
+.pie-chart-wrap{display:flex;align-items:center;justify-content:center;gap:24px;padding:16px 0}
+.pie-chart{width:160px;height:160px;border-radius:50%;position:relative;flex-shrink:0}
+.pie-center{position:absolute;inset:20%;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pie-center-val{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.pie-center-label{font-size:10px;color:var(--text-muted);font-weight:600}
+.pie-legend{display:flex;flex-direction:column;gap:8px}
+.pie-legend-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.pie-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* Bar chart big */
+.bar-chart-big{display:flex;align-items:flex-end;gap:12px;height:180px;padding:16px 0}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:8px}
+.bar-fill{width:100%;border-radius:8px 8px 0 0;min-height:4px;transition:height .8s cubic-bezier(.4,0,.2,1)}
+.bar-label{font-size:11px;color:var(--text-muted);font-weight:600;text-align:center}
+.bar-val{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* Compact kalet card */
+.kalet-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border-light);padding:10px 12px;box-shadow:var(--shadow);transition:all var(--transition);display:flex;flex-direction:column;gap:4px}
+.kalet-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.kalet-header{display:flex;align-items:center;justify-content:space-between}
+.kalet-id{font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.kalet-val{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.kalet-times{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;color:var(--text-muted);margin-top:2px}
+.kalet-time-val{font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--text-secondary);font-size:11px}
+.grid-9{display:grid;grid-template-columns:repeat(9,1fr);gap:10px}
+@media(max-width:1400px){.grid-9{grid-template-columns:repeat(7,1fr)}}
+@media(max-width:1100px){.grid-9{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:768px){.grid-9{grid-template-columns:repeat(3,1fr)}}
+
 /* Print */
 @media print{.sidebar,.header,.page-actions,.header-actions,.save-indicator,.autosave-badge{display:none!important}.main-content{margin-left:0!important}.page-section.active{padding:16px}}
 
@@ -917,7 +949,7 @@ function defaultState() {
       no:i+1, dipotong:0, status:'belum', waktuMulai:'06:00', waktuSelesai:''
     })),
     transit: {kaki:0, kepala:0, hewan:0},
-    kalet: Array.from({length:30}, (_,i) => ({
+    kalet: Array.from({length:45}, (_,i) => ({
       no:i+1, total:0, status:'belum', waktuMulai:'', waktuSelesai:''
     })),
     cacah: Array.from({length:6}, (_,i) => ({
@@ -1932,10 +1964,26 @@ function renderKandang() {
   const total = state.totalHewan;
   const totalKel = totalKeluar();
   const sisa = total - totalKel;
+  const kelPct = pct(totalKel, total);
   document.getElementById('kandangStats').innerHTML =
-    statCard('blue','Total Keluar',totalKel,pct(totalKel,total)+'%','blue','kd') +
+    statCard('blue','Total Keluar',totalKel,kelPct+'%','blue','kd') +
     statCard('maroon','Sisa Kandang',sisa,pct(sisa,total)+'%','maroon','kd') +
-    statCard('amber','Progress',pct(totalKel,total)+'%','Keluar','amber','kd');
+    statCard('amber','Progress',kelPct+'%','Keluar','amber','kd');
+
+  const pieGrad = 'conic-gradient(var(--green) 0% '+kelPct+'%, var(--border) '+kelPct+'% 100%)';
+  const chartsEl = document.getElementById('kandangCharts');
+  if (chartsEl) {
+    chartsEl.innerHTML =
+      '<div class="card"><div style="font-weight:700;margin-bottom:14px">Rasio Keluar Kandang</div>'+
+      '<div class="pie-chart-wrap"><div class="pie-chart" style="background:'+pieGrad+'"><div class="pie-center"><div class="pie-center-val" style="color:var(--green)">'+kelPct+'%</div><div class="pie-center-label">Keluar</div></div></div>'+
+      '<div class="pie-legend"><div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--green)"></div>Keluar: '+totalKel+'</div><div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--border)"></div>Sisa: '+sisa+'</div></div></div></div>'+
+      '<div class="card"><div style="font-weight:700;margin-bottom:14px">Per Kandang</div>'+
+      '<div class="bar-chart-big">'+state.kandang.map(k => {
+        const kp = pct(k.keluar||0, k.total||1);
+        return '<div class="bar-wrap"><div class="bar-fill" style="background:var(--green);height:'+Math.max(4,kp)+'%"></div><div class="bar-val">'+(k.keluar||0)+'</div><div class="bar-label">#'+k.no+'</div></div>';
+      }).join('')+'</div></div>';
+  }
+
   document.getElementById('kandangGrid').innerHTML = state.kandang.map(k => statCard('green','Kandang #'+k.no,k.keluar||0,statusLabel(k.status),k.status==='selesai'?'green':k.status==='berjalan'?'blue':'maroon','kdu')).join('');
 }
 
@@ -1965,7 +2013,6 @@ function renderSembelih() {
   const total = state.totalHewan;
   const dipotong = totalDipotong();
   document.getElementById('sembelihStats').innerHTML =
-    statCard('green','Total Hewan',total,'Qurban','green','sb') +
     statCard('blue','Tersembelih',dipotong,pct(dipotong,total)+'%','blue','sb') +
     statCard('maroon','Belum',total-dipotong,'Sisa','maroon','sb') +
     statCard('amber','Progress',pct(dipotong,total)+'%','Keseluruhan','amber','sb');
@@ -1992,10 +2039,13 @@ function renderSembelih() {
 function renderTransit() {
   const {kaki,kepala,hewan} = state.transit;
   const total = state.totalHewan;
+  const dipotong = totalDipotong();
+  const selisihKepala = Math.max(0, dipotong - (kepala||0));
   document.getElementById('transitStats').innerHTML =
     statCard('blue','Total Kaki',kaki||0,'Tersedia','blue','tr') +
     statCard('green','Total Kepala',kepala||0,'Tersedia','green','tr') +
-    statCard('amber','Hewan Transit',hewan||0,'Menunggu kuliti','amber','tr');
+    statCard('amber','Hewan Transit',hewan||0,'Menunggu kuliti','amber','tr') +
+    statCard('maroon','Kepala Belum Diproses',selisihKepala,'Disembelih - Kepala','maroon','tr');
   document.getElementById('transitDetail').innerHTML =
     '<div class="card"><div style="font-weight:700;margin-bottom:14px">Progress Transit</div>'+
     '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Hewan Transit</span><span class="progress-pct">'+pct(hewan||0,total)+'%</span></div>'+
@@ -2006,6 +2056,16 @@ function renderTransit() {
     tlItem((kepala||0)>0?'blue':'gray','Kepala Tersedia',(kepala||0)+' kepala')+
     tlItem((kaki||0)>0?'amber':'gray','Kaki Tersedia',(kaki||0)+' kaki',true)+
     '</div></div>';
+  const chartEl = document.getElementById('transitChart');
+  if (chartEl) {
+    const maxBar = Math.max(dipotong, kepala||0, selisihKepala, 1);
+    chartEl.innerHTML = '<div style="font-weight:700;margin-bottom:14px">Perbandingan Sembelih vs Kepala</div>'+
+      '<div class="bar-chart-big" style="height:140px">'+
+      '<div class="bar-wrap"><div class="bar-fill" style="background:var(--blue);height:'+Math.max(4,dipotong/maxBar*100)+'%"></div><div class="bar-val">'+dipotong+'</div><div class="bar-label">Disembelih</div></div>'+
+      '<div class="bar-wrap"><div class="bar-fill" style="background:var(--green);height:'+Math.max(4,(kepala||0)/maxBar*100)+'%"></div><div class="bar-val">'+(kepala||0)+'</div><div class="bar-label">Kepala</div></div>'+
+      '<div class="bar-wrap"><div class="bar-fill" style="background:var(--maroon);height:'+Math.max(4,selisihKepala/maxBar*100)+'%"></div><div class="bar-val">'+selisihKepala+'</div><div class="bar-label">Selisih</div></div>'+
+      '</div><div style="font-size:12px;color:var(--text-muted);margin-top:8px">Selisih = Total Disembelih ('+dipotong+') - Total Kepala ('+(kepala||0)+') = '+selisihKepala+'</div>';
+  }
 }
 
 function tlItem(color,title,meta,last) {
@@ -2018,29 +2078,28 @@ function tlItem(color,title,meta,last) {
 function renderPengulitan() {
   const total = state.totalHewan;
   const dikuliti = totalDikuliti();
+  if (state.kalet.length < 45) {
+    for (let i = state.kalet.length; i < 45; i++) state.kalet.push({no:i+1,total:0,status:'belum',waktuMulai:'',waktuSelesai:''});
+  }
   document.getElementById('pengulitanStats').innerHTML =
-    statCard('green','Total Hewan',total,'Qurban','green','pk') +
     statCard('blue','Sudah Dikuliti',dikuliti,pct(dikuliti,total)+'%','blue','pk');
   filterKalet();
 }
 function filterKalet() {
   const q = (document.getElementById('searchKalet').value || '').toLowerCase();
   const fs = document.getElementById('filterKaletStatus').value || '';
+  const colors = {selesai:'var(--green)',berjalan:'var(--blue)',menunggu:'var(--amber)',belum:'var(--maroon)'};
   document.getElementById('kaletGrid').innerHTML = state.kalet.filter(k => {
     return (!q || String(k.no).includes(q)) && (!fs || k.status === fs);
   }).map(k => {
-    const p2 = pct(k.total||0, Math.ceil(state.totalHewan/30)||1);
-    const colors = {selesai:'green',berjalan:'blue',menunggu:'amber',belum:'maroon'};
-    const col = colors[k.status] || 'maroon';
-    const cid = 'kl-u'+(++_cardIdx);
-    const sc = getCardColor(cid);
-    return '<div class="unit-card" data-cid="'+cid+'" style="'+(sc?'border-color:'+sc+'30;':'')+'">'+ccBtn(cid,sc)+
-      '<div class="unit-card-header"><div class="unit-num">K-'+String(k.no).padStart(2,'0')+'</div>'+
-      '<span class="status-badge '+statusClass(k.status)+'" style="font-size:10px;padding:2px 7px">'+statusLabel(k.status)+'</span></div>'+
-      '<div class="unit-val" style="font-size:18px;'+(sc?'color:'+sc:'')+'">'+(k.total||0)+'</div><div class="unit-meta">Hewan dikuliti</div>'+
-      '<div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill '+col+'" style="width:'+p2+'%;'+(sc?'background:'+sc:'')+'"></div></div></div>'+
-      '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val" style="font-size:10px">'+(k.waktuMulai||'—')+'</div></div>'+
-      '<div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val" style="font-size:10px">'+(k.waktuSelesai||'—')+'</div></div></div></div>';
+    const col = colors[k.status] || 'var(--maroon)';
+    const p2 = pct(k.total||0, Math.ceil(state.totalHewan/45)||1);
+    return '<div class="kalet-card" style="border-left:3px solid '+col+'">'+
+      '<div class="kalet-header"><span class="status-badge '+statusClass(k.status)+'" style="font-size:11px;padding:2px 8px">K-'+String(k.no).padStart(2,'0')+'</span></div>'+
+      '<div class="kalet-val" style="color:'+col+'">'+(k.total||0)+'</div>'+
+      '<div style="margin-top:2px"><div class="progress-bar" style="height:4px"><div class="progress-fill" style="width:'+p2+'%;background:'+col+'"></div></div></div>'+
+      '<div class="kalet-times"><div><span style="opacity:.6">M</span> <span class="kalet-time-val">'+(k.waktuMulai||'—')+'</span></div>'+
+      '<div><span style="opacity:.6">S</span> <span class="kalet-time-val">'+(k.waktuSelesai||'—')+'</span></div></div></div>';
   }).join('');
 }
 

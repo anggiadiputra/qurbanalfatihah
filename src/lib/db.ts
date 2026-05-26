@@ -32,7 +32,7 @@ export function defaultState() {
       waktuSelesai: '',
     })),
     transit: { kaki: 0, kepala: 0, hewan: 0 },
-    kalet: Array.from({ length: 30 }, (_, i) => ({
+    kalet: Array.from({ length: 45 }, (_, i) => ({
       no: i + 1,
       total: 0,
       status: 'belum',
