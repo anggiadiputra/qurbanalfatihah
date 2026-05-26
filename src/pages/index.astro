@@ -27,7 +27,13 @@ const role = getRole(auth) || 'viewer';
     <div style="display:flex;align-items:center;gap:16px">
       <div class="monitor-header-date" id="monitorDate">—</div>
       <div class="monitor-header-clock" id="monitorClock">--:--:--</div>
-      <button class="monitor-exit" id="monitorExitBtn">✕ ESC</button>
+      <button class="monitor-exit" id="monitorExitBtn">✕ Keluar</button>
+    </div>
+  </div>
+  <div class="monitor-editor-bar" id="monitorEditorBar">
+    <div class="monitor-editor-label">Editor Mode — Atur widget dan layout monitor</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm" onclick="startLiveMonitor()">Tampilkan Monitor</button>
     </div>
   </div>
   <div class="monitor-widget-bar" id="monitorWidgetBar"></div>
@@ -836,6 +842,35 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .monitor-live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green),0 0 8px rgba(34,197,94,.4);animation:monLiveDot 2s ease-in-out infinite}
 @keyframes monLiveDot{0%,100%{box-shadow:0 0 4px var(--green),0 0 8px rgba(34,197,94,.3);opacity:.85}50%{box-shadow:0 0 8px var(--green),0 0 16px rgba(34,197,94,.5);opacity:1}}
 @keyframes monLiveText{0%,100%{opacity:.8;letter-spacing:.04em}50%{opacity:1;letter-spacing:.06em}}
+/* Monitor pie/bar chart cards */
+.mon-chart-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:28px;margin-bottom:24px}
+.mon-chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.mon-chart-title{font-size:16px;font-weight:700}
+.mon-chart-toggle{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:3px}
+.mon-chart-toggle-btn{padding:5px 12px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all .2s}
+.mon-chart-toggle-btn.active{background:var(--green);color:#fff}
+.mon-pie-wrap{display:flex;align-items:center;justify-content:center;gap:32px;padding:16px 0;flex-wrap:wrap}
+.mon-pie{width:200px;height:200px;border-radius:50%;position:relative;flex-shrink:0}
+.mon-pie-center{position:absolute;inset:22%;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mon-pie-center-val{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.mon-pie-center-label{font-size:11px;color:var(--text-secondary);font-weight:600}
+.mon-pie-legend{display:flex;flex-direction:column;gap:10px}
+.mon-pie-legend-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500}
+.mon-pie-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.mon-pie-legend-val{font-family:'JetBrains Mono',monospace;font-weight:700;margin-left:auto}
+.mon-bar-area{display:flex;align-items:flex-end;gap:16px;height:220px;padding:16px 0}
+.mon-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:8px}
+.mon-bar-fill{width:100%;border-radius:8px 8px 0 0;min-height:4px;transition:height .8s cubic-bezier(.4,0,.2,1);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
+.mon-bar-pct{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.mon-bar-val{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.mon-bar-label{font-size:12px;color:var(--text-secondary);font-weight:600;text-align:center}
+/* Monitor editor bar */
+.monitor-editor-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.monitor-editor-bar .btn{flex-shrink:0}
+.monitor-editor-label{font-size:13px;font-weight:700;color:var(--text-muted)}
+.monitor-mode-live .monitor-editor-bar{display:none}
+.monitor-mode-live .monitor-widget-bar{display:none}
+.monitor-mode-live .monitor-header{padding:0 0 16px}
 /* Monitor chart widget */
 .mon-chart-wrap{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:220px;padding:16px 8px 0}
 .mon-chart-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;max-width:120px;height:100%}
@@ -859,6 +894,11 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
   .mon-chart-val{font-size:18px}
   .mon-chart-pct{font-size:13px}
   .mon-chart-label{font-size:13px}
+  .mon-pie{width:240px;height:240px}
+  .mon-pie-center-val{font-size:34px}
+  .mon-bar-area{height:260px}
+  .mon-bar-val{font-size:18px}
+  .mon-chart-title{font-size:18px}
 }
 @media(min-width:2400px){
   .monitor-overlay{padding:40px 60px}
@@ -877,6 +917,12 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
   .mon-chart-label{font-size:16px}
   .monitor-live-badge{font-size:14px}
   .monitor-live-dot{width:10px;height:10px}
+  .mon-pie{width:300px;height:300px}
+  .mon-pie-center-val{font-size:42px}
+  .mon-bar-area{height:320px}
+  .mon-bar-val{font-size:22px}
+  .mon-chart-title{font-size:22px}
+  .mon-pie-legend-item{font-size:17px}
 }
 @media(max-width:900px){.mon-bottom-grid{grid-template-columns:1fr}}
 
@@ -1665,7 +1711,9 @@ const monitorWidgetReg = [
   {id:'clock',name:'Jam Besar',desc:'Jam WIB realtime',on:false},
   {id:'kandang',name:'Kandang',desc:'Status 8 kandang',on:false},
   {id:'sembelih',name:'Penyembelihan',desc:'Status 10 lubang',on:false},
-  {id:'chart',name:'Chart Bar',desc:'Visualisasi bar chart proses',on:true}
+  {id:'chart-proses',name:'Chart Proses',desc:'Bar/Pie semua proses',on:true},
+  {id:'chart-kandang',name:'Chart Kandang',desc:'Bar/Pie per kandang',on:false},
+  {id:'chart-sembelih',name:'Chart Sembelih',desc:'Bar/Pie per lubang',on:false}
 ];
 
 function loadMonitorWidgets() {
@@ -1718,6 +1766,47 @@ function monStatCard(color, label, value, badge) {
   return '<div class="stat-card ' + color + '"><div class="stat-label">' + label + '</div><div class="stat-value" style="color:var(--' + color + ')">' + value + '</div><div class="stat-badge ' + color + '">' + badge + '</div></div>';
 }
 
+let monChartTypes = {};
+function getChartType(chartId) { return monChartTypes[chartId] || 'bar'; }
+function toggleChartType(chartId) {
+  monChartTypes[chartId] = getChartType(chartId) === 'bar' ? 'pie' : 'bar';
+  renderMonitorDashboard();
+}
+
+function monPieChart(segments, centerVal, centerLabel) {
+  let total = segments.reduce((s,x) => s + x.val, 0);
+  if (!total) total = 1;
+  let gradParts = [], cumPct = 0;
+  segments.forEach(seg => {
+    const p = seg.val / total * 100;
+    gradParts.push(seg.color + ' ' + cumPct + '% ' + (cumPct + p) + '%');
+    cumPct += p;
+  });
+  return '<div class="mon-pie-wrap">' +
+    '<div class="mon-pie" style="background:conic-gradient(' + gradParts.join(',') + ')"><div class="mon-pie-center"><div class="mon-pie-center-val">' + centerVal + '</div><div class="mon-pie-center-label">' + centerLabel + '</div></div></div>' +
+    '<div class="mon-pie-legend">' + segments.map(seg =>
+      '<div class="mon-pie-legend-item"><div class="mon-pie-legend-dot" style="background:' + seg.color + '"></div>' + seg.label + '<span class="mon-pie-legend-val">' + seg.val + '</span></div>'
+    ).join('') + '</div></div>';
+}
+
+function monBarChart(bars, height) {
+  height = height || 220;
+  const maxVal = Math.max(...bars.map(b => b.val)) || 1;
+  return '<div class="mon-bar-area" style="height:' + height + 'px">' + bars.map(b => {
+    const h = Math.max(4, b.val / maxVal * 100);
+    const pctText = b.pct !== undefined ? b.pct + '%' : '';
+    return '<div class="mon-bar-col"><div class="mon-bar-fill" style="background:' + b.color + ';height:' + h + '%">' + (pctText ? '<span class="mon-bar-pct">' + pctText + '</span>' : '') + '</div><div class="mon-bar-val">' + b.val + '</div><div class="mon-bar-label">' + b.label + '</div></div>';
+  }).join('') + '</div>';
+}
+
+function monChartCard(chartId, title, barsData, pieData) {
+  const type = getChartType(chartId);
+  return '<div class="mon-chart-card"><div class="mon-chart-header"><div class="mon-chart-title">' + title + '</div>' +
+    '<div class="mon-chart-toggle"><button class="mon-chart-toggle-btn' + (type === 'bar' ? ' active' : '') + '" onclick="toggleChartType(\'' + chartId + '\')">Bar</button>' +
+    '<button class="mon-chart-toggle-btn' + (type === 'pie' ? ' active' : '') + '" onclick="toggleChartType(\'' + chartId + '\')">Pie</button></div></div>' +
+    (type === 'bar' ? monBarChart(barsData) : monPieChart(pieData.segments, pieData.centerVal, pieData.centerLabel)) + '</div>';
+}
+
 function d1mw_stats(v) {
   return '<div class="mon-stats-grid">' + monStatCard('green','Total Hewan',v.total,'Target') + monStatCard('blue','Tersembelih',v.dipotong,pct(v.dipotong,v.total)+'%') + monStatCard('amber','Keluar Kandang',v.keluar,pct(v.keluar,v.total)+'%') + monStatCard('purple','Sudah Dicacah',v.dicacah,pct(v.dicacah,v.total)+'%') + monStatCard('maroon','Distribusi',v.distrib,pct(v.distrib,v.total)+'%') + '</div>';
 }
@@ -1742,25 +1831,44 @@ function d1mw_sembelih() {
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Status 10 Lubang Penyembelihan</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">' + state.sembelih.map(s => '<div class="stat-card maroon" style="padding:14px"><div class="stat-label">Lubang #'+s.no+'</div><div class="stat-value" style="font-size:22px;color:var(--maroon)">'+(s.dipotong||0)+'</div><div style="margin-top:6px"><span class="status-badge '+statusClass(s.status)+'">'+statusLabel(s.status)+'</span></div></div>').join('') + '</div></div>';
 }
 
-function d1mw_chart(v) {
-  const items = [
-    {label:'Kandang',val:v.keluar,color:'var(--green)'},
-    {label:'Penyembelihan',val:v.dipotong,color:'var(--maroon)'},
-    {label:'Pengulitan',val:v.dikuliti,color:'var(--blue)'},
-    {label:'Cacah',val:v.dicacah,color:'var(--purple)'},
-    {label:'Karkas',val:v.karkas,color:'var(--amber)'},
-    {label:'Distribusi',val:v.distrib,color:'var(--blue)'}
+function d1mw_chartProses(v) {
+  const bars = [
+    {val:v.keluar,label:'Kandang',color:'var(--green)',pct:pct(v.keluar,v.total)},
+    {val:v.dipotong,label:'Sembelih',color:'var(--maroon)',pct:pct(v.dipotong,v.total)},
+    {val:v.dikuliti,label:'Pengulitan',color:'var(--blue)',pct:pct(v.dikuliti,v.total)},
+    {val:v.dicacah,label:'Cacah',color:'var(--purple)',pct:pct(v.dicacah,v.total)},
+    {val:v.karkas,label:'Karkas',color:'var(--amber)',pct:pct(v.karkas,v.total)},
+    {val:v.distrib,label:'Distribusi',color:'var(--blue)',pct:pct(v.distrib,v.total)}
   ];
-  const maxVal = Math.max(1, ...items.map(i => i.val));
-  const bars = items.map(i => {
-    const h = Math.max(2, Math.round(i.val / maxVal * 100));
-    const p = pct(i.val, v.total);
-    return '<div class="mon-chart-bar-col"><div class="mon-chart-val" style="color:'+i.color+'">'+i.val+'</div><div class="mon-chart-bar-area"><div class="mon-chart-bar" style="height:'+h+'%;background:'+i.color+'"><span class="mon-chart-pct">'+p+'%</span></div></div><div class="mon-chart-label">'+i.label+'</div></div>';
-  }).join('');
-  return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:12px">Visualisasi Proses</div><div class="mon-chart-wrap">'+bars+'</div></div>';
+  const pie = {
+    segments: bars.map(b => ({val:b.val,label:b.label,color:b.color})),
+    centerVal: pct(v.distrib,v.total)+'%',
+    centerLabel: 'Progress'
+  };
+  return monChartCard('proses','Proses Utama',bars,pie);
 }
 
-const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih,chart:d1mw_chart};
+function d1mw_chartKandang() {
+  const bars = state.kandang.map(k => ({val:k.keluar||0,label:'#'+k.no,color:'var(--green)',pct:pct(k.keluar||0,k.total||1)}));
+  const pie = {
+    segments: bars.map(b => ({val:b.val,label:b.label,color:b.color})),
+    centerVal: totalKeluar(),
+    centerLabel: 'Keluar'
+  };
+  return monChartCard('kandang','Kandang',bars,pie);
+}
+
+function d1mw_chartSembelih() {
+  const bars = state.sembelih.map(s => ({val:s.dipotong||0,label:'#'+s.no,color:'var(--maroon)'}));
+  const pie = {
+    segments: bars.map(b => ({val:b.val,label:b.label,color:b.color})),
+    centerVal: totalDipotong(),
+    centerLabel: 'Dipotong'
+  };
+  return monChartCard('sembelih','Penyembelihan',bars,pie);
+}
+
+const d1mwRenderers = {stats:d1mw_stats,'big-stats':d1mw_bigstats,clock:d1mw_clock,progress:d1mw_progress,'process-list':d1mw_processlist,kandang:d1mw_kandang,sembelih:d1mw_sembelih,'chart-proses':d1mw_chartProses,'chart-kandang':d1mw_chartKandang,'chart-sembelih':d1mw_chartSembelih};
 
 function renderMonitorDashboard() {
   const total = state.totalHewan;
@@ -1790,16 +1898,26 @@ function enterMonitorMode() {
   document.getElementById('monitorOverlay').classList.add('visible');
   renderMonitorWidgetBar();
   renderMonitorDashboard();
-  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
   monitorInterval = setInterval(() => { renderMonitorDashboard(); }, 1000);
+}
+
+function startLiveMonitor() {
+  document.getElementById('monitorOverlay').classList.add('monitor-mode-live');
+  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
 }
 
 function exitMonitorMode() {
   if (!monitorMode) return;
+  const overlay = document.getElementById('monitorOverlay');
+  if (overlay.classList.contains('monitor-mode-live')) {
+    overlay.classList.remove('monitor-mode-live');
+    if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    return;
+  }
   monitorMode = false;
   document.documentElement.classList.remove('monitoring');
   document.body.classList.remove('monitoring');
-  document.getElementById('monitorOverlay').classList.remove('visible');
+  overlay.classList.remove('visible');
   if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 }
@@ -1811,7 +1929,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { e.preventDefault(); exitMonitorMode(); }
 });
 document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && monitorMode) exitMonitorMode();
+  const overlay = document.getElementById('monitorOverlay');
+  if (!document.fullscreenElement && monitorMode && overlay.classList.contains('monitor-mode-live')) {
+    overlay.classList.remove('monitor-mode-live');
+  }
 });
 document.addEventListener('click', e => {
   const tog = e.target.closest('.mw-toggle');
