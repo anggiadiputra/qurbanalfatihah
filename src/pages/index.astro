@@ -575,9 +575,10 @@ function defaultDayState() {
   return {
     totalHewan:0, tanggal:'', waktuMulai:'', waktuSelesai:'',
     kandang: Array.from({length:8},function(_,i){return {no:i+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:'',status:'belum'};}),
-    sembelih: Array.from({length:10},function(_,i){return {no:i+1,dipotong:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
+    sembelih: Array.from({length:8},function(_,i){return {no:i+1,dipotong:0,waktuMulai:'',waktuSelesai:''};}),
     transit:{kakiKepala:0,hewan:0},
-    kalet: Array.from({length:45},function(_,i){return {no:i+1,total:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
+    lane: Array.from({length:6},function(_,i){return {no:i+1,total:0};}),
+    pengulitanMulai:'',pengulitanSelesai:'',
     karkas:{total:0,waktuMulai:'',waktuSelesai:''},
     abf:{keluar:0,waktuMulai:'',waktuSelesai:''},
     cacah: Array.from({length:6},function(_,i){return {no:i+1,total:0,status:'belum',waktuMulai:'',waktuSelesai:''};}),
@@ -745,7 +746,7 @@ function statusOpts(current) {
 
 function totalKeluarDay(s) { return (s.kandang||[]).reduce(function(a,k){return a+(k.keluar||0);},0); }
 function totalDipotongDay(s) { return (s.sembelih||[]).reduce(function(a,k){return a+(k.dipotong||0);},0); }
-function totalDikulitiDay(s) { return (s.kalet||[]).reduce(function(a,k){return a+(k.total||0);},0); }
+function totalDikulitiDay(s) { return (s.lane||s.kalet||[]).reduce(function(a,k){return a+(k.total||0);},0); }
 function totalDicacahDay(s) { return (s.cacah||[]).reduce(function(a,k){return a+(k.total||0);},0); }
 
 function sumAllDays(fn) {
@@ -1024,7 +1025,7 @@ function renderKandangPage(state) {
 function renderSembelihPage(state) {
   var total = state.totalHewan||0;
   var dip = totalDipotongDay(state);
-  var html = '<div class="page-header"><div><div class="page-title">Penyembelihan</div><div class="page-subtitle">Monitoring 10 lubang penyembelihan</div></div></div>';
+  var html = '<div class="page-header"><div><div class="page-title">Penyembelihan</div><div class="page-subtitle">Monitoring 8 lubang penyembelihan</div></div></div>';
   html += '<div class="stats-grid">';
   html += statCardHtml('maroon','Tersembelih',dip,pct(dip,total)+'%','maroon');
   html += statCardHtml('blue','Belum',total-dip,'Sisa','blue');
@@ -1068,39 +1069,32 @@ function renderTransitPage(state) {
 // ================================================================
 function renderPengulitanPage(state) {
   var dik = totalDikulitiDay(state);
+  var dip = totalDipotongDay(state);
   var total = state.totalHewan||0;
-  var html = '<div class="page-header"><div><div class="page-title">Pengulitan</div><div class="page-subtitle">Monitoring 45 titik pengulitan</div></div>';
-  html += '<div class="page-actions"><div class="search-bar" style="margin:0"><input type="text" class="search-input" id="searchKalet" placeholder="Cari ID Kalet..." style="width:200px;min-width:0"><select class="filter-select" id="filterKaletStatus"><option value="">Semua Status</option><option value="selesai">Selesai</option><option value="berjalan">Berjalan</option><option value="menunggu">Menunggu</option><option value="belum">Belum</option></select></div></div></div>';
+  var lanes = state.lane||[];
+  var html = '<div class="page-header"><div><div class="page-title">Pengulitan</div><div class="page-subtitle">Monitoring 6 lane pengulitan</div></div></div>';
   html += '<div class="stats-grid">';
-  html += statCardHtml('blue','Sudah Dikuliti',dik,pct(dik,total)+'%','blue');
+  html += statCardHtml('blue','Sudah Dikuliti',dik,pct(dik,dip||1)+'% dari sembelih','blue');
+  html += statCardHtml('green','Disembelih',dip,'Total','green');
+  html += statCardHtml('amber','Sisa',Math.max(0,dip-dik),'Belum kuliti','amber');
   html += '</div>';
-  html += '<div class="grid-9" id="kaletGrid">';
-  html += renderKaletCards(state.kalet||[], '', '');
-  html += '</div>';
-  return html;
-}
-
-function renderKaletCards(kalet, query, filterStatus) {
-  var colors = {selesai:'var(--green)',berjalan:'var(--blue)',menunggu:'var(--amber)',belum:'var(--maroon)'};
-  var html = '';
-  kalet.forEach(function(k) {
-    if (query && !String(k.no).includes(query)) return;
-    if (filterStatus && k.status !== filterStatus) return;
-    var col = colors[k.status] || 'var(--maroon)';
-    html += '<div class="kalet-card" style="border-left:3px solid '+col+'"><div class="kalet-header"><span class="status-badge '+statusClass(k.status)+'" style="font-size:11px;padding:2px 8px">K-'+String(k.no).padStart(2,'0')+'</span></div>';
-    html += '<div class="kalet-val" style="color:'+col+'">'+(k.total||0)+'</div>';
-    html += '<div class="kalet-times"><div><span style="opacity:.6">M</span> <span class="kalet-time-val">'+(k.waktuMulai||'-')+'</span></div><div><span style="opacity:.6">S</span> <span class="kalet-time-val">'+(k.waktuSelesai||'-')+'</span></div></div></div>';
+  html += '<div class="grid-3" style="margin-bottom:20px">';
+  lanes.forEach(function(ln) {
+    var lnPct = pct(ln.total||0, dip||1);
+    html += '<div class="card" style="text-align:center"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">Lane #'+ln.no+'</div>';
+    html += '<div style="font-size:36px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--blue);line-height:1">'+(ln.total||0)+'</div>';
+    html += '<div style="margin-top:10px"><div class="progress-bar" style="height:8px"><div class="progress-fill blue" style="width:'+lnPct+'%"></div></div></div>';
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">'+lnPct+'%</div></div>';
   });
+  html += '</div>';
+  if (state.pengulitanMulai || state.pengulitanSelesai) {
+    html += '<div class="card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
+    html += infoChip('Mulai',state.pengulitanMulai);
+    html += infoChip('Selesai',state.pengulitanSelesai);
+    html += infoChip('Durasi',durationStr(state.pengulitanMulai,state.pengulitanSelesai));
+    html += '</div></div>';
+  }
   return html;
-}
-
-function filterKaletGrid() {
-  var q = (document.getElementById('searchKalet')?.value || '').toLowerCase();
-  var fs = document.getElementById('filterKaletStatus')?.value || '';
-  var state = getState();
-  if (!state) return;
-  var grid = document.getElementById('kaletGrid');
-  if (grid) grid.innerHTML = renderKaletCards(state.kalet||[], q, fs);
 }
 
 // ================================================================
@@ -1237,10 +1231,9 @@ function renderInputPage(state) {
     html += '<div class="form-section"><div class="form-section-title">Data Kandang</div><div class="form-grid">';
     (state.kandang||[]).forEach(function(k) {
       html += fg('Kandang #'+k.no+' Keluar','number','f_kandang_keluar_'+k.no,k.keluar||0);
-      html += fgSelect('Kandang #'+k.no+' Status','f_kandang_status_'+k.no,k.status);
-      html += fg('Kandang #'+k.no+' Mulai','time','f_kandang_mulai_'+k.no,k.waktuMulai||'');
-      html += fg('Kandang #'+k.no+' Selesai','time','f_kandang_selesai_'+k.no,k.waktuSelesai||'');
     });
+    html += fg('Waktu Mulai','time','f_kandang_mulai',state.kandang?.[0]?.waktuMulai||'');
+    html += fg('Waktu Selesai','time','f_kandang_selesai',state.kandang?.[0]?.waktuSelesai||'');
     html += '</div></div>';
   }
 
@@ -1249,10 +1242,9 @@ function renderInputPage(state) {
     html += '<div class="form-section"><div class="form-section-title">Data Penyembelihan</div><div class="form-grid">';
     (state.sembelih||[]).forEach(function(s) {
       html += fg('Lubang #'+s.no+' Dipotong','number','f_sembelih_dipotong_'+s.no,s.dipotong||0);
-      html += fgSelect('Lubang #'+s.no+' Status','f_sembelih_status_'+s.no,s.status);
-      html += fg('Lubang #'+s.no+' Mulai','time','f_sembelih_mulai_'+s.no,s.waktuMulai||'');
-      html += fg('Lubang #'+s.no+' Selesai','time','f_sembelih_selesai_'+s.no,s.waktuSelesai||'');
     });
+    html += fg('Waktu Mulai','time','f_sembelih_mulai',state.sembelih?.[0]?.waktuMulai||'');
+    html += fg('Waktu Selesai','time','f_sembelih_selesai',state.sembelih?.[0]?.waktuSelesai||'');
     html += '</div></div>';
   }
 
@@ -1265,14 +1257,12 @@ function renderInputPage(state) {
 
   // Pengulitan
   if (feat.pengulitan) {
-    html += '<div class="form-section"><div class="form-section-title">Data Pengulitan (45 Titik)</div><div class="form-grid">';
-    (state.kalet||[]).forEach(function(k) {
-      var id = 'K-'+String(k.no).padStart(2,'0');
-      html += fg(id+' Total','number','f_kalet_total_'+k.no,k.total||0);
-      html += fgSelect(id+' Status','f_kalet_status_'+k.no,k.status);
-      html += fg(id+' Mulai','time','f_kalet_mulai_'+k.no,k.waktuMulai||'');
-      html += fg(id+' Selesai','time','f_kalet_selesai_'+k.no,k.waktuSelesai||'');
+    html += '<div class="form-section"><div class="form-section-title">Data Pengulitan (6 Lane)</div><div class="form-grid">';
+    (state.lane||[]).forEach(function(ln) {
+      html += fg('Lane #'+ln.no+' Total','number','f_lane_total_'+ln.no,ln.total||0);
     });
+    html += fg('Waktu Mulai','time','inp_pengulitanMulai',state.pengulitanMulai||'');
+    html += fg('Waktu Selesai','time','inp_pengulitanSelesai',state.pengulitanSelesai||'');
     html += '</div></div>';
   }
 
@@ -1299,11 +1289,10 @@ function renderInputPage(state) {
     html += '<div class="form-section"><div class="form-section-title">Data Pencacahan</div><div class="form-grid">';
     (state.cacah||[]).forEach(function(c) {
       html += fg('Meja #'+c.no+' Total','number','f_cacah_total_'+c.no,c.total||0);
-      html += fgSelect('Meja #'+c.no+' Status','f_cacah_status_'+c.no,c.status);
-      html += fg('Meja #'+c.no+' Mulai','time','f_cacah_mulai_'+c.no,c.waktuMulai||'');
-      html += fg('Meja #'+c.no+' Selesai','time','f_cacah_selesai_'+c.no,c.waktuSelesai||'');
     });
     html += fg('Cacah dari ABF','number','inp_cacahDariAbf',state.cacahDariAbf||0);
+    html += fg('Waktu Mulai','time','f_cacah_mulai',state.cacah?.[0]?.waktuMulai||'');
+    html += fg('Waktu Selesai','time','f_cacah_selesai',state.cacah?.[0]?.waktuSelesai||'');
     html += '</div></div>';
   }
 
@@ -1377,27 +1366,26 @@ function collectCurrentFormData() {
   state.waktuMulai = gv('inp_waktuMulai');
   state.waktuSelesai = gv('inp_waktuSelesai');
 
+  var kandangMulai = gv('f_kandang_mulai'), kandangSelesai = gv('f_kandang_selesai');
   (state.kandang||[]).forEach(function(k) {
     k.keluar = gi('f_kandang_keluar_'+k.no);
-    k.status = gv('f_kandang_status_'+k.no) || 'belum';
-    k.waktuMulai = gv('f_kandang_mulai_'+k.no);
-    k.waktuSelesai = gv('f_kandang_selesai_'+k.no);
+    k.waktuMulai = kandangMulai;
+    k.waktuSelesai = kandangSelesai;
   });
+  var sembelihMulai = gv('f_sembelih_mulai'), sembelihSelesai = gv('f_sembelih_selesai');
   (state.sembelih||[]).forEach(function(s) {
     s.dipotong = gi('f_sembelih_dipotong_'+s.no);
-    s.status = gv('f_sembelih_status_'+s.no) || 'belum';
-    s.waktuMulai = gv('f_sembelih_mulai_'+s.no);
-    s.waktuSelesai = gv('f_sembelih_selesai_'+s.no);
+    s.waktuMulai = sembelihMulai;
+    s.waktuSelesai = sembelihSelesai;
   });
   if (state.transit) {
     state.transit.kakiKepala = gi('inp_kakiKepalaTransit');
   }
-  (state.kalet||[]).forEach(function(k) {
-    k.total = gi('f_kalet_total_'+k.no);
-    k.status = gv('f_kalet_status_'+k.no) || 'belum';
-    k.waktuMulai = gv('f_kalet_mulai_'+k.no);
-    k.waktuSelesai = gv('f_kalet_selesai_'+k.no);
+  (state.lane||[]).forEach(function(ln) {
+    ln.total = gi('f_lane_total_'+ln.no);
   });
+  state.pengulitanMulai = gv('inp_pengulitanMulai');
+  state.pengulitanSelesai = gv('inp_pengulitanSelesai');
   if (state.karkas) {
     state.karkas.total = gi('inp_karkasTotal');
     state.karkas.waktuMulai = gv('inp_karkasMulai');
@@ -1408,11 +1396,11 @@ function collectCurrentFormData() {
     state.abf.waktuMulai = gv('inp_abfMulai');
     state.abf.waktuSelesai = gv('inp_abfSelesai');
   }
+  var cacahMulai = gv('f_cacah_mulai'), cacahSelesai = gv('f_cacah_selesai');
   (state.cacah||[]).forEach(function(c) {
     c.total = gi('f_cacah_total_'+c.no);
-    c.status = gv('f_cacah_status_'+c.no) || 'belum';
-    c.waktuMulai = gv('f_cacah_mulai_'+c.no);
-    c.waktuSelesai = gv('f_cacah_selesai_'+c.no);
+    c.waktuMulai = cacahMulai;
+    c.waktuSelesai = cacahSelesai;
   });
   state.cacahDariAbf = gi('inp_cacahDariAbf');
   if (state.packingKecil) {
@@ -1689,12 +1677,11 @@ function mwPengulitan(state) {
   var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Pengulitan - '+dik+' / '+(dip||0)+' Dikuliti</div>';
   h+='<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:16px"><div style="width:120px;height:120px;border-radius:50%;position:relative;background:'+pieGrad+'"><div style="position:absolute;inset:25%;background:var(--surface);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--blue)">'+kulPct+'%</div></div>';
   h+='<div class="bar-chart-big" style="flex:1;height:120px">';
-  var kalet=state.kalet||[];
-  var maxK=1;kalet.forEach(function(k){if((k.total||0)>maxK)maxK=k.total});
-  kalet.forEach(function(k){
-    var col=k.status==='selesai'?'var(--green)':k.status==='berjalan'?'var(--blue)':k.status==='menunggu'?'var(--amber)':'var(--maroon)';
-    var hp=Math.max(4,(k.total||0)/maxK*100);
-    h+='<div class="bar-wrap"><div class="bar-fill" style="background:'+col+';height:'+hp+'%"></div><div class="bar-val">'+(k.total||0)+'</div><div class="bar-label">'+k.no+'</div></div>';
+  var lanes=state.lane||[];
+  var maxL=1;lanes.forEach(function(ln){if((ln.total||0)>maxL)maxL=ln.total});
+  lanes.forEach(function(ln){
+    var hp=Math.max(4,(ln.total||0)/maxL*100);
+    h+='<div class="bar-wrap"><div class="bar-fill" style="background:var(--blue);height:'+hp+'%"></div><div class="bar-val">'+(ln.total||0)+'</div><div class="bar-label">Lane '+ln.no+'</div></div>';
   });
   return h+'</div></div></div>';
 }

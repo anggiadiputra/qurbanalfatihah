@@ -175,15 +175,17 @@ export function defaultDayState() {
     waktuMulai: '',
     waktuSelesai: '',
     kandang: Array.from({ length: 8 }, (_, i) => ({
-      no: i + 1, total: 12, keluar: 0, waktuMulai: '', waktuSelesai: '', status: 'belum',
+      no: i + 1, total: 12, keluar: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    sembelih: Array.from({ length: 10 }, (_, i) => ({
-      no: i + 1, dipotong: 0, status: 'belum', waktuMulai: '', waktuSelesai: '',
+    sembelih: Array.from({ length: 8 }, (_, i) => ({
+      no: i + 1, dipotong: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    transit: { kaki: 0, kepala: 0, hewan: 0 },
-    kalet: Array.from({ length: 45 }, (_, i) => ({
-      no: i + 1, total: 0, status: 'belum', waktuMulai: '', waktuSelesai: '',
+    transit: { kakiKepala: 0, hewan: 0 },
+    lane: Array.from({ length: 6 }, (_, i) => ({
+      no: i + 1, total: 0,
     })),
+    pengulitanMulai: '',
+    pengulitanSelesai: '',
     karkas: { total: 0, waktuMulai: '', waktuSelesai: '' },
     abf: { keluar: 0, waktuMulai: '', waktuSelesai: '' },
     cacah: Array.from({ length: 6 }, (_, i) => ({
