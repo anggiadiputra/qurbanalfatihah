@@ -174,10 +174,10 @@ export function defaultDayState() {
     tanggal: '',
     waktuMulai: '',
     waktuSelesai: '',
-    kandang: Array.from({ length: 8 }, (_, i) => ({
+    kandang: Array.from({ length: 10 }, (_, i) => ({
       no: i + 1, total: 12, keluar: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    sembelih: Array.from({ length: 8 }, (_, i) => ({
+    sembelih: Array.from({ length: 10 }, (_, i) => ({
       no: i + 1, dipotong: 0, waktuMulai: '', waktuSelesai: '',
     })),
     transit: { kakiKepala: 0, hewan: 0, waktuMulai: '', waktuSelesai: '' },

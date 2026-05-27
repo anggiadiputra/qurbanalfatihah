@@ -581,8 +581,8 @@ function getFeatureConfig(day) {
 function defaultDayState() {
   return {
     totalHewan:0, tanggal:'', waktuMulai:'', waktuSelesai:'',
-    kandang: Array.from({length:8},function(_,i){return {no:i+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:'',status:'belum'};}),
-    sembelih: Array.from({length:8},function(_,i){return {no:i+1,dipotong:0,waktuMulai:'',waktuSelesai:''};}),
+    kandang: Array.from({length:10},function(_,i){return {no:i+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:''};}),
+    sembelih: Array.from({length:10},function(_,i){return {no:i+1,dipotong:0,waktuMulai:'',waktuSelesai:''};}),
     transit:{kakiKepala:0,hewan:0,waktuMulai:'',waktuSelesai:''},
     lane: Array.from({length:6},function(_,i){return {no:i+1,total:0};}),
     pengulitanMulai:'',pengulitanSelesai:'',
@@ -614,10 +614,12 @@ function migrateState(s) {
   if (!s.lane) s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};});
   if (s.pengulitanMulai === undefined) s.pengulitanMulai = '';
   if (s.pengulitanSelesai === undefined) s.pengulitanSelesai = '';
-  // sembelih 10→8
-  if (s.sembelih && s.sembelih.length > 8) s.sembelih = s.sembelih.slice(0,8);
-  if (s.sembelih && s.sembelih.length < 8) {
-    while (s.sembelih.length < 8) s.sembelih.push({no:s.sembelih.length+1,dipotong:0,waktuMulai:'',waktuSelesai:''});
+  // kandang/sembelih expand to 10
+  if (s.kandang && s.kandang.length < 10) {
+    while (s.kandang.length < 10) s.kandang.push({no:s.kandang.length+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:''});
+  }
+  if (s.sembelih && s.sembelih.length < 10) {
+    while (s.sembelih.length < 10) s.sembelih.push({no:s.sembelih.length+1,dipotong:0,waktuMulai:'',waktuSelesai:''});
   }
   // transit kaki+kepala merge
   if (s.transit && s.transit.kaki !== undefined && s.transit.kakiKepala === undefined) {
@@ -1064,16 +1066,15 @@ function renderKandangPage(state) {
 function renderSembelihPage(state) {
   var total = state.totalHewan||0;
   var dip = totalDipotongDay(state);
-  var html = '<div class="page-header"><div><div class="page-title">Penyembelihan</div><div class="page-subtitle">Monitoring 8 lubang penyembelihan</div></div></div>';
+  var html = '<div class="page-header"><div><div class="page-title">Penyembelihan</div><div class="page-subtitle">Monitoring 10 lubang penyembelihan</div></div></div>';
   html += '<div class="stats-grid">';
-  html += statCardHtml('maroon','Tersembelih',dip,pct(dip,total)+'%','maroon');
-  html += statCardHtml('blue','Belum',total-dip,'Sisa','blue');
+  html += statCardHtml('green','Tersembelih',dip,pct(dip,total)+'%','green');
+  html += statCardHtml('maroon','Belum',total-dip,'Sisa','maroon');
   html += '</div>';
-  html += '<div class="grid-4">';
+  html += '<div class="grid-5">';
   (state.sembelih||[]).forEach(function(s) {
-    html += '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Lubang #'+s.no+'</div><span class="status-badge '+statusClass(s.status)+'">'+statusLabel(s.status)+'</span></div>';
-    html += '<div class="unit-val">'+(s.dipotong||0)+'</div><div class="unit-meta">Hewan dipotong</div>';
-    html += '<div class="unit-times"><div><div style="font-size:10px;color:var(--text-muted)">Mulai</div><div class="unit-time-val">'+(s.waktuMulai||'-')+'</div></div><div><div style="font-size:10px;color:var(--text-muted)">Selesai</div><div class="unit-time-val">'+(s.waktuSelesai||'-')+'</div></div></div></div>';
+    html += '<div class="unit-card"><div class="unit-card-header"><div class="unit-num">Lubang #'+s.no+'</div></div>';
+    html += '<div class="unit-val" style="color:var(--green)">'+(s.dipotong||0)+'</div><div class="unit-meta">Hewan dipotong</div></div>';
   });
   html += '</div>';
   return html;
@@ -1787,11 +1788,10 @@ function mwKandang(state) {
 }
 
 function mwSembelih(state) {
-  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Penyembelihan - '+totalDipotongDay(state)+' dipotong</div>';
+  var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Penyembelihan - '+totalDipotongDay(state)+' Dipotong</div>';
   h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">';
   (state.sembelih||[]).forEach(function(s){
-    var col=s.status==='selesai'?'var(--green)':s.status==='berjalan'?'var(--blue)':'var(--maroon)';
-    h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:16px;text-align:center;border-left:4px solid '+col+'"><div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Lubang #'+s.no+'</div><div style="font-size:32px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:'+col+';line-height:1">'+(s.dipotong||0)+'</div><div style="margin-top:8px"><span class="status-badge '+statusClass(s.status)+'" style="font-size:11px">'+statusLabel(s.status)+'</span></div></div>';
+    h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:16px;text-align:center;border-left:4px solid var(--green)"><div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Lubang #'+s.no+'</div><div style="font-size:32px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+(s.dipotong||0)+'</div></div>';
   });
   return h + '</div></div>';
 }
