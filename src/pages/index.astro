@@ -1902,6 +1902,7 @@ function mwDaySummary() {
 var monitorTickBusy = false;
 function monitorTick() {
   if (monitorTickBusy) return;
+  if (isSaving || pendingSave || saveTimeout) { renderMonitorDashboard(); return; }
   monitorTickBusy = true;
   loadAllStates().then(function() {
     return loadSettings();
@@ -2078,6 +2079,7 @@ function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(function() {
     if (currentPage === 'input' || currentPage === 'pengaturan') return;
+    if (isSaving || pendingSave || saveTimeout) return;
     loadAllStates().then(function() {
       return loadSettings();
     }).then(function() {
