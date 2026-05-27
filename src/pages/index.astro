@@ -606,40 +606,63 @@ var autoRefreshInterval=null;
 var monitorMode=false, monitorInterval=null;
 
 function migrateState(s) {
-  if (!s) return s;
-  // kalet → lane migration
-  if (!s.lane && s.kalet) {
-    s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};});
-  }
-  if (!s.lane) s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};});
-  if (s.pengulitanMulai === undefined) s.pengulitanMulai = '';
-  if (s.pengulitanSelesai === undefined) s.pengulitanSelesai = '';
+  if (!s) return {state: defaultDayState(), changed: false};
+  var changed = false;
+  // kalet → lane
+  if (!s.lane && s.kalet) { s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};}); changed = true; }
+  if (!s.lane) { s.lane = Array.from({length:6},function(_,i){return {no:i+1,total:0};}); changed = true; }
+  if (s.pengulitanMulai === undefined) { s.pengulitanMulai = ''; changed = true; }
+  if (s.pengulitanSelesai === undefined) { s.pengulitanSelesai = ''; changed = true; }
   // kandang/sembelih expand to 10
-  if (s.kandang && s.kandang.length < 10) {
-    while (s.kandang.length < 10) s.kandang.push({no:s.kandang.length+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:''});
-  }
-  if (s.sembelih && s.sembelih.length < 10) {
-    while (s.sembelih.length < 10) s.sembelih.push({no:s.sembelih.length+1,dipotong:0,waktuMulai:'',waktuSelesai:''});
-  }
-  // transit kaki+kepala merge
-  if (s.transit && s.transit.kaki !== undefined && s.transit.kakiKepala === undefined) {
-    s.transit.kakiKepala = (s.transit.kaki||0) + (s.transit.kepala||0);
-  }
-  if (s.transit && s.transit.kakiKepala === undefined) s.transit.kakiKepala = 0;
-  // distribusiKecil old format migration
-  if (s.distribusiKecil && !s.distribusiKecil.lokasi) {
-    s.distribusiKecil = {lokasi:[], waktuMulai:s.distribusiKecil.waktuMulai||'', waktuSelesai:s.distribusiKecil.waktuSelesai||''};
-  }
-  return s;
+  if (s.kandang && s.kandang.length < 10) { while (s.kandang.length < 10) s.kandang.push({no:s.kandang.length+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:''}); changed = true; }
+  if (s.sembelih && s.sembelih.length < 10) { while (s.sembelih.length < 10) s.sembelih.push({no:s.sembelih.length+1,dipotong:0,waktuMulai:'',waktuSelesai:''}); changed = true; }
+  // transit merge
+  if (s.transit && s.transit.kaki !== undefined && s.transit.kakiKepala === undefined) { s.transit.kakiKepala = (s.transit.kaki||0) + (s.transit.kepala||0); changed = true; }
+  if (s.transit && s.transit.kakiKepala === undefined) { s.transit.kakiKepala = 0; changed = true; }
+  if (s.transit && s.transit.waktuMulai === undefined) { s.transit.waktuMulai = ''; s.transit.waktuSelesai = ''; changed = true; }
+  // distribusiKecil
+  if (s.distribusiKecil && !s.distribusiKecil.lokasi) { s.distribusiKecil = {lokasi:[], waktuMulai:s.distribusiKecil.waktuMulai||'', waktuSelesai:s.distribusiKecil.waktuSelesai||''}; changed = true; }
+  // packingKarkas domba/sapi
+  if (s.packingKarkas && s.packingKarkas.total !== undefined && s.packingKarkas.domba === undefined) { s.packingKarkas.domba = s.packingKarkas.total||0; s.packingKarkas.sapi = 0; delete s.packingKarkas.total; changed = true; }
+  // distribusiKarkas domba/sapi
+  if (s.distribusiKarkas && s.distribusiKarkas.selesai !== undefined && s.distribusiKarkas.selesaiDomba === undefined) { s.distribusiKarkas.selesaiDomba = s.distribusiKarkas.selesai||0; s.distribusiKarkas.selesaiSapi = 0; s.distribusiKarkas.domba = s.distribusiKarkas.total||0; s.distribusiKarkas.sapi = 0; delete s.distribusiKarkas.total; delete s.distribusiKarkas.selesai; changed = true; }
+  // ensure all fields exist
+  if (!s.karkas) { s.karkas = {total:0,waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (!s.abf) { s.abf = {keluar:0,waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (!s.packingKecil) { s.packingKecil = {total:0,waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (!s.packingKarkas) { s.packingKarkas = {domba:0,sapi:0,waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (!s.distribusiKecil) { s.distribusiKecil = {lokasi:[],waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (!s.distribusiKarkas) { s.distribusiKarkas = {domba:0,sapi:0,selesaiDomba:0,selesaiSapi:0,waktuMulai:'',waktuSelesai:''}; changed = true; }
+  if (s.cacahDariAbf === undefined) { s.cacahDariAbf = 0; changed = true; }
+  return {state: s, changed: changed};
 }
 
+var migrationDone = false;
 function loadAllStates() {
   return fetch('/api/day-state?day=all').then(function(r) {
     if (r.ok) return r.json();
     return null;
   }).then(function(d) {
-    if (d) { for (var i = 1; i <= 4; i++) dayStates[i] = migrateState(d[String(i)] || defaultDayState()); }
-    else { for (var i = 1; i <= 4; i++) if (!dayStates[i]) dayStates[i] = defaultDayState(); }
+    var saves = [];
+    if (d) {
+      for (var i = 1; i <= 4; i++) {
+        var raw = d[String(i)] || defaultDayState();
+        if (!migrationDone) {
+          var result = migrateState(raw);
+          dayStates[i] = result.state;
+          if (result.changed) saves.push(saveDayState(i));
+        } else {
+          dayStates[i] = raw;
+        }
+      }
+    } else {
+      for (var i = 1; i <= 4; i++) if (!dayStates[i]) dayStates[i] = defaultDayState();
+    }
+    if (saves.length) {
+      migrationDone = true;
+      return Promise.all(saves);
+    }
+    migrationDone = true;
   }).catch(function() {
     for (var i = 1; i <= 4; i++) if (!dayStates[i]) dayStates[i] = defaultDayState();
   });
