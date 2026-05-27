@@ -1650,12 +1650,21 @@ var monitorWidgetReg = [
   {id:'day-summary',name:'Ringkasan per Day',on:false}
 ];
 
+function monitorSettingsKey() { return 'mw_' + currentView; }
+function monitorOrderKey() { return 'mo_' + currentView; }
+
 function loadMonitorWidgets() {
-  var saved = settings.monitorWidgets;
+  // Reset to defaults first
+  var defaults = [{id:'stats',on:true},{id:'pipeline',on:true},{id:'chart-bar',on:true},{id:'chart-pie',on:true},{id:'kandang',on:false},{id:'sembelih',on:false},{id:'transit',on:false},{id:'pengulitan',on:false},{id:'karkas-abf',on:false},{id:'cacah',on:false},{id:'packing',on:false},{id:'distribusi',on:false},{id:'waktu',on:true},{id:'clock',on:false},{id:'day-summary',on:false}];
+  monitorWidgetReg.forEach(function(w) { var d = defaults.find(function(x){return x.id===w.id}); w.on = d ? d.on : false; });
+
+  var key = monitorSettingsKey();
+  var saved = settings[key];
   if (saved && typeof saved === 'object') {
     monitorWidgetReg.forEach(function(w) { if (saved[w.id] !== undefined) w.on = !!saved[w.id]; });
   }
-  var order = settings.monitorOrder;
+  var orderKey = monitorOrderKey();
+  var order = settings[orderKey];
   if (order && Array.isArray(order) && order.length) {
     var sorted = [];
     order.forEach(function(id) { var w = monitorWidgetReg.find(function(x){return x.id===id}); if(w) sorted.push(w); });
@@ -1667,8 +1676,8 @@ function loadMonitorWidgets() {
 function saveMonitorWidgets() {
   var obj = {};
   monitorWidgetReg.forEach(function(w) { obj[w.id] = w.on; });
-  settings.monitorWidgets = obj;
-  settings.monitorOrder = monitorWidgetReg.map(function(w) { return w.id; });
+  settings[monitorSettingsKey()] = obj;
+  settings[monitorOrderKey()] = monitorWidgetReg.map(function(w) { return w.id; });
   queueSettingsSave();
 }
 
