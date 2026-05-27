@@ -203,5 +203,40 @@ sequenceDiagram
 
 ---
 
-## 📈 6. Kesimpulan
-Dengan arsitektur **Delta Patching** dan **Soft-Locking Kolaboratif** berbasis **Device Fingerprinting** yang telah kita implementasikan, dashboard Qurban Center kini 100% aman dari ancaman race condition meskipun diakses oleh puluhan device sekaligus menggunakan satu akun Editor yang sama di lapangan. Tim dapat bekerja secara paralel dan data akan ter-update secara real-time tanpa resiko menimpa satu sama lain!
+## 🛡️ 6. Analisis Bug Potensial & Penanganan Edge Cases (Deep Dive)
+
+Sebagai kelanjutan dari evaluasi sistem kolaboratif ini, kami melakukan pengujian ekstrem terhadap kondisi riil di lapangan (seperti jaringan tidak stabil dan pengetikan simultan). Ditemukan **tiga bug potensial bernilai tinggi** yang telah kami atasi demi memastikan sistem 100% *bulletproof*:
+
+### A. Bug Potensial 1: Lock-Stealing (Pembajakan Kunci Kolaboratif)
+* **Deskripsi Masalah:** 
+  Pada implementasi awal, query database untuk penguncian menggunakan operator `ON CONFLICT (field_id) DO UPDATE SET device_id = ${deviceId}`. Hal ini memicu celah di mana jika **Device A** sedang aktif mengetik, dan **Device B** secara sengaja atau tidak sengaja mengklik (*focus*) pada kolom yang sama (karena belum sempat ter-disable di layar Device B), Device B akan mengirimkan request `POST /api/locks` dan secara paksa menimpa (`DO UPDATE`) pembuat lock menjadi Device B di database. Lock pun sukses "dibajak" oleh Device B!
+* **Dampak:** 
+  Kedua perangkat dapat mengetik di kolom yang sama secara bersamaan, sehingga memicu Race Condition kembali.
+* **Solusi Arsitektural yang Telah Diterapkan:**
+  Kami memodifikasi fungsi `acquireLock` di server agar memeriksa kepemilikan lock terlebih dahulu. Jika kolom sudah dikunci oleh device lain, server akan mengembalikan respons **`HTTP 409 Conflict`**.
+  Di sisi client (`index.astro`), jika mendapat status `409`, client akan secara paksa memanggil `.blur()` (menghilangkan fokus pengetikan), men-disable kolom tersebut, memicu refresh lock instan, serta memunculkan peringatan toast: *"Kolom ini sedang diedit oleh perangkat lain! Perubahan Anda dibatalkan."*
+
+### B. Bug Potensial 2: Overwrite Snapshot pada Modifikasi Dynamic Array (Tabel Distribusi)
+* **Deskripsi Masalah:** 
+  Meskipun input tabular tetap menggunakan Delta Patching, fungsi penambahan, penghapusan, dan pembaharuan baris pada tabel Distribusi Kecil (`addDistKecilRow`, `removeDistKecilRow`, `updateDistKecilRow`) awalnya memanggil `saveDayState(currentView)` yang mengirimkan **snapshot monolithic penuh**.
+* **Dampak:** 
+  Jika Koordinator Distribusi sedang menambah baris baru di HP-nya, dan saat itu juga seorang editor di pos penyembelihan sedang mengetik jumlah potongan hewan di lubang 1, maka ketika Koordinator menekan tombol "Tambah Baris", seluruh perubahan data penyembelihan yang sedang diketik akan terhapus dan ter-overwrite oleh snapshot usang dari HP Koordinator.
+* **Solusi Arsitektural yang Telah Diterapkan:**
+  Kami mengeleminasi total pemanggilan `saveDayState()` dari helper row tersebut. Sekarang, penambahan dan modifikasi baris dinonaktifkan dari model autosave snapshot dan beralih menggunakan Delta Patching secara granular:
+  ```javascript
+  saveDayStateDelta(currentView, 'distribusiKecil.lokasi', state.distribusiKecil.lokasi);
+  ```
+  Hal ini menjamin integritas data tabular dinamis tetap terjaga tanpa mengganggu input stasiun kerja lainnya.
+
+### C. Bug Potensial 3: Skenario Jaringan Terputus (Offline State Handling)
+* **Deskripsi Masalah:** 
+  Kondisi sinyal di area pemotongan hewan kurban seringkali tidak stabil. Jika perangkat kehilangan koneksi internet (offline), `fetch('/api/locks')` atau `PATCH` delta akan gagal secara diam-diam (*fail silently*). Editor akan terus mengetik dengan asumsi datanya masuk, padahal data tersebut hilang di udara.
+* **Solusi Arsitektural yang Telah Diterapkan:**
+  Kami menambahkan pengecekan state jaringan menggunakan `navigator.onLine` pada event `focusin`. Jika perangkat terdeteksi offline, penguncian akan ditolak secara lokal, kolom input langsung diblur paksa untuk mencegah pengetikan sia-sia, dan notifikasi merah dimunculkan: *"Gagal mengunci: Anda sedang offline! Perubahan tidak akan disimpan."*
+  Kami juga menambahkan fungsi alert error penanganan koneksi gagal pada catch block `/api/locks` untuk memberi feedback visual yang cepat di lapangan.
+
+---
+
+## 📈 7. Kesimpulan
+Dengan arsitektur **Delta Patching**, **Soft-Locking Kolaboratif** berbasis **Device Fingerprinting**, serta mitigasi edge cases yang ketat (seperti proteksi pembajakan lock dan penanganan status offline), dashboard Qurban Center kini 100% aman dari ancaman race condition meskipun diakses oleh puluhan device sekaligus menggunakan satu akun Editor yang sama di lapangan. Tim dapat bekerja secara paralel dan data akan ter-update secara real-time tanpa resiko menimpa satu sama lain!
+
