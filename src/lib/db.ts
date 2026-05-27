@@ -1,8 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 
+declare const process: any;
+
 const DATABASE_URL = 'postgresql://neondb_owner:npg_lfi4whnS9pTo@ep-fragrant-frog-ao3dh0wh-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
 
 export function getDbUrl(): string {
+  if (typeof process !== 'undefined' && process.env && process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
   return DATABASE_URL;
 }
 
@@ -245,3 +250,71 @@ export async function saveGlobalSettings(data: unknown) {
     SET data = ${json}::jsonb, updated_at = NOW()
   `;
 }
+
+// --- Collaborative Multi-Device Lock & Patch Helper Functions ---
+
+export async function patchDayState(day: number, path: string, value: unknown) {
+  const sql = createSql();
+  const id = 'day-' + day;
+  const pathParts = path.split('.');
+  const jsonValue = JSON.stringify(value);
+
+  // Ensure row exists first
+  const exist = await sql`SELECT 1 FROM qurban_state WHERE id = ${id}`;
+  if (exist.length === 0) {
+    const defaultData = defaultDayState();
+    await saveDayState(day, defaultData);
+  }
+
+  await sql`
+    UPDATE qurban_state
+    SET data = jsonb_set(data, ${pathParts}, ${jsonValue}::jsonb, true), updated_at = NOW()
+    WHERE id = ${id}
+  `;
+}
+
+export async function patchState(path: string, value: unknown) {
+  const sql = createSql();
+  const id = 'default';
+  const pathParts = path.split('.');
+  const jsonValue = JSON.stringify(value);
+
+  const exist = await sql`SELECT 1 FROM qurban_state WHERE id = ${id}`;
+  if (exist.length === 0) {
+    const defaultData = defaultState();
+    await saveState(defaultData);
+  }
+
+  await sql`
+    UPDATE qurban_state
+    SET data = jsonb_set(data, ${pathParts}, ${jsonValue}::jsonb, true), updated_at = NOW()
+    WHERE id = ${id}
+  `;
+}
+
+export async function acquireLock(fieldId: string, deviceId: string) {
+  const sql = createSql();
+  await sql`
+    INSERT INTO qurban_locks (field_id, device_id, updated_at)
+    VALUES (${fieldId}, ${deviceId}, NOW())
+    ON CONFLICT (field_id) DO UPDATE
+    SET device_id = ${deviceId}, updated_at = NOW()
+  `;
+}
+
+export async function releaseLock(fieldId: string, deviceId: string) {
+  const sql = createSql();
+  await sql`
+    DELETE FROM qurban_locks
+    WHERE field_id = ${fieldId} AND device_id = ${deviceId}
+  `;
+}
+
+export async function getActiveLocks() {
+  const sql = createSql();
+  // Auto-expire locks older than 10 seconds
+  await sql`DELETE FROM qurban_locks WHERE updated_at < NOW() - INTERVAL '10 seconds'`;
+  const result = await sql`SELECT field_id, device_id FROM qurban_locks`;
+  return result;
+}
+

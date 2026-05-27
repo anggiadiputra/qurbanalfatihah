@@ -1,7 +1,15 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "bundler"
+    "moduleResolution": "node",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
   }
 }

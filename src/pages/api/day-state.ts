@@ -1,5 +1,5 @@
 import type { APIContext } from 'astro';
-import { getDayState, saveDayState, getAllDayStates, defaultDayState } from '../../lib/db';
+import { getDayState, saveDayState, getAllDayStates, defaultDayState, patchDayState } from '../../lib/db';
 
 export async function GET({ url }: APIContext) {
   try {
@@ -48,7 +48,11 @@ export async function PATCH({ request, url }: APIContext) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    await saveDayState(day, body);
+    if (body.path !== undefined && body.value !== undefined) {
+      await patchDayState(day, body.path, body.value);
+    } else {
+      await saveDayState(day, body);
+    }
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });

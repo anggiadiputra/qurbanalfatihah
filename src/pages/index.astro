@@ -788,6 +788,190 @@ function saveDayState(day) {
     });
 }
 
+// --- Collaborative Multi-Device Lock & Delta Patch Helpers ---
+var activeLocks = [];
+
+function isFieldAllowedForStation(id, station) {
+  if (!station || station === 'all') return true;
+  if (station === 'kandang') {
+    return id === 'inp_totalHewan' || id === 'inp_tanggal' || id === 'inp_waktuMulai' || id === 'inp_waktuSelesai' ||
+           id.startsWith('f_kandang_') || id.startsWith('f_sembelih_');
+  }
+  if (station === 'transit') {
+    return id === 'inp_kakiKepalaTransit' || id === 'inp_transitMulai' || id === 'inp_transitSelesai' ||
+           id.startsWith('f_lane_total_') || id.startsWith('inp_pengulitan');
+  }
+  if (station === 'cacah') {
+    return id.startsWith('inp_karkas') || id.startsWith('inp_abf') || id.startsWith('f_cacah_') ||
+           id === 'inp_cacahDariAbf' || id.startsWith('inp_pack');
+  }
+  if (station === 'distribusi') {
+    return id.startsWith('inp_dist') || id.startsWith('dk_jumlah_') || id.startsWith('dk_nama_') || id.startsWith('dk_status_');
+  }
+  return false;
+}
+
+function isFieldLockedByOther(id) {
+  if (!activeLocks || !window.qurbanDeviceId) return false;
+  for (var i = 0; i < activeLocks.length; i++) {
+    if (activeLocks[i].field_id === id && activeLocks[i].device_id !== window.qurbanDeviceId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function saveDayStateDelta(day, path, value) {
+  showSaveIndicator(true);
+  var payload = { path: path, value: value };
+  console.log('[SAVE-DELTA] day='+day+' path='+path+' value='+JSON.stringify(value));
+  return fetch('/api/day-state?day='+day, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { 
+    if(!r.ok) throw new Error('HTTP '+r.status); 
+    console.log('[SAVE-DELTA] day='+day+' path='+path+' OK'); 
+  })
+  .catch(function(e) { 
+    console.error('[SAVE-DELTA] FAIL', e); 
+    toast('Gagal menyimpan otomatis','error'); 
+  })
+  .then(function() {
+    showSaveIndicator(false);
+  });
+}
+
+function saveElementDelta(el) {
+  if (!el || !el.id) return;
+  var id = el.id;
+  var val = el.value;
+  var path = null;
+  var stateValue = val;
+  var state = dayStates[currentView];
+  if (!state) return;
+
+  if (id === 'inp_totalHewan') { path = 'totalHewan'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_tanggal') { path = 'tanggal'; }
+  else if (id === 'inp_waktuMulai') { path = 'waktuMulai'; }
+  else if (id === 'inp_waktuSelesai') { path = 'waktuSelesai'; }
+  else if (id.startsWith('f_kandang_keluar_')) {
+    var no = parseInt(id.replace('f_kandang_keluar_', ''));
+    path = 'kandang.' + (no - 1) + '.keluar';
+    stateValue = parseInt(val) || 0;
+  }
+  else if (id === 'f_kandang_mulai') {
+    (state.kandang || []).forEach(function(k, idx) {
+      saveDayStateDelta(currentView, 'kandang.' + idx + '.waktuMulai', val);
+    });
+    return;
+  }
+  else if (id === 'f_kandang_selesai') {
+    (state.kandang || []).forEach(function(k, idx) {
+      saveDayStateDelta(currentView, 'kandang.' + idx + '.waktuSelesai', val);
+    });
+    return;
+  }
+  else if (id.startsWith('f_sembelih_dipotong_')) {
+    var no = parseInt(id.replace('f_sembelih_dipotong_', ''));
+    path = 'sembelih.' + (no - 1) + '.dipotong';
+    stateValue = parseInt(val) || 0;
+  }
+  else if (id === 'f_sembelih_mulai') {
+    (state.sembelih || []).forEach(function(s, idx) {
+      saveDayStateDelta(currentView, 'sembelih.' + idx + '.waktuMulai', val);
+    });
+    return;
+  }
+  else if (id === 'f_sembelih_selesai') {
+    (state.sembelih || []).forEach(function(s, idx) {
+      saveDayStateDelta(currentView, 'sembelih.' + idx + '.waktuSelesai', val);
+    });
+    return;
+  }
+  else if (id === 'inp_kakiKepalaTransit') { path = 'transit.kakiKepala'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_transitMulai') { path = 'transit.waktuMulai'; }
+  else if (id === 'inp_transitSelesai') { path = 'transit.waktuSelesai'; }
+  else if (id.startsWith('f_lane_total_')) {
+    var no = parseInt(id.replace('f_lane_total_', ''));
+    path = 'lane.' + (no - 1) + '.total';
+    stateValue = parseInt(val) || 0;
+  }
+  else if (id === 'inp_pengulitanMulai') { path = 'pengulitanMulai'; }
+  else if (id === 'inp_pengulitanSelesai') { path = 'pengulitanSelesai'; }
+  else if (id === 'inp_karkasTotal') { path = 'karkas.total'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_karkasMulai') { path = 'karkas.waktuMulai'; }
+  else if (id === 'inp_karkasSelesai') { path = 'karkas.waktuSelesai'; }
+  else if (id === 'inp_abfKeluar') { path = 'abf.keluar'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_abfMulai') { path = 'abf.waktuMulai'; }
+  else if (id === 'inp_abfSelesai') { path = 'abf.waktuSelesai'; }
+  else if (id.startsWith('f_cacah_total_')) {
+    var no = parseInt(id.replace('f_cacah_total_', ''));
+    path = 'cacah.' + (no - 1) + '.total';
+    stateValue = parseInt(val) || 0;
+  }
+  else if (id === 'f_cacah_mulai') {
+    (state.cacah || []).forEach(function(c, idx) {
+      saveDayStateDelta(currentView, 'cacah.' + idx + '.waktuMulai', val);
+    });
+    return;
+  }
+  else if (id === 'f_cacah_selesai') {
+    (state.cacah || []).forEach(function(c, idx) {
+      saveDayStateDelta(currentView, 'cacah.' + idx + '.waktuSelesai', val);
+    });
+    return;
+  }
+  else if (id === 'inp_cacahDariAbf') { path = 'cacahDariAbf'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_packKecilTotal') { path = 'packingKecil.total'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_packKecilMulai') { path = 'packingKecil.waktuMulai'; }
+  else if (id === 'inp_packKecilSelesai') { path = 'packingKecil.waktuSelesai'; }
+  else if (id === 'inp_packKarkasDomba') { path = 'packingKarkas.domba'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_packKarkasSapi') { path = 'packingKarkas.sapi'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_packKarkasMulai') { path = 'packingKarkas.waktuMulai'; }
+  else if (id === 'inp_packKarkasSelesai') { path = 'packingKarkas.waktuSelesai'; }
+  else if (id === 'inp_distKecilMulai') { path = 'distribusiKecil.waktuMulai'; }
+  else if (id === 'inp_distKecilWSelesai') { path = 'distribusiKecil.waktuSelesai'; }
+  else if (id === 'inp_distKarkasDomba') { path = 'distribusiKarkas.domba'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_distKarkasSapi') { path = 'distribusiKarkas.sapi'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_distKarkasSelesaiDomba') { path = 'distribusiKarkas.selesaiDomba'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_distKarkasSelesaiSapi') { path = 'distribusiKarkas.selesaiSapi'; stateValue = parseInt(val) || 0; }
+  else if (id === 'inp_distKarkasMulai') { path = 'distribusiKarkas.waktuMulai'; }
+  else if (id === 'inp_distKarkasWSelesai') { path = 'distribusiKarkas.waktuSelesai'; }
+
+  if (path) {
+    saveDayStateDelta(currentView, path, stateValue);
+  }
+}
+
+function acquireFieldLock(fieldId) {
+  if (!window.qurbanDeviceId || !fieldId) return;
+  fetch('/api/locks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ field_id: fieldId, device_id: window.qurbanDeviceId })
+  }).catch(function(){});
+}
+
+function releaseFieldLock(fieldId) {
+  if (!window.qurbanDeviceId || !fieldId) return;
+  fetch('/api/locks', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ field_id: fieldId, device_id: window.qurbanDeviceId })
+  }).catch(function(){});
+}
+
+function fetchActiveLocks() {
+  return fetch('/api/locks')
+    .then(function(r) { if (r.ok) return r.json(); return []; })
+    .then(function(data) {
+      activeLocks = data || [];
+    }).catch(function(){});
+}
+
+
 function loadSettings() {
   return fetch('/api/global-settings').then(function(r){ if(r.ok) return r.json(); return null; })
     .then(function(d){ if(d) settings=d; }).catch(function(){});
@@ -1016,8 +1200,10 @@ function setupPageListeners() {
   // Auto-save for input page
   var pc = document.getElementById('pageContent');
   if (currentPage === 'input' && currentView !== 'all') {
-    pc.addEventListener('input', function(e) { if (e.target.classList.contains('form-control')) { lastInputTime=Date.now(); collectCurrentFormData(); queueDaySave(currentView); } });
-    pc.addEventListener('change', function(e) { if (e.target.classList.contains('form-control')) { lastInputTime=Date.now(); collectCurrentFormData(); queueDaySave(currentView); } });
+    pc.addEventListener('input', function(e) { if (e.target.classList.contains('form-control')) { lastInputTime=Date.now(); collectCurrentFormData(); saveElementDelta(e.target); } });
+    pc.addEventListener('change', function(e) { if (e.target.classList.contains('form-control')) { lastInputTime=Date.now(); collectCurrentFormData(); saveElementDelta(e.target); } });
+    pc.addEventListener('focusin', function(e) { if (e.target.classList.contains('form-control')) { acquireFieldLock(e.target.id); } });
+    pc.addEventListener('focusout', function(e) { if (e.target.classList.contains('form-control')) { releaseFieldLock(e.target.id); } });
   }
   // Kalet search/filter
   var searchEl = document.getElementById('searchKalet');
@@ -1578,10 +1764,28 @@ function renderInputPage(state) {
 }
 
 function fg(label,type,id,val) {
-  if (type === 'number') {
-    return '<div class="form-group"><label>'+label+'</label><div class="num-input-wrap"><button type="button" class="num-btn" onclick="numStep(\''+id+'\',-1)">-</button><input type="number" class="form-control" id="'+id+'" value="'+(val!=null?val:0)+'" min="0"><button type="button" class="num-btn" onclick="numStep(\''+id+'\',1)">+</button></div></div>';
+  var station = localStorage.getItem('qurban_station') || 'all';
+  var isAllowed = isFieldAllowedForStation(id, station);
+  var isLocked = isFieldLockedByOther(id);
+  
+  var disabledAttr = '';
+  var statusBadge = '';
+  
+  if (!isAllowed) {
+    disabledAttr = ' disabled style="opacity:0.65;background-color:var(--surface2);"';
+  } else if (isLocked) {
+    disabledAttr = ' disabled style="opacity:0.65;background-color:var(--surface2);border-color:var(--amber);"';
+    statusBadge = '<span style="font-size:10px;color:var(--amber);font-weight:600;margin-left:8px;">🟠 Terkunci (Device Lain)</span>';
   }
-  return '<div class="form-group"><label>'+label+'</label><input type="'+type+'" class="form-control" id="'+id+'" value="'+(val!=null?val:'')+'"></div>';
+
+  if (type === 'number') {
+    return '<div class="form-group"><label>'+label+statusBadge+'</label><div class="num-input-wrap">' +
+      (disabledAttr ? '' : '<button type="button" class="num-btn" onclick="numStep(\''+id+'\',-1)">-</button>') +
+      '<input type="number" class="form-control" id="'+id+'" value="'+(val!=null?val:0)+'" min="0"'+disabledAttr+(disabledAttr ? ' style="width:100%;text-align:center;"' : '')+'>' +
+      (disabledAttr ? '' : '<button type="button" class="num-btn" onclick="numStep(\''+id+'\',1)">+</button>') +
+      '</div></div>';
+  }
+  return '<div class="form-group"><label>'+label+statusBadge+'</label><input type="'+type+'" class="form-control" id="'+id+'" value="'+(val!=null?val:'')+'"'+disabledAttr+'></div>';
 }
 function numStep(id, dir) {
   var el = document.getElementById(id);
@@ -1618,7 +1822,20 @@ function distKecilNumStep(idx, dir) {
   updateDistKecilRow(idx, 'jumlah', Math.max(0, v+dir));
 }
 function fgSelect(label,id,current) {
-  return '<div class="form-group"><label>'+label+'</label><select class="form-control" id="'+id+'">'+statusOpts(current)+'</select></div>';
+  var station = localStorage.getItem('qurban_station') || 'all';
+  var isAllowed = isFieldAllowedForStation(id, station);
+  var isLocked = isFieldLockedByOther(id);
+  
+  var disabledAttr = '';
+  var statusBadge = '';
+  
+  if (!isAllowed) {
+    disabledAttr = ' disabled style="opacity:0.65;background-color:var(--surface2);"';
+  } else if (isLocked) {
+    disabledAttr = ' disabled style="opacity:0.65;background-color:var(--surface2);border-color:var(--amber);"';
+    statusBadge = '<span style="font-size:10px;color:var(--amber);font-weight:600;margin-left:8px;">🟠 Terkunci</span>';
+  }
+  return '<div class="form-group"><label>'+label+statusBadge+'</label><select class="form-control" id="'+id+'"'+disabledAttr+'>'+statusOpts(current)+'</select></div>';
 }
 
 function collectCurrentFormData() {
@@ -1727,6 +1944,21 @@ function renderPengaturan() {
   // Sistem
   html += '<div class="card" style="max-width:600px">';
   html += '<div style="font-weight:700;font-size:15px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-light)">Sistem</div>';
+  
+  var activeStation = localStorage.getItem('qurban_station') || 'all';
+  var stations = [
+    { id: 'all', name: 'Semua (Command Center)' },
+    { id: 'kandang', name: 'Pos Kandang & Sembelih' },
+    { id: 'transit', name: 'Pos Transit & Pengulitan' },
+    { id: 'cacah', name: 'Pos Pencacahan & Packing' },
+    { id: 'distribusi', name: 'Pos Distribusi' }
+  ];
+  html += '<div class="settings-row"><div><div class="settings-label">Stasiun Kerja Perangkat</div><div class="settings-desc">Pilih stasiun/pos fisik perangkat ini</div></div><select class="form-control" id="settingsStation" style="width:200px">';
+  stations.forEach(function(st) {
+    html += '<option value="' + st.id + '"' + (activeStation === st.id ? ' selected' : '') + '>' + st.name + '</option>';
+  });
+  html += '</select></div>';
+
   html += '<div class="settings-row"><div><div class="settings-label">Dark Mode</div><div class="settings-desc">Tampilan gelap</div></div><button class="toggle-switch'+(settings.darkMode?' on':'')+'" id="darkModeSwitch"></button></div>';
   html += '<div class="settings-row"><div><div class="settings-label">Auto Refresh</div><div class="settings-desc">Refresh data setiap 1 detik</div></div><button class="toggle-switch'+(settings.autoRefresh!==false?' on':'')+'" id="autoRefreshSwitch"></button></div>';
   html += '<div class="settings-row"><div><div class="settings-label">Export Excel</div><div class="settings-desc">Download semua data</div></div><button class="btn btn-secondary btn-sm" onclick="exportExcel()">Download</button></div>';
@@ -2179,6 +2411,14 @@ function bindSettingsListeners() {
   if (darkSwitch) darkSwitch.addEventListener('click', function() { toggleDark(); darkSwitch.classList.toggle('on', settings.darkMode); });
   var arSwitch = document.getElementById('autoRefreshSwitch');
   if (arSwitch) arSwitch.addEventListener('click', function() { toggleAutoRefresh(); arSwitch.classList.toggle('on', settings.autoRefresh !== false); });
+  var stationEl = document.getElementById('settingsStation');
+  if (stationEl) {
+    stationEl.addEventListener('change', function() {
+      localStorage.setItem('qurban_station', stationEl.value);
+      renderCurrentPage();
+      toast('Stasiun kerja diubah ke ' + stationEl.options[stationEl.selectedIndex].text, 'success');
+    });
+  }
 }
 
 // ================================================================
@@ -2197,12 +2437,26 @@ function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(function() {
     if (currentPage === 'pengaturan') { return; }
-    if (isSaving || pendingSave || saveTimeout) { console.log('[REFRESH] skip (saving='+isSaving+' pending='+!!pendingSave+' timeout='+!!saveTimeout+')'); return; }
-    var isInputPage = (currentPage === 'input');
-    var recentlyTyped = isInputPage && (Date.now() - lastInputTime < 3000);
-    if (isInputPage && recentlyTyped) {
-      // User is actively typing - only fetch data into memory, don't re-render
-      console.log('[REFRESH] input page - background sync only (user typing)');
+    
+    fetchActiveLocks().then(function() {
+      var isInputPage = (currentPage === 'input');
+      var recentlyTyped = isInputPage && (Date.now() - lastInputTime < 3000);
+      if (isInputPage && recentlyTyped) {
+        // User is actively typing - only fetch data into memory, don't re-render
+        console.log('[REFRESH] input page - background sync only (user typing)');
+        loadAllStates().then(function() {
+          return loadSettings();
+        }).then(function() {
+          if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
+            window.location.reload(); return;
+          }
+          lastKnownForceTs = settings.forceRefreshTs || 0;
+          var shouldDark = !!settings.darkMode;
+          if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
+          applyTheme(loadTheme());
+        });
+        return;
+      }
       loadAllStates().then(function() {
         return loadSettings();
       }).then(function() {
@@ -2213,21 +2467,8 @@ function startAutoRefresh() {
         var shouldDark = !!settings.darkMode;
         if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
         applyTheme(loadTheme());
-        // Don't re-render - data is now in memory for when user navigates away
+        renderCurrentPage();
       });
-      return;
-    }
-    loadAllStates().then(function() {
-      return loadSettings();
-    }).then(function() {
-      if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
-        window.location.reload(); return;
-      }
-      lastKnownForceTs = settings.forceRefreshTs || 0;
-      var shouldDark = !!settings.darkMode;
-      if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
-      applyTheme(loadTheme());
-      renderCurrentPage();
     });
   }, 1000);
 }
@@ -2448,6 +2689,11 @@ renderCurrentPage = function() {
 // INIT
 // ================================================================
 document.addEventListener('DOMContentLoaded', function() {
+  if (!localStorage.getItem('qurban_device_id')) {
+    localStorage.setItem('qurban_device_id', 'dev_' + Math.random().toString(36).substring(2, 11));
+  }
+  window.qurbanDeviceId = localStorage.getItem('qurban_device_id');
+
   var params = new URLSearchParams(window.location.search);
   var dayParam = params.get('day');
   if (dayParam && ['1','2','3','4'].includes(dayParam)) currentView = dayParam;

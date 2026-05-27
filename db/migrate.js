@@ -1,18 +1,12 @@
 import { neon } from '@neondatabase/serverless';
 
-declare const process: any;
-
-const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  console.error('DATABASE_URL environment variable is required');
-  process.exit(1);
-}
+const DATABASE_URL = 'postgresql://neondb_owner:npg_8fAKDv4ZIPMw@ep-square-tree-ao6g82z5-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 const sql = neon(DATABASE_URL);
 
-async function migrate() {
-  console.log('Running migration...');
-
+async function run() {
+  console.log("Running migration via pure JS node runner...");
+  
   await sql`
     CREATE TABLE IF NOT EXISTS qurban_state (
       id TEXT PRIMARY KEY DEFAULT 'default',
@@ -63,13 +57,10 @@ async function migrate() {
       INSERT INTO qurban_state (id, data)
       VALUES ('default', ${JSON.stringify(defaultData)}::jsonb)
     `;
-    console.log('Inserted default state');
+    console.log("Default state inserted successfully.");
   }
 
-  console.log('Migration complete!');
+  console.log("Migration complete!");
 }
 
-migrate().catch((err) => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+run().catch(console.error);
