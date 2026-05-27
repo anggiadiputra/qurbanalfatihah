@@ -174,13 +174,13 @@ export function defaultDayState() {
     tanggal: '',
     waktuMulai: '',
     waktuSelesai: '',
-    kandang: Array.from({ length: 10 }, (_, i) => ({
+    kandang: Array.from({ length: 8 }, (_, i) => ({
       no: i + 1, total: 12, keluar: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    sembelih: Array.from({ length: 10 }, (_, i) => ({
+    sembelih: Array.from({ length: 8 }, (_, i) => ({
       no: i + 1, dipotong: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    transit: { kakiKepala: 0, hewan: 0, waktuMulai: '', waktuSelesai: '' },
+    transit: { kakiKepala: 0, hewan: 0 },
     lane: Array.from({ length: 6 }, (_, i) => ({
       no: i + 1, total: 0,
     })),
@@ -194,8 +194,8 @@ export function defaultDayState() {
     cacahDariAbf: 0,
     packingKecil: { total: 0, waktuMulai: '', waktuSelesai: '' },
     distribusiKecil: { lokasi: [] as Array<{ nama: string; jumlah: number; status: string }>, waktuMulai: '', waktuSelesai: '' },
-    packingKarkas: { domba: 0, sapi: 0, waktuMulai: '', waktuSelesai: '' },
-    distribusiKarkas: { domba: 0, sapi: 0, selesaiDomba: 0, selesaiSapi: 0, waktuMulai: '', waktuSelesai: '' },
+    packingKarkas: { total: 0, waktuMulai: '', waktuSelesai: '' },
+    distribusiKarkas: { total: 0, selesai: 0, waktuMulai: '', waktuSelesai: '' },
   };
 }
 
