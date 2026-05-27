@@ -583,7 +583,7 @@ function defaultDayState() {
     totalHewan:0, tanggal:'', waktuMulai:'', waktuSelesai:'',
     kandang: Array.from({length:8},function(_,i){return {no:i+1,total:12,keluar:0,waktuMulai:'',waktuSelesai:'',status:'belum'};}),
     sembelih: Array.from({length:8},function(_,i){return {no:i+1,dipotong:0,waktuMulai:'',waktuSelesai:''};}),
-    transit:{kakiKepala:0,hewan:0},
+    transit:{kakiKepala:0,hewan:0,waktuMulai:'',waktuSelesai:''},
     lane: Array.from({length:6},function(_,i){return {no:i+1,total:0};}),
     pengulitanMulai:'',pengulitanSelesai:'',
     karkas:{total:0,waktuMulai:'',waktuSelesai:''},
@@ -1094,11 +1094,17 @@ function renderTransitPage(state) {
   html += statCardHtml('green','Disembelih',dip,'Total','green');
   html += statCardHtml('purple','Dikuliti',dik,'Total','purple');
   html += '</div>';
-  html += '<div class="card"><div style="font-weight:700;margin-bottom:14px">Timeline Transit</div><div class="timeline">';
+  html += '<div class="card" style="margin-bottom:20px"><div style="font-weight:700;margin-bottom:14px">Timeline Transit</div><div class="timeline">';
   html += tlItem(dip>0?'green':'gray','Disembelih',dip+' hewan');
   html += tlItem(hewanTransit>0?'amber':'gray','Transit Menunggu',hewanTransit+' hewan');
   html += tlItem((t.kakiKepala||0)>0?'blue':'gray','Kaki & Kepala',(t.kakiKepala||0)+' tersedia');
   html += tlItem(dik>0?'green':'gray','Dikuliti',dik+' hewan',true);
+  html += '</div></div>';
+  html += '<div class="card"><div style="font-weight:700;margin-bottom:14px">Waktu Transit</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+  html += infoChip('Mulai',t.waktuMulai);
+  html += infoChip('Selesai',t.waktuSelesai);
+  html += infoChip('Durasi',durationStr(t.waktuMulai,t.waktuSelesai));
   html += '</div></div>';
   return html;
 }
@@ -1323,6 +1329,8 @@ function renderInputPage(state) {
   if (feat.transit) {
     html += '<div class="form-section"><div class="form-section-title">Data Transit</div><div class="form-grid">';
     html += fg('Kaki & Kepala','number','inp_kakiKepalaTransit',state.transit?.kakiKepala||0);
+    html += fg('Waktu Mulai','time','inp_transitMulai',state.transit?.waktuMulai||'');
+    html += fg('Waktu Selesai','time','inp_transitSelesai',state.transit?.waktuSelesai||'');
     html += '</div></div>';
   }
 
@@ -1497,6 +1505,8 @@ function collectCurrentFormData() {
   });
   if (state.transit) {
     state.transit.kakiKepala = gi('inp_kakiKepalaTransit');
+    state.transit.waktuMulai = gv('inp_transitMulai');
+    state.transit.waktuSelesai = gv('inp_transitSelesai');
   }
   (state.lane||[]).forEach(function(ln) {
     ln.total = gi('f_lane_total_'+ln.no);
@@ -1784,7 +1794,8 @@ function mwTransit(state) {
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Transit - '+hewanTransit+' Menunggu</div>'+
     '<div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
     monStatCard('blue','Kaki & Kepala',t.kakiKepala||0,'Tersedia')+monStatCard('amber','Hewan Transit',hewanTransit,'Menunggu')+monStatCard('green','Disembelih',dip,'Total')+monStatCard('purple','Dikuliti',dik,'Total')+
-    '</div></div>';
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px">'+infoChip('Mulai',t.waktuMulai)+infoChip('Selesai',t.waktuSelesai)+infoChip('Durasi',durationStr(t.waktuMulai,t.waktuSelesai))+'</div></div>';
 }
 
 function mwPengulitan(state) {

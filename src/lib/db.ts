@@ -180,7 +180,7 @@ export function defaultDayState() {
     sembelih: Array.from({ length: 8 }, (_, i) => ({
       no: i + 1, dipotong: 0, waktuMulai: '', waktuSelesai: '',
     })),
-    transit: { kakiKepala: 0, hewan: 0 },
+    transit: { kakiKepala: 0, hewan: 0, waktuMulai: '', waktuSelesai: '' },
     lane: Array.from({ length: 6 }, (_, i) => ({
       no: i + 1, total: 0,
     })),
