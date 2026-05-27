@@ -2475,10 +2475,16 @@ function startAutoRefresh() {
     
     fetchActiveLocks().then(function() {
       var isInputPage = (currentPage === 'input');
-      var recentlyTyped = isInputPage && (Date.now() - lastInputTime < 3000);
+      
+      // Check if user is currently focusing/editing any input, select or date picker
+      var activeEl = document.activeElement;
+      var isUserInteracting = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'TEXTAREA');
+      
+      var recentlyTyped = isInputPage && (isUserInteracting || (Date.now() - lastInputTime < 3000));
+      
       if (isInputPage && recentlyTyped) {
-        // User is actively typing - only fetch data into memory, don't re-render
-        console.log('[REFRESH] input page - background sync only (user typing)');
+        // User is actively editing - only fetch data into memory, don't re-render to avoid closing pickers
+        console.log('[REFRESH] input page - background sync only (user interacting)');
         loadAllStates().then(function() {
           return loadSettings();
         }).then(function() {
@@ -2492,6 +2498,7 @@ function startAutoRefresh() {
         });
         return;
       }
+      
       loadAllStates().then(function() {
         return loadSettings();
       }).then(function() {
