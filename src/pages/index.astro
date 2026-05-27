@@ -781,7 +781,7 @@ function saveDayState(day) {
   console.log('[SAVE] day='+day+' kandang1.keluar='+k1val+' size='+snapshot.length);
   return fetch('/api/day-state?day='+day, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:snapshot})
     .then(function(r) { if(!r.ok) throw new Error('HTTP '+r.status); console.log('[SAVE] day='+day+' OK'); })
-    .catch(function(e) { console.error('[SAVE] day='+day+' FAIL',e); toast('Gagal menyimpan','error'); })
+    .catch(function(e) { console.error('[SAVE] day='+day+' FAIL',e); toast('Maaf kak data gagal disimpan (^_^)', 'error'); })
     .then(function() {
       isSaving=false; showSaveIndicator(false);
       delete dirtyDays[day];
@@ -837,7 +837,7 @@ function saveDayStateDelta(day, path, value) {
   })
   .catch(function(e) { 
     console.error('[SAVE-DELTA] FAIL', e); 
-    toast('Gagal menyimpan otomatis','error'); 
+    toast('Maaf kak data gagal disimpan (^_^)', 'error'); 
   })
   .then(function() {
     showSaveIndicator(false);
