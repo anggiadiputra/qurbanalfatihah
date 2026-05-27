@@ -198,12 +198,105 @@ input,select,textarea{font-family:inherit}
   .main-content{margin-left:0!important;width:100%!important}
   .sidebar{transform:translateX(-100%)}
   .sidebar.mobile-open{transform:translateX(0)}
+
+  /* Header */
+  .header{padding:0 12px;gap:8px}
+  .header-title{font-size:14px}
+  .header-clock{display:none}
+  .header-actions{gap:4px}
+  .btn-icon{width:32px;height:32px}
+  .role-badge{font-size:10px;padding:3px 8px}
+
+  /* Page */
+  .page-content{padding:16px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .page-title{font-size:18px}
+  .page-actions{width:100%;flex-wrap:wrap}
+  .page-actions .btn{flex:1;min-width:0;justify-content:center;padding:8px 10px;font-size:11px}
+
+  /* Stat cards */
+  .stat-card{padding:14px}
+  .stat-value{font-size:26px}
+  .stat-label{font-size:10px}
+  .stat-badge{font-size:10px;padding:2px 8px;position:static;margin-top:6px}
+
+  /* Info grids (used in transit, karkas, etc.) */
+  .info-grid-3{grid-template-columns:1fr!important}
+  .info-grid-auto{grid-template-columns:repeat(2,1fr)!important}
+
+  /* Process item */
+  .process-item{grid-template-columns:1fr;gap:8px;padding:12px 14px}
+  .process-progress{width:100%}
+  .process-count{text-align:left}
+  .process-status{min-width:auto}
+
+  /* Form */
+  .form-grid{grid-template-columns:1fr!important}
+  .form-section{padding:14px}
+  .form-section-title{font-size:13px}
+
+  /* Distribusi kecil rows */
+  .dk-row-inner{grid-template-columns:1fr!important;gap:8px!important}
+  .dk-row-inner .num-input-wrap{width:100%!important}
+  .dk-row-inner select{width:100%!important}
+
+  /* Settings */
+  .settings-row{flex-wrap:wrap;gap:8px}
+  .settings-row .form-control,
+  .settings-row select{width:100%!important}
+
+  /* Cards */
+  .card{padding:16px}
+
+  /* Monitor */
+  .monitor-overlay{padding:12px 16px}
+  .monitor-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .monitor-header-left{flex-wrap:wrap;gap:8px}
+  .monitor-header-title{font-size:16px}
+  .monitor-header-clock{font-size:14px}
+  .monitor-editor-bar{flex-direction:column;align-items:stretch}
+  .monitor-widget-bar{gap:6px}
+  .mw-toggle{font-size:11px;padding:4px 8px}
+  .mon-stats-grid{grid-template-columns:repeat(2,1fr)!important}
+  .mon-clock-big{font-size:36px!important}
+
+  /* Config overlay */
+  .config-panel{width:95%;padding:16px}
+
+  /* Bar chart */
+  .bar-chart-big{height:120px;gap:6px}
+  .bar-val{font-size:12px}
+  .bar-label{font-size:10px}
+
+  /* Pie chart */
+  .mon-pie{width:140px!important;height:140px!important}
+
+  /* Toast */
+  .toast-container{left:12px;right:12px;bottom:12px}
+  .toast{min-width:auto}
+
+  /* Save indicator */
+  .save-indicator{right:12px;top:8px;font-size:11px;padding:4px 10px}
+
+  /* Table */
+  .table-responsive{margin:0 -14px}
+  .table-responsive table{min-width:400px}
+
+  /* Search */
+  .search-bar{flex-direction:column}
+  .search-input{min-width:0}
+  .filter-select{width:100%}
 }
 @media(max-width:480px){
   .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr}
   .dk-row-inner{grid-template-columns:1fr!important}
   .num-input-wrap{width:100%!important}
+  .stat-value{font-size:22px}
+  .page-actions .btn{font-size:10px;padding:7px 8px}
+  .info-grid-auto{grid-template-columns:1fr!important}
+  .mon-stats-grid{grid-template-columns:1fr!important}
+  .mon-clock-big{font-size:28px!important}
 }
 
 /* Status badges */
@@ -404,6 +497,11 @@ html.monitoring,body.monitoring{height:100%;overflow:hidden}
 .timeline-title{font-size:13px;font-weight:600}
 .timeline-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
 
+/* Responsive utility classes */
+.info-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.info-grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
 /* Print */
 @media print{.sidebar,.header,.page-actions,.header-actions,.save-indicator,.autosave-badge{display:none!important}.main-content{margin-left:0!important}.page-content{padding:16px}}
 
@@ -470,7 +568,7 @@ body[data-role="editor"] .admin-only{display:none!important}
       <div class="monitor-header-title" id="monitorTitle">Qurban Command Center</div>
       <div class="monitor-live-badge"><span class="monitor-live-dot"></span> LIVE</div>
     </div>
-    <div style="display:flex;align-items:center;gap:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <div class="monitor-header-date" id="monitorDate">--</div>
       <div class="monitor-header-clock" id="monitorClock">--:--:--</div>
       <button class="monitor-exit" id="monitorExitBtn">Keluar</button>
@@ -1010,7 +1108,7 @@ function renderRingkasan() {
     html += statCardHtml('purple','Cacah',p.dicacah,pct(p.dicacah,p.dikuliti||1)+'%','purple');
     html += statCardHtml('amber','Distribusi',dist,overPct+'%','amber');
     html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
+    html += '<div class="info-grid-auto" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
     html += infoChip('Tanggal',s.tanggal||'-');
     html += infoChip('Mulai',s.waktuMulai||'-');
     html += infoChip('Selesai',s.waktuSelesai||'-');
@@ -1055,7 +1153,7 @@ function renderDayDashboard(state) {
   // Progress bar
   html += '<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-weight:700;font-size:15px">Progress Keseluruhan</div><div class="mono" style="font-weight:700;color:var(--green)">'+overPct+'%</div></div>';
   html += '<div class="progress-bar" style="height:12px;margin-bottom:16px"><div class="progress-fill green" style="width:'+overPct+'%"></div></div>';
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
+  html += '<div class="info-grid-auto" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
   html += infoChip('Waktu Mulai',state.waktuMulai);
   html += infoChip('Waktu Selesai',state.waktuSelesai||(overPct>=100?'Selesai':'Berjalan...'));
   html += infoChip('Durasi',durationStr(state.waktuMulai,state.waktuSelesai));
@@ -1135,7 +1233,7 @@ function renderTransitPage(state) {
   html += tlItem(dik>0?'green':'gray','Dikuliti',dik+' hewan',true);
   html += '</div></div>';
   html += '<div class="card"><div style="font-weight:700;margin-bottom:14px">Waktu Transit</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+  html += '<div class="info-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
   html += infoChip('Mulai',t.waktuMulai);
   html += infoChip('Selesai',t.waktuSelesai);
   html += infoChip('Durasi',durationStr(t.waktuMulai,t.waktuSelesai));
@@ -1167,7 +1265,7 @@ function renderPengulitanPage(state) {
   });
   html += '</div>';
   if (state.pengulitanMulai || state.pengulitanSelesai) {
-    html += '<div class="card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
+    html += '<div class="card"><div class="info-grid-auto" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">';
     html += infoChip('Mulai',state.pengulitanMulai);
     html += infoChip('Selesai',state.pengulitanSelesai);
     html += infoChip('Durasi',durationStr(state.pengulitanMulai,state.pengulitanSelesai));
@@ -1195,14 +1293,14 @@ function renderKarkasPage(state) {
   if (feat.karkas) {
     html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Progress Karkas</div>';
     html += '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">Karkas</span><span class="progress-pct">'+pct(karkasT,dik)+'%</span></div><div class="progress-bar" style="height:12px"><div class="progress-fill amber" style="width:'+pct(karkasT,dik)+'%"></div></div></div>';
-    html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+    html += '<div class="info-grid-3" style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
     html += infoChip('Mulai',state.karkas?.waktuMulai)+infoChip('Selesai',state.karkas?.waktuSelesai)+infoChip('Durasi',durationStr(state.karkas?.waktuMulai,state.karkas?.waktuSelesai));
     html += '</div></div>';
   }
   if (feat.abf) {
     html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Keluar ABF</div>';
     html += '<div class="progress-wrap"><div class="progress-label-row"><span class="progress-label">ABF</span><span class="progress-pct">'+pct(abfK,karkasT)+'%</span></div><div class="progress-bar" style="height:12px"><div class="progress-fill purple" style="width:'+pct(abfK,karkasT||1)+'%"></div></div></div>';
-    html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+    html += '<div class="info-grid-3" style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
     html += infoChip('Mulai',state.abf?.waktuMulai)+infoChip('Selesai',state.abf?.waktuSelesai)+infoChip('Durasi',durationStr(state.abf?.waktuMulai,state.abf?.waktuSelesai));
     html += '</div></div>';
   }
@@ -1252,7 +1350,7 @@ function renderPackingPage(state) {
   if (feat.packingKecil) {
     html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Packing Kecil</div>';
     html += '<div style="font-size:36px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--blue);margin-bottom:12px">'+(pk.total||0)+'</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',pk.waktuMulai)+infoChip('Selesai',pk.waktuSelesai)+infoChip('Durasi',durationStr(pk.waktuMulai,pk.waktuSelesai))+'</div></div>';
+    html += '<div class="info-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',pk.waktuMulai)+infoChip('Selesai',pk.waktuSelesai)+infoChip('Durasi',durationStr(pk.waktuMulai,pk.waktuSelesai))+'</div></div>';
   }
   if (feat.packingKarkas) {
     html += '<div class="card"><div style="font-weight:700;margin-bottom:16px">Packing Karkas - Total '+pkkTotal+'</div>';
@@ -1260,7 +1358,7 @@ function renderPackingPage(state) {
     html += '<div style="text-align:center"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Domba/Kambing</div><div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--amber)">'+pkkDomba+'</div></div>';
     html += '<div style="text-align:center"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Sapi</div><div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--purple)">'+pkkSapi+'</div></div>';
     html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',pkk.waktuMulai)+infoChip('Selesai',pkk.waktuSelesai)+infoChip('Durasi',durationStr(pkk.waktuMulai,pkk.waktuSelesai))+'</div></div>';
+    html += '<div class="info-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',pkk.waktuMulai)+infoChip('Selesai',pkk.waktuSelesai)+infoChip('Durasi',durationStr(pkk.waktuMulai,pkk.waktuSelesai))+'</div></div>';
   }
   html += '</div>';
   return html;
@@ -1286,7 +1384,7 @@ function renderDistKecilPage(state) {
   html += '<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div style="font-weight:700;font-size:16px">Daftar Lokasi - '+dkS+' / '+dkT+' Selesai</div></div>';
   html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Progress</span><span class="progress-pct">'+p1+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill green" style="width:'+p1+'%"></div></div></div>';
   if (dkL.length > 0) {
-    html += '<div style="overflow-x:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm)"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">#</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Lokasi</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Jumlah</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Status</th></tr></thead><tbody>';
+    html += '<div class="table-responsive" style="overflow-x:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm)"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">#</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Lokasi</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Jumlah</th><th style="background:var(--surface2);padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Status</th></tr></thead><tbody>';
     dkL.forEach(function(lok, idx) {
       var badge = lok.status === 'selesai' ? 'status-selesai' : 'status-berjalan';
       var label = lok.status === 'selesai' ? 'Selesai' : 'Proses';
@@ -1296,7 +1394,7 @@ function renderDistKecilPage(state) {
   } else {
     html += '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Belum ada data lokasi distribusi</div>';
   }
-  html += '<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dk.waktuMulai)+infoChip('Selesai',dk.waktuSelesai)+infoChip('Durasi',durationStr(dk.waktuMulai,dk.waktuSelesai))+'</div></div>';
+  html += '<div class="info-grid-3" style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dk.waktuMulai)+infoChip('Selesai',dk.waktuSelesai)+infoChip('Durasi',durationStr(dk.waktuMulai,dk.waktuSelesai))+'</div></div>';
   return html;
 }
 
@@ -1318,7 +1416,7 @@ function renderDistKarkasPage(state) {
   html += '<div class="card" style="margin-bottom:20px"><div style="font-weight:700;font-size:16px;margin-bottom:16px">Progress Distribusi Karkas - '+sTotal+' / '+totalDK+' Selesai</div>';
   html += '<div class="progress-wrap" style="margin-bottom:12px"><div class="progress-label-row"><span class="progress-label">Domba/Kambing</span><span class="progress-pct">'+pct(sDomba,domba||1)+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill amber" style="width:'+pct(sDomba,domba||1)+'%"></div></div></div>';
   html += '<div class="progress-wrap" style="margin-bottom:16px"><div class="progress-label-row"><span class="progress-label">Sapi</span><span class="progress-pct">'+pct(sSapi,sapi||1)+'%</span></div><div class="progress-bar" style="height:10px"><div class="progress-fill purple" style="width:'+pct(sSapi,sapi||1)+'%"></div></div></div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dkk.waktuMulai)+infoChip('Selesai',dkk.waktuSelesai)+infoChip('Durasi',durationStr(dkk.waktuMulai,dkk.waktuSelesai))+'</div></div>';
+  html += '<div class="info-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+infoChip('Mulai',dkk.waktuMulai)+infoChip('Selesai',dkk.waktuSelesai)+infoChip('Durasi',durationStr(dkk.waktuMulai,dkk.waktuSelesai))+'</div></div>';
   return html;
 }
 
@@ -1793,7 +1891,7 @@ function mwPieChart(segments, centerVal, centerLabel, title) {
   segments.forEach(function(s){var p=s.v/total*100;gradParts.push(s.c+' '+cum+'% '+(cum+p)+'%');cum+=p;});
   var h = '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">' + title + '</div>';
   h += '<div style="display:flex;align-items:center;justify-content:center;gap:32px;padding:16px 0;flex-wrap:wrap">';
-  h += '<div style="width:200px;height:200px;border-radius:50%;position:relative;background:conic-gradient('+gradParts.join(',')+')">';
+  h += '<div class="mon-pie" style="width:200px;height:200px;border-radius:50%;position:relative;background:conic-gradient('+gradParts.join(',')+')">';
   h += '<div style="position:absolute;inset:22%;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center">';
   h += '<div style="font-size:28px;font-weight:800;font-family:\'JetBrains Mono\',monospace">'+centerVal+'</div>';
   h += '<div style="font-size:11px;color:var(--text-muted);font-weight:600">'+centerLabel+'</div></div></div>';
@@ -1806,7 +1904,7 @@ function mwPieChart(segments, centerVal, centerLabel, title) {
 
 function mwWaktu(state) {
   return '<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:15px;margin-bottom:16px">Waktu Proses</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">'+
+    '<div class="info-grid-auto" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">'+
     '<div class="info-chip"><div class="info-chip-label">Mulai</div><div class="info-chip-val mono">'+(state.waktuMulai||'-')+'</div></div>'+
     '<div class="info-chip"><div class="info-chip-label">Selesai</div><div class="info-chip-val mono">'+(state.waktuSelesai||'-')+'</div></div>'+
     '<div class="info-chip"><div class="info-chip-label">Durasi</div><div class="info-chip-val mono">'+durationStr(state.waktuMulai,state.waktuSelesai)+'</div></div>'+
@@ -1841,7 +1939,7 @@ function mwTransit(state) {
     '<div class="mon-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
     monStatCard('blue','Kaki & Kepala',t.kakiKepala||0,'Tersedia')+monStatCard('amber','Hewan Transit',hewanTransit,'Menunggu')+monStatCard('green','Disembelih',dip,'Total')+monStatCard('purple','Dikuliti',dik,'Total')+
     '</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px">'+infoChip('Mulai',t.waktuMulai)+infoChip('Selesai',t.waktuSelesai)+infoChip('Durasi',durationStr(t.waktuMulai,t.waktuSelesai))+'</div></div>';
+    '<div class="info-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px">'+infoChip('Mulai',t.waktuMulai)+infoChip('Selesai',t.waktuSelesai)+infoChip('Durasi',durationStr(t.waktuMulai,t.waktuSelesai))+'</div></div>';
 }
 
 function mwPengulitan(state) {
@@ -1874,7 +1972,7 @@ function mwKarkasAbf(state, feat) {
 function mwCacah(state) {
   var dc=totalDicacahDay(state), dab=state.cacahDariAbf||0;
   var h='<div class="card" style="margin-bottom:24px"><div style="font-weight:700;font-size:18px;margin-bottom:20px">Pencacahan - '+dc+' dicacah'+(dab?' (+'+dab+' dari ABF)':'')+'</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
+  h+='<div class="grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
   (state.cacah||[]).forEach(function(c){
     var col=c.status==='selesai'?'var(--green)':c.status==='berjalan'?'var(--blue)':'var(--maroon)';
     h+='<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:18px;border-left:4px solid '+col+'"><div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Meja #'+c.no+'</div><div style="font-size:32px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:'+col+';line-height:1">'+(c.total||0)+'</div><div style="margin-top:8px"><span class="status-badge '+statusClass(c.status)+'" style="font-size:11px">'+statusLabel(c.status)+'</span></div></div>';
@@ -1955,7 +2053,7 @@ function renderMonitorDashboard() {
       if(w.id==='chart-bar') html+=mwBarChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),'Chart Bar - Proses Utama');
       if(w.id==='chart-pie') html+=mwPieChart(procBars.map(function(b,j){return{v:vals[j],l:b.l,c:b.c}}),pct(tDist,tT)+'%','Progress','Chart Lingkaran - Proses Utama');
       if(w.id==='day-summary') html+=mwDaySummary();
-      if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
+      if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div class="mon-clock-big" style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
     });
   } else {
     var state = getState();
@@ -1979,7 +2077,7 @@ function renderMonitorDashboard() {
         if(w.id==='packing') html+=mwPacking(state);
         if(w.id==='distribusi') html+=mwDistribusi(state);
         if(w.id==='waktu') html+=mwWaktu(state);
-        if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
+        if(w.id==='clock') html+='<div class="card" style="text-align:center;margin-bottom:24px;padding:32px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Waktu WIB</div><div class="mon-clock-big" style="font-size:72px;font-weight:800;font-family:\'JetBrains Mono\',monospace;color:var(--green);line-height:1">'+timeStr+'</div></div>';
         if(w.id==='day-summary') html+=mwDaySummary();
       });
     }
