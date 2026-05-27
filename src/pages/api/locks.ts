@@ -24,7 +24,13 @@ export async function POST({ request }: APIContext) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    await acquireLock(field_id, device_id);
+    const success = await acquireLock(field_id, device_id);
+    if (!success) {
+      return new Response(JSON.stringify({ ok: false, error: 'Field is currently locked by another device' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });

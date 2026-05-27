@@ -947,11 +947,39 @@ function saveElementDelta(el) {
 
 function acquireFieldLock(fieldId) {
   if (!window.qurbanDeviceId || !fieldId) return;
+  
+  if (!navigator.onLine) {
+    toast('Gagal mengunci: Anda sedang offline! Perubahan tidak akan disimpan.', 'error');
+    var el = document.getElementById(fieldId);
+    if (el) el.blur();
+    return;
+  }
+
   fetch('/api/locks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ field_id: fieldId, device_id: window.qurbanDeviceId })
-  }).catch(function(){});
+  })
+  .then(function(res) {
+    if (res.status === 409) {
+      // Stolen or occupied lock! Force blur & disable immediately
+      var el = document.getElementById(fieldId);
+      if (el) {
+        el.blur();
+        el.disabled = true;
+      }
+      fetchActiveLocks().then(function() {
+        renderCurrentPage();
+      });
+      toast('Kolom ini sedang diedit oleh perangkat lain! Perubahan Anda dibatalkan.', 'error');
+    } else if (!res.ok) {
+      throw new Error('HTTP ' + res.status);
+    }
+  })
+  .catch(function(err) {
+    console.error('Lock acquisition failed:', err);
+    toast('Gagal mengunci kolom karena masalah koneksi.', 'error');
+  });
 }
 
 function releaseFieldLock(fieldId) {
@@ -960,7 +988,11 @@ function releaseFieldLock(fieldId) {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ field_id: fieldId, device_id: window.qurbanDeviceId })
-  }).catch(function(){});
+  })
+  .then(function(res) {
+    if (!res.ok) console.warn('Unlock failed on server status:', res.status);
+  })
+  .catch(function(){});
 }
 
 function fetchActiveLocks() {
@@ -1799,22 +1831,19 @@ function addDistKecilRow() {
   if (!state.distribusiKecil) state.distribusiKecil = {lokasi:[],waktuMulai:'',waktuSelesai:''};
   if (!state.distribusiKecil.lokasi) state.distribusiKecil.lokasi = [];
   state.distribusiKecil.lokasi.push({nama:'',jumlah:0,status:'proses'});
-  dirtyDays[currentView] = true;
-  saveDayState(currentView);
+  saveDayStateDelta(currentView, 'distribusiKecil.lokasi', state.distribusiKecil.lokasi);
   renderCurrentPage();
 }
 function removeDistKecilRow(idx) {
   var state = getState(); if (!state || !state.distribusiKecil || !state.distribusiKecil.lokasi) return;
   state.distribusiKecil.lokasi.splice(idx, 1);
-  dirtyDays[currentView] = true;
-  saveDayState(currentView);
+  saveDayStateDelta(currentView, 'distribusiKecil.lokasi', state.distribusiKecil.lokasi);
   renderCurrentPage();
 }
 function updateDistKecilRow(idx, field, val) {
   var state = getState(); if (!state || !state.distribusiKecil || !state.distribusiKecil.lokasi) return;
   if (state.distribusiKecil.lokasi[idx]) state.distribusiKecil.lokasi[idx][field] = val;
-  dirtyDays[currentView] = true;
-  saveDayState(currentView);
+  saveDayStateDelta(currentView, 'distribusiKecil.lokasi', state.distribusiKecil.lokasi);
 }
 function distKecilNumStep(idx, dir) {
   var el = document.getElementById('dk_jumlah_'+idx); if (!el) return;

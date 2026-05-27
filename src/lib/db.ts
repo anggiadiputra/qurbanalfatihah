@@ -292,14 +292,30 @@ export async function patchState(path: string, value: unknown) {
   `;
 }
 
-export async function acquireLock(fieldId: string, deviceId: string) {
+export async function acquireLock(fieldId: string, deviceId: string): Promise<boolean> {
   const sql = createSql();
+  
+  // Clean up expired locks first to ensure we don't block on dead locks
+  await sql`DELETE FROM qurban_locks WHERE updated_at < NOW() - INTERVAL '10 seconds'`;
+  
+  // Check if there is an active lock by another device
+  const existing = await sql`
+    SELECT device_id FROM qurban_locks WHERE field_id = ${fieldId}
+  `;
+  
+  if (existing.length > 0 && existing[0].device_id !== deviceId) {
+    // Lock is held by another device, cannot acquire
+    return false;
+  }
+  
+  // Safe to acquire or refresh
   await sql`
     INSERT INTO qurban_locks (field_id, device_id, updated_at)
     VALUES (${fieldId}, ${deviceId}, NOW())
     ON CONFLICT (field_id) DO UPDATE
     SET device_id = ${deviceId}, updated_at = NOW()
   `;
+  return true;
 }
 
 export async function releaseLock(fieldId: string, deviceId: string) {
