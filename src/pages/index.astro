@@ -11,6 +11,7 @@ const role = getRole(auth) || 'viewer';
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Lato:wght@300;400;700&family=Lexend:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Rubik:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script is:inline src="https://unpkg.com/lucide@latest"></script>
 
 <style is:global>
 :root {
@@ -617,7 +618,7 @@ body[data-role="editor"] .admin-only{display:none!important}
   <!-- Main Content -->
   <div class="main-content">
     <header class="header">
-      <button class="header-toggle" id="sidebarToggle">&#9776;</button>
+      <button class="header-toggle" id="sidebarToggle"><i data-lucide="menu" style="width:20px;height:20px"></i></button>
       <div>
         <div class="header-title" id="headerTitle">Dashboard</div>
       </div>
@@ -1074,28 +1075,32 @@ function updateHeaderTitle() {
 function renderSidebar() {
   var html = '';
   if (currentView === 'all') {
-    html += navItem('dashboard','Dashboard','&#128202;') +
-            navItem('ringkasan','Ringkasan per Day','&#128203;') +
+    html += navItem('dashboard','Dashboard','layout-dashboard') +
+            navItem('ringkasan','Ringkasan per Day','clipboard-list') +
             '<div class="nav-section-label editor-only">Manajemen</div>' +
-            navItem('pengaturan','Pengaturan','&#9881;','admin-only');
+            navItem('pengaturan','Pengaturan','settings','admin-only');
   } else {
     var feat = getFeatureConfig(currentView);
     html += '<div class="nav-section-label">Monitoring</div>';
-    html += navItem('dashboard','Dashboard','&#128202;');
-    if (feat.kandang) html += navItem('kandang','Kandang','&#127968;');
-    if (feat.sembelih) html += navItem('sembelih','Penyembelihan','&#128298;');
-    if (feat.transit) html += navItem('transit','Transit','&#128260;');
-    if (feat.pengulitan) html += navItem('pengulitan','Pengulitan','&#9881;');
-    if (feat.karkas || feat.abf) html += navItem('karkas','Karkas & ABF','&#128230;');
-    if (feat.cacah) html += navItem('cacah','Pencacahan','&#9986;');
-    if (feat.packingKecil || feat.packingKarkas) html += navItem('packing','Packing','&#128230;');
-    if (feat.distribusiKecil) html += navItem('distKecil','Distribusi Kecil','&#128666;');
-    if (feat.distribusiKarkas) html += navItem('distKarkas','Distribusi Karkas','&#128666;');
+    html += navItem('dashboard','Dashboard','layout-dashboard');
+    if (feat.kandang) html += navItem('kandang','Kandang','home');
+    if (feat.sembelih) html += navItem('sembelih','Penyembelihan','scissors');
+    if (feat.transit) html += navItem('transit','Transit','shuffle');
+    if (feat.pengulitan) html += navItem('pengulitan','Pengulitan','hammer');
+    if (feat.karkas || feat.abf) html += navItem('karkas','Karkas & ABF','package');
+    if (feat.cacah) html += navItem('cacah','Pencacahan','scissors');
+    if (feat.packingKecil || feat.packingKarkas) html += navItem('packing','Packing','package');
+    if (feat.distribusiKecil) html += navItem('distKecil','Distribusi Kecil','truck');
+    if (feat.distribusiKarkas) html += navItem('distKarkas','Distribusi Karkas','truck');
     html += '<div class="nav-section-label editor-only">Manajemen</div>';
-    html += navItem('input','Input Data','&#9999;','editor-only');
-    html += navItem('pengaturan','Pengaturan','&#9881;','admin-only');
+    html += navItem('input','Input Data','edit-3','editor-only');
+    html += navItem('pengaturan','Pengaturan','settings','admin-only');
   }
   document.getElementById('sidebarNavItems').innerHTML = html;
+  
+  // Render Lucide icons in sidebar
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
   // Bind clicks
   document.querySelectorAll('#sidebarNavItems .nav-item').forEach(function(el) {
     el.addEventListener('click', function() { navigate(el.dataset.page); });
@@ -1104,7 +1109,7 @@ function renderSidebar() {
 
 function navItem(page, label, icon, cls) {
   var active = currentPage === page ? ' active' : '';
-  return '<div class="nav-item' + active + (cls ? ' ' + cls : '') + '" data-page="' + page + '"><span class="nav-icon">' + icon + '</span><span class="nav-label">' + label + '</span></div>';
+  return '<div class="nav-item' + active + (cls ? ' ' + cls : '') + '" data-page="' + page + '"><span class="nav-icon"><i data-lucide="' + icon + '" style="width:16px;height:16px"></i></span><span class="nav-label">' + label + '</span></div>';
 }
 
 // ================================================================
@@ -1226,6 +1231,7 @@ function renderCurrentPage() {
     else container.innerHTML = '';
   }
   setupPageListeners();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function setupPageListeners() {
@@ -1770,7 +1776,7 @@ function renderInputPage(state) {
         html += '<input type="text" class="form-control" placeholder="Nama lokasi" value="'+(lok.nama||'')+'" style="width:100%" onchange="updateDistKecilRow('+idx+',\'nama\',this.value)">';
         html += '<div class="num-input-wrap" style="width:130px"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',-1)">-</button><input type="number" class="form-control" id="dk_jumlah_'+idx+'" value="'+(lok.jumlah||0)+'" min="0" onchange="updateDistKecilRow('+idx+',\'jumlah\',Number(this.value))"><button type="button" class="num-btn" onclick="distKecilNumStep('+idx+',1)">+</button></div>';
         html += '<select class="form-control" style="width:100px" onchange="updateDistKecilRow('+idx+',\'status\',this.value)"><option value="proses"'+(lok.status==='proses'?' selected':'')+'>Proses</option><option value="selesai"'+(lok.status==='selesai'?' selected':'')+'>Selesai</option></select>';
-        html += '<button style="background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="removeDistKecilRow('+idx+')">&#x2715;</button>';
+        html += '<button style="background:var(--maroon-light);color:var(--maroon);border:none;border-radius:6px;padding:6px 8px;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="removeDistKecilRow('+idx+')"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>';
         html += '</div></div>';
       });
     }
