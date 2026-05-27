@@ -647,8 +647,10 @@ function loadAllStates() {
     var saves = [];
     if (d) {
       for (var i = 1; i <= 4; i++) {
-        if (dirtyDays[i]) continue;
+        if (dirtyDays[i]) { console.log('[LOAD] skip day='+i+' (dirty)'); continue; }
         var raw = d[String(i)] || defaultDayState();
+        var rk1 = raw&&raw.kandang?raw.kandang[0].keluar:'-';
+        console.log('[LOAD] day='+i+' kandang1.keluar='+rk1+(raw===d[String(i)]?' (from API)':' (default)'));
         if (!migrationDone) {
           var result = migrateState(raw);
           dayStates[i] = result.state;
@@ -671,10 +673,14 @@ function loadAllStates() {
 }
 
 function saveDayState(day) {
-  if (isSaving) { pendingSave = day; return Promise.resolve(); }
+  if (isSaving) { pendingSave = day; console.log('[SAVE] queued day='+day+' (busy)'); return Promise.resolve(); }
   isSaving = true; showSaveIndicator(true);
-  return fetch('/api/day-state?day='+day, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dayStates[day])})
-    .catch(function() { toast('Gagal menyimpan','error'); })
+  var snapshot = JSON.stringify(dayStates[day]);
+  var k1val = dayStates[day]&&dayStates[day].kandang?dayStates[day].kandang[0].keluar:'-';
+  console.log('[SAVE] day='+day+' kandang1.keluar='+k1val+' size='+snapshot.length);
+  return fetch('/api/day-state?day='+day, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:snapshot})
+    .then(function(r) { if(!r.ok) throw new Error('HTTP '+r.status); console.log('[SAVE] day='+day+' OK'); })
+    .catch(function(e) { console.error('[SAVE] day='+day+' FAIL',e); toast('Gagal menyimpan','error'); })
     .then(function() {
       isSaving=false; showSaveIndicator(false);
       delete dirtyDays[day];
@@ -1518,6 +1524,7 @@ function collectCurrentFormData() {
   var gi = function(id) { var v = parseInt(gv(id)); return isNaN(v) ? 0 : v; };
 
   state.totalHewan = gi('inp_totalHewan');
+  console.log('[COLLECT] day='+currentView+' totalHewan='+state.totalHewan+' kandang1_dom='+gv('f_kandang_keluar_1'));
   state.tanggal = gv('inp_tanggal');
   state.waktuMulai = gv('inp_waktuMulai');
   state.waktuSelesai = gv('inp_waktuSelesai');
@@ -2085,8 +2092,8 @@ function toggleDark() {
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(function() {
-    if (currentPage === 'input' || currentPage === 'pengaturan') return;
-    if (isSaving || pendingSave || saveTimeout) return;
+    if (currentPage === 'input' || currentPage === 'pengaturan') { return; }
+    if (isSaving || pendingSave || saveTimeout) { console.log('[REFRESH] skip (saving='+isSaving+' pending='+!!pendingSave+' timeout='+!!saveTimeout+')'); return; }
     loadAllStates().then(function() {
       return loadSettings();
     }).then(function() {
