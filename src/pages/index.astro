@@ -704,7 +704,7 @@ function showSaveIndicator(show) {
 
 function queueDaySave(day) {
   if (saveTimeout) clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(function() { saveDayState(day); }, 400);
+  saveTimeout = setTimeout(function() { saveTimeout = null; saveDayState(day); }, 400);
 }
 
 // ================================================================
