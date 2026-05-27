@@ -1726,7 +1726,7 @@ function renderMonitorWidgetBar() {
       var toIdx = monitorWidgetReg.findIndex(function(w) { return w.id === toId; });
       if (fromIdx < 0 || toIdx < 0) return;
       var item = monitorWidgetReg.splice(fromIdx, 1)[0]; monitorWidgetReg.splice(toIdx, 0, item);
-      widgetToggleCooldown = Date.now() + 3000; saveMonitorWidgets(); renderMonitorWidgetBar(); renderMonitorDashboard();
+      widgetToggleCooldown = Date.now() + 5000; saveMonitorWidgets(); renderMonitorWidgetBar(); renderMonitorDashboard();
     });
   });
 }
@@ -1872,17 +1872,19 @@ var widgetToggleCooldown = 0;
 function monitorTick() {
   if (monitorTickBusy) return;
   monitorTickBusy = true;
+  var skipSettings = Date.now() < widgetToggleCooldown || isSettingsSaving || pendingSettingsSave;
   loadAllStates().then(function() {
+    if (skipSettings) return Promise.resolve();
     return loadSettings();
   }).then(function() {
-    if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
-      window.location.reload(); return;
-    }
-    lastKnownForceTs = settings.forceRefreshTs || 0;
-    var shouldDark = !!settings.darkMode;
-    if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
-    applyTheme(loadTheme());
-    if (Date.now() > widgetToggleCooldown) {
+    if (!skipSettings) {
+      if (settings.forceRefreshTs && settings.forceRefreshTs > lastKnownForceTs && lastKnownForceTs > 0) {
+        window.location.reload(); return;
+      }
+      lastKnownForceTs = settings.forceRefreshTs || 0;
+      var shouldDark = !!settings.darkMode;
+      if (shouldDark !== document.body.classList.contains('dark')) document.body.classList.toggle('dark', shouldDark);
+      applyTheme(loadTheme());
       loadMonitorWidgets();
       renderMonitorWidgetBar();
     }
@@ -2254,7 +2256,7 @@ function setupEventListeners() {
     if (!w) return;
     w.on = !w.on;
     tog.classList.toggle('on', w.on);
-    widgetToggleCooldown = Date.now() + 3000;
+    widgetToggleCooldown = Date.now() + 5000;
     saveMonitorWidgets();
     renderMonitorDashboard();
   });
